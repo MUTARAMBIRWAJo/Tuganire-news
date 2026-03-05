@@ -6,11 +6,12 @@ import HeroSection from "@/components/editorial/HeroSection"
 import FeaturedSideList from "@/components/editorial/FeaturedSideList"
 import SectionBlock from "@/components/editorial/SectionBlock"
 import TrendingRail from "@/components/TrendingRail"
-import { getBreaking, getFeaturedHero, getTrending, getLatestByCategoryRows, getEditorsPicks, getMostPopular, getMostLiked, getMostCommented, getPhotoGallery } from "@/lib/homeQueries"
+import { getBreaking, getFeaturedHero, getTrending, getLatestByCategoryRows, getEditorsPicks, getMostPopular, getMostLiked, getMostCommented, getPhotoGallery, getLatestArticles } from "@/lib/homeQueries"
 import EditorsPicksSection from "@/components/EditorsPicksSection"
 import MostPopularSection from "@/components/MostPopularSection"
 import MostLikedSection from "@/components/MostLikedSection"
 import MostCommentedSection from "@/components/MostCommentedSection"
+import LatestArticlesSection from "@/components/LatestArticlesSection"
 import NewsletterSignup from "@/components/NewsletterSignup"
 import PhotoGallery from "@/components/PhotoGallery"
 import WeatherWidget from "@/components/WeatherWidget"
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const [breaking, hero, trending, rows, editorsPicks, mostPopular, mostLiked, mostCommented, photoGallery] = await Promise.all([
+  const [breaking, hero, trending, rows, editorsPicks, mostPopular, mostLiked, mostCommented, photoGallery, latestArticles] = await Promise.all([
     getBreaking(10),
     getFeaturedHero(),
     getTrending(12),
@@ -57,7 +58,8 @@ export default async function HomePage() {
     getMostPopular(6, 7), // Last 7 days
     getMostLiked(6),
     getMostCommented(6, 30),
-    getPhotoGallery(8)
+    getPhotoGallery(8),
+    getLatestArticles(6)
   ])
 
   // Get side stories for hero section (next 3 trending articles)
@@ -78,6 +80,11 @@ export default async function HomePage() {
         <section className="relative">
           <HeroSection item={hero as any} sideStories={sideStories as any} />
         </section>
+
+        {/* Latest Articles */}
+        {latestArticles && (latestArticles as any[]).length > 0 && (
+          <LatestArticlesSection items={latestArticles as any} />
+        )}
 
         {/* Hero Ad */}
         <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
