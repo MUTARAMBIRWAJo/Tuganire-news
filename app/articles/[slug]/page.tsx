@@ -268,37 +268,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </div>
             )}
 
-            {/* Media Gallery */}
-            {gallery.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Gallery</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {gallery.map((m) => (
-                    <div key={m.url} className="relative overflow-hidden rounded-xl bg-gray-100 w-full aspect-[4/3] h-[180px] flex items-center justify-center">
-                      {m.type === "image" && (
-                        <Image
-                          src={m.url}
-                          alt={article.title}
-                          fill
-                          loading="lazy"
-                          className="object-cover object-center w-full h-full rounded-lg"
-                          sizes="(max-width: 768px) 50vw, 30vw"
-                        />
-                      )}
-                      {m.type === "video" && (
-                        <video src={m.url} controls className="h-full w-full object-cover" />
-                      )}
-                      {m.type === "audio" && (
-                        <div className="flex h-full w-full items-center justify-center bg-slate-100 dark:bg-slate-800 p-3">
-                          <audio src={m.url} controls className="w-full" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Article Content */}
             {article.content && (
               <>
