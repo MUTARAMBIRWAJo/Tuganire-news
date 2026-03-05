@@ -1,10 +1,9 @@
 "use client";
 import useSWRInfinite from 'swr/infinite';
 import useSWR from 'swr';
-import Link from 'next/link';
-import Image from 'next/image';
 import { useEffect, useMemo, useRef } from 'react';
 import ArticleCardSkeleton from '@/components/ArticleCardSkeleton';
+import { ArticleCard } from '@/components/article-card';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -79,40 +78,51 @@ export default function ArticlesList({ initialFilters, pageSize = 12, infinite =
 
   return (
     <section className="mx-auto max-w-7xl px-4">
-      <div className="mb-3 text-sm text-neutral-600">{total ? `${items.length} of ${total}` : null}</div>
+      <div className="mb-6 text-sm text-gray-600 dark:text-gray-400 font-medium">{total ? `Showing ${items.length} of ${total} articles` : null}</div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading
           ? Array.from({ length: pageSize }).map((_, i) => <ArticleCardSkeleton key={i} />)
           : items.map((a, idx) => (
-              <Link key={a?.id ?? idx} href={a?.slug ? `/articles/${a.slug}` : '#'} className="group">
-                <div className="relative h-48 w-full overflow-hidden rounded bg-neutral-200">
-                  {a?.featured_image ? (
-                    <Image src={a.featured_image} alt={a?.title ?? ''} fill className="object-cover transition-transform group-hover:scale-[1.03]" />
-                  ) : null}
-                </div>
-                <div className="mt-2 text-sm text-neutral-500">{a?.category?.name}</div>
-                <h3 className="line-clamp-2 font-semibold">{a?.title ?? ''}</h3>
-                {a?.author?.display_name ? (
-                  <div className="mt-1 text-sm text-neutral-500">By {a.author.display_name}</div>
-                ) : null}
-              </Link>
+              <ArticleCard 
+                key={a?.id ?? idx} 
+                article={{
+                  id: a?.id,
+                  slug: a?.slug,
+                  title: a?.title ?? '',
+                  excerpt: a?.excerpt,
+                  featured_image: a?.featured_image,
+                  published_at: a?.published_at,
+                  status: a?.status,
+                  views_count: a?.views_count,
+                  comments_count: a?.comments_count,
+                  likes_count: a?.likes_count,
+                  category: a?.category,
+                  author: a?.author,
+                  content: a?.content,
+                  created_at: a?.created_at,
+                  updated_at: a?.updated_at,
+                  article_type: a?.article_type,
+                  youtube_link: a?.youtube_link,
+                } as any}
+                compact={true}
+              />
             ))}
       </div>
       {/* Controls */}
       {!controlled && (
-        <div className="mt-6 flex flex-col items-center gap-3">
+        <div className="mt-8 flex flex-col items-center gap-4">
           {!isEnd && !infinite && (
             <button
               type="button"
               onClick={() => setSize(size + 1)}
-              className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoadingMore}
             >
               {isLoadingMore ? 'Loading…' : 'Load more'}
             </button>
           )}
           {infinite && <div ref={sentinelRef} className="h-10" />}
-          {isEnd && <div className="text-sm text-neutral-500">You reached the end.</div>}
+          {isEnd && <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">You reached the end of articles.</div>}
         </div>
       )}
     </section>
