@@ -25,8 +25,8 @@ export default function FeaturedSideList({ items = [] }: FeaturedSideListProps) 
   }
 
   return (
-    <div className="space-y-4">
-      {items.slice(0, 3).map((item, index) => (
+    <div className="space-y-3">
+      {items.map((item, index) => (
         <article
           key={item.slug}
           className="group bg-white dark:bg-slate-800 rounded-lg overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"

@@ -11,7 +11,6 @@ import EditorsPicksSection from "@/components/EditorsPicksSection"
 import MostPopularSection from "@/components/MostPopularSection"
 import MostLikedSection from "@/components/MostLikedSection"
 import MostCommentedSection from "@/components/MostCommentedSection"
-import LatestArticlesSection from "@/components/LatestArticlesSection"
 import NewsletterSignup from "@/components/NewsletterSignup"
 import PhotoGallery from "@/components/PhotoGallery"
 import WeatherWidget from "@/components/WeatherWidget"
@@ -62,8 +61,15 @@ export default async function HomePage() {
     getLatestArticles(6)
   ])
 
-  // Get side stories for hero section (next 3 trending articles)
-  const sideStories = (trending as any[]).slice(0, 3)
+  // Get side stories for hero section (latest 6 articles)
+  const sideStories = (latestArticles as any[]).map((article: any) => ({
+    slug: article.slug,
+    title: article.title,
+    featured_image: article.featured_image,
+    published_at: article.published_at,
+    views_count: article.views_count,
+    categories: article.category,
+  }))
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
@@ -80,11 +86,6 @@ export default async function HomePage() {
         <section className="relative">
           <HeroSection item={hero as any} sideStories={sideStories as any} />
         </section>
-
-        {/* Latest Articles */}
-        {latestArticles && (latestArticles as any[]).length > 0 && (
-          <LatestArticlesSection items={latestArticles as any} />
-        )}
 
         {/* Hero Ad */}
         <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
