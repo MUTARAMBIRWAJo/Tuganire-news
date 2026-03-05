@@ -557,3 +557,49 @@ export async function getLatestArticles(limit = 6) {
   return withCounts ?? [];
 }
 
+
+export async function getLatestArticlesOffset(offset = 6, limit = 6) {
+  const { data, error } = await sb
+    .from('articles')
+    .select(`
+      id, slug, title, excerpt, featured_image, published_at, views_count,
+      category:category_id ( id, name, slug ),
+      author:author_id ( id, display_name, avatar_url )
+    `)
+    .eq('status', 'published')
+    .not('published_at', 'is', null)
+    .lte('published_at', new Date().toISOString())
+    .order('published_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  
+  if (error) throw error;
+  
+  // Attach approved comments_count per item
+  const withCounts = await Promise.all(
+    (data || []).map(async (a: any) => {
+      if (!a?.slug) return { ...a, comments_count: 0 };
+      try {
+        const { count } = await sb
+          .from('comments')
+          .select('id', { count: 'exact', head: true })
+          .eq('article_slug', a.slug)
+          .eq('status', 'approved');
+        return { 
+          ...a, 
+          comments_count: count ?? 0,
+          author: Array.isArray(a.author) ? a.author[0] : a.author,
+          category: Array.isArray(a.category) ? a.category[0] : a.category,
+        };
+      } catch {
+        return { 
+          ...a, 
+          comments_count: 0,
+          author: Array.isArray(a.author) ? a.author[0] : a.author,
+          category: Array.isArray(a.category) ? a.category[0] : a.category,
+        };
+      }
+    })
+  );
+  
+  return withCounts ?? [];
+}

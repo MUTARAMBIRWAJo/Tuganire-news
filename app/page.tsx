@@ -6,11 +6,12 @@ import HeroSection from "@/components/editorial/HeroSection"
 import FeaturedSideList from "@/components/editorial/FeaturedSideList"
 import SectionBlock from "@/components/editorial/SectionBlock"
 import TrendingRail from "@/components/TrendingRail"
-import { getBreaking, getFeaturedHero, getTrending, getLatestByCategoryRows, getEditorsPicks, getMostPopular, getMostLiked, getMostCommented, getPhotoGallery, getLatestArticles } from "@/lib/homeQueries"
+import { getBreaking, getFeaturedHero, getTrending, getLatestByCategoryRows, getEditorsPicks, getMostPopular, getMostLiked, getMostCommented, getPhotoGallery, getLatestArticles, getLatestArticlesOffset } from "@/lib/homeQueries"
 import EditorsPicksSection from "@/components/EditorsPicksSection"
 import MostPopularSection from "@/components/MostPopularSection"
 import MostLikedSection from "@/components/MostLikedSection"
 import MostCommentedSection from "@/components/MostCommentedSection"
+import LatestArticlesSection from "@/components/LatestArticlesSection"
 import NewsletterSignup from "@/components/NewsletterSignup"
 import PhotoGallery from "@/components/PhotoGallery"
 import WeatherWidget from "@/components/WeatherWidget"
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const [breaking, hero, trending, rows, editorsPicks, mostPopular, mostLiked, mostCommented, photoGallery, latestArticles] = await Promise.all([
+  const [breaking, hero, trending, rows, editorsPicks, mostPopular, mostLiked, mostCommented, photoGallery, latestArticles, latestArticlesOffset] = await Promise.all([
     getBreaking(10),
     getFeaturedHero(),
     getTrending(12),
@@ -58,7 +59,8 @@ export default async function HomePage() {
     getMostLiked(6),
     getMostCommented(6, 30),
     getPhotoGallery(8),
-    getLatestArticles(6)
+    getLatestArticles(6),
+    getLatestArticlesOffset(6, 6)
   ])
 
   // Get side stories for hero section (latest 6 articles)
@@ -96,6 +98,15 @@ export default async function HomePage() {
         <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <TrendingRail items={trending as any} />
         </section>
+
+        {/* Latest Articles (7-12) */}
+        {latestArticlesOffset && (latestArticlesOffset as any[]).length > 0 && (
+          <LatestArticlesSection 
+            items={latestArticlesOffset as any}
+            title="More Latest Stories"
+            subtitle="Continue reading more of the newest articles"
+          />
+        )}
 
         {/* Category Sections using new SectionBlock */}
         {rows && (rows as any[]).length > 0 && (

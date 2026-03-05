@@ -25,9 +25,11 @@ interface Article {
 
 interface LatestArticlesSectionProps {
   items: Article[]
+  title?: string
+  subtitle?: string
 }
 
-export default function LatestArticlesSection({ items }: LatestArticlesSectionProps) {
+export default function LatestArticlesSection({ items, title = "Latest Articles", subtitle = "Stay updated with our newest stories and breaking news" }: LatestArticlesSectionProps) {
   if (!items || items.length === 0) return null
 
   const formatDate = (dateString: string | null) => {
@@ -43,10 +45,10 @@ export default function LatestArticlesSection({ items }: LatestArticlesSectionPr
     <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Latest Articles
+          {title}
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
-          Stay updated with our newest stories and breaking news
+          {subtitle}
         </p>
       </div>
 
