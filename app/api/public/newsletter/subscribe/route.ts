@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "invalid-service-role-key"
 
 // Server-side: use service role to bypass RLS safely in this API route
 const sb = createClient(supabaseUrl, serviceKey, {

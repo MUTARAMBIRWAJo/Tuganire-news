@@ -3,8 +3,8 @@ import { createClient } from "@supabase/supabase-js"
 
 export const runtime = "edge"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "invalid-anon-key"
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY!
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini"
 const OPENAI_EMBED_MODEL = process.env.OPENAI_EMBED_MODEL || "text-embedding-3-small"

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createClient as createRlsClient } from "@/lib/supabase/server";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local";
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "invalid-service-role-key";
 
 const sb = createServiceClient(supabaseUrl, serviceKey, {
   auth: { persistSession: false },

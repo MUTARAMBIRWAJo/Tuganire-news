@@ -1,15 +1,43 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const rawSite = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
 // Normalize to avoid trailing slash issues
 const siteUrl = rawSite.replace(/\/+$/, '');
 
-const sb = createClient(supabaseUrl, anonKey);
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !anonKey) return null;
+  return createClient(supabaseUrl, anonKey);
+}
 
 export async function GET() {
+  const sb = createSupabaseClient();
+  if (!sb) {
+    const buildDate = new Date().toUTCString();
+    const selfUrl = `${siteUrl}/rss.xml`;
+    const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tuganire</title>
+    <link>${siteUrl}</link>
+    <description>Latest news from Tuganire</description>
+    <language>en</language>
+    <lastBuildDate>${buildDate}</lastBuildDate>
+    <ttl>30</ttl>
+    <atom:link href="${selfUrl}" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>`;
+    return new NextResponse(rss, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/rss+xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=300, s-maxage=300'
+      }
+    });
+  }
+
   const { data, error } = await sb
     .from('articles')
     .select('slug,title,excerpt,published_at')

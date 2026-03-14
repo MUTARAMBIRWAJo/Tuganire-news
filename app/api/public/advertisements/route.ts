@@ -5,8 +5,8 @@ const createServiceClient = (url: string, key: string) => {
   return createClient(url, key, { auth: { persistSession: false } })
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "invalid-anon-key"
 
 const sb = createClient(supabaseUrl, anonKey, {
   auth: { persistSession: false }

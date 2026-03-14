@@ -50,19 +50,47 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const [breaking, hero, trending, rows, editorsPicks, mostPopular, mostLiked, mostCommented, photoGallery, latestArticles, latestArticlesOffset] = await Promise.all([
-    getBreaking(10),
-    getFeaturedHero(),
-    getTrending(12),
-    getLatestByCategoryRows(),
-    getEditorsPicks(6),
-    getMostPopular(6, 7), // Last 7 days
-    getMostLiked(6),
-    getMostCommented(6, 30),
-    getPhotoGallery(8),
-    getLatestArticles(6),
-    getLatestArticlesOffset(6, 6)
-  ])
+  let breaking: any[] = []
+  let hero: any = null
+  let trending: any[] = []
+  let rows: any[] = []
+  let editorsPicks: any[] = []
+  let mostPopular: any[] = []
+  let mostLiked: any[] = []
+  let mostCommented: any[] = []
+  let photoGallery: any[] = []
+  let latestArticles: any[] = []
+  let latestArticlesOffset: any[] = []
+
+  try {
+    ;[
+      breaking,
+      hero,
+      trending,
+      rows,
+      editorsPicks,
+      mostPopular,
+      mostLiked,
+      mostCommented,
+      photoGallery,
+      latestArticles,
+      latestArticlesOffset,
+    ] = await Promise.all([
+      getBreaking(10),
+      getFeaturedHero(),
+      getTrending(12),
+      getLatestByCategoryRows(),
+      getEditorsPicks(6),
+      getMostPopular(6, 7),
+      getMostLiked(6),
+      getMostCommented(6, 30),
+      getPhotoGallery(8),
+      getLatestArticles(6),
+      getLatestArticlesOffset(6, 6),
+    ])
+  } catch (error) {
+    console.error("Homepage data unavailable:", error)
+  }
 
   // Get side stories for hero section (latest 6 articles)
   const sideStories = (latestArticles as any[]).map((article: any) => ({

@@ -13,8 +13,8 @@ export async function POST(req: Request) {
     const cookieStore = await cookies()
 
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "invalid-anon-key",
       {
         cookies: {
           get(name) {
