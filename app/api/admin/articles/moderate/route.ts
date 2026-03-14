@@ -7,6 +7,15 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export const runtime = "nodejs"
 
+function wordCountFromHtml(htmlOrText: string) {
+  const plain = (htmlOrText || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .trim()
+  if (!plain) return 0
+  return plain.split(/\s+/).filter(Boolean).length
+}
+
 export async function POST(req: Request) {
   try {
     const me = await getCurrentUser()
@@ -33,6 +42,28 @@ export async function POST(req: Request) {
 
     const sb = createServiceClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
     const status = action === "approve" ? "published" : "rejected"
+
+    if (status === "published") {
+      const { data: article, error: findErr } = await sb
+        .from("articles")
+        .select("id, content, article_type")
+        .eq("id", id)
+        .maybeSingle()
+
+      if (findErr) return NextResponse.json({ error: findErr.message }, { status: 500 })
+      if (!article) return NextResponse.json({ error: "Article not found" }, { status: 404 })
+
+      if (String((article as any).article_type || "text") !== "video") {
+        const words = wordCountFromHtml(String((article as any).content || ""))
+        if (words < 600) {
+          return NextResponse.json(
+            { error: `Cannot publish article with fewer than 600 words. Current count: ${words}` },
+            { status: 400 },
+          )
+        }
+      }
+    }
+
     const payload: any = { status }
     if (status === "published") payload.published_at = new Date().toISOString()
 

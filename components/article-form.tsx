@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
@@ -154,6 +155,15 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
     if (candidate) return candidate;
     if (fallback?.trim()) return fallback.trim();
     return `article-${Date.now()}`;
+  }
+
+  const getWordCount = (htmlOrText: string) => {
+    const plain = (htmlOrText || "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .trim()
+    if (!plain) return 0
+    return plain.split(/\s+/).filter(Boolean).length
   }
 
   const handleTitleChange = (title: string) => {
@@ -338,6 +348,15 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
           : submitStatus === "pending"
           ? "pending"
           : submitStatus
+
+      if (effectiveStatus === "published" && formData.article_type !== "video") {
+        const wordCount = getWordCount(formData.content || "")
+        if (wordCount < 600) {
+          setError(`Published text articles must contain at least 600 words. Current count: ${wordCount}.`)
+          setIsLoading(false)
+          return
+        }
+      }
 
       // Prepare article data - derive featured image from media or content
       // Note: media is stored in formData but not saved to articles table (no media column exists)
@@ -710,13 +729,12 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
               <div className="mt-4 p-3 border rounded-lg bg-slate-50">
                 <Label className="text-sm font-medium text-slate-700 mb-2 block">Featured Image Preview</Label>
                 <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-orange-300">
-                  <img
+                  <Image
                     src={formData.featured_image}
                     alt="Featured"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/placeholder.svg"
-                    }}
+                    fill
+                    unoptimized
+                    className="object-cover"
                   />
                   <div className="absolute top-2 right-2 bg-orange-600 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                     <Star className="h-3 w-3 fill-current" />

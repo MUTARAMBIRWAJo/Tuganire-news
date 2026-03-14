@@ -1,6 +1,25 @@
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Shield, Lock, Eye, FileText } from "lucide-react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Advertise",
+  description: "Advertise with Tuganire News and reach a growing audience across Rwanda and beyond.",
+  alternates: {
+    canonical: "/advertise",
+  },
+  openGraph: {
+    title: "Advertise - Tuganire News",
+    description: "Advertise with Tuganire News and reach a growing audience across Rwanda and beyond.",
+    url: "/advertise",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Advertise - Tuganire News",
+    description: "Advertise with Tuganire News and reach a growing audience across Rwanda and beyond.",
+  },
+}
 
 export default function PrivacyPage() {
   const lastUpdated = "January 2, 2026"

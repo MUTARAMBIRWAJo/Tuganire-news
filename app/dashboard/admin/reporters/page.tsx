@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import Image from "next/image"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
@@ -59,7 +60,15 @@ export default async function AdminReportersPage() {
                   return (
                     <div key={r.id} className="rounded-lg border bg-white p-4">
                       <div className="flex items-center gap-3">
-                        <img src={r.avatar_url || "/placeholder.svg"} alt={r.display_name || "Reporter"} className="h-10 w-10 rounded-full object-cover bg-slate-200" />
+                        <Image
+                          src={r.avatar_url || "/placeholder.svg"}
+                          alt={r.display_name || "Reporter"}
+                          width={40}
+                          height={40}
+                          loading="lazy"
+                          unoptimized
+                          className="h-10 w-10 rounded-full object-cover bg-slate-200"
+                        />
                         <div>
                           <div className="font-medium">{r.display_name || "Unnamed Reporter"}</div>
                           <div className="text-xs text-slate-500">{r.email}</div>

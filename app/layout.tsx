@@ -30,15 +30,36 @@ const merriweather = Merriweather({
   weight: ["300", "400", "700", "900"],
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tuganire.site"
+const adSenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-REPLACE_WITH_MY_PUBLISHER_ID"
+const shouldLoadAdSense = process.env.NODE_ENV === "production" && adSenseClient.startsWith("ca-pub-") && !adSenseClient.includes("REPLACE_WITH")
+
 export const metadata: Metadata = {
-  title: "Tuganire TNT - News & Newsletter Platform",
-  description: "Your trusted source for news and insights",
-  generator: 'v0.app',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Tuganire News - Breaking News and In-Depth Analysis",
+    template: "%s | Tuganire News",
+  },
+  description: "Independent journalism and verified reporting from Rwanda, Africa, and around the world.",
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    siteName: "Tuganire News",
+    title: "Tuganire News - Breaking News and In-Depth Analysis",
+    description: "Independent journalism and verified reporting from Rwanda, Africa, and around the world.",
+    images: ["/placeholder-logo.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tuganire News - Breaking News and In-Depth Analysis",
+    description: "Independent journalism and verified reporting from Rwanda, Africa, and around the world.",
+    images: ["/placeholder-logo.png"],
+  },
   icons: {
     icon: "/placeholder-logo.png",
     shortcut: "/placeholder-logo.png",
     apple: "/placeholder-logo.png",
-  }
+  },
 }
 
 export default function RootLayout({
@@ -49,24 +70,28 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="google-adsense-account" content="ca-pub-1524579863977140" />
+        {shouldLoadAdSense && <meta name="google-adsense-account" content={adSenseClient} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1524579863977140"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-        <Script
-          async
-          custom-element="amp-auto-ads"
-          src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"
-          strategy="afterInteractive"
-        />
+        {shouldLoadAdSense && (
+          <>
+            <Script
+              async
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adSenseClient}`}
+              crossOrigin="anonymous"
+              strategy="afterInteractive"
+            />
+            <Script
+              async
+              custom-element="amp-auto-ads"
+              src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"
+              strategy="afterInteractive"
+            />
+          </>
+        )}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${merriweather.variable} font-sans antialiased`}>
-        <amp-auto-ads type="adsense" data-ad-client="ca-pub-1524579863977140"></amp-auto-ads>
+        {shouldLoadAdSense && <amp-auto-ads type="adsense" data-ad-client={adSenseClient}></amp-auto-ads>}
         {children}
         <ChatWidget />
       </body>

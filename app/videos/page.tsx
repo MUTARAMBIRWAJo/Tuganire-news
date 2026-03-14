@@ -2,6 +2,25 @@ import { createClient } from "@/lib/supabase/server"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import VideosClient from "@/components/videos/VideosClient"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Videos",
+  description: "Watch latest video reports and featured clips from Tuganire News.",
+  alternates: {
+    canonical: "/videos",
+  },
+  openGraph: {
+    title: "Videos - Tuganire News",
+    description: "Watch latest video reports and featured clips from Tuganire News.",
+    url: "/videos",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Videos - Tuganire News",
+    description: "Watch latest video reports and featured clips from Tuganire News.",
+  },
+}
 
 export const dynamic = "force-dynamic"
 

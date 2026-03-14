@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation"
-import { headers } from "next/headers"
+import { createClient } from "@supabase/supabase-js"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, User, Eye, ArrowLeft, MessageCircle } from "lucide-react"
+import { Calendar, User, Eye, ArrowLeft, MessageCircle, Clock3 } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { ArticleCard } from "@/components/article-card"
@@ -19,18 +19,34 @@ import AdSenseSidebar from "@/components/ads/AdSenseSidebar"
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://tuganire.site").replace(/\/+$/, "")
+
 interface ArticlePageProps {
   params: Promise<{ slug: string }>
 }
 
+export async function generateStaticParams() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return []
+  }
+
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+  const { data } = await supabase
+    .from("articles")
+    .select("slug")
+    .eq("status", "published")
+    .not("slug", "is", null)
+    .order("published_at", { ascending: false })
+    .limit(500)
+
+  return (data || []).filter((a: any) => a?.slug).map((a: any) => ({ slug: a.slug as string }))
+}
+
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params
-  const hdrs = await headers()
-  const host = hdrs.get("host") || "localhost:3000"
-  const protocol = process.env.NODE_ENV === "development" ? "http" : "https"
-  const baseUrl = `${protocol}://${host}`
-
-  const res = await fetch(new URL(`/api/public/articles/${slug}`, baseUrl), { next: { revalidate } })
+  const canonicalUrl = `${siteUrl}/articles/${slug}`
+  const res = await fetch(`${siteUrl}/api/public/articles/${slug}`, { next: { revalidate } })
   if (!res.ok) {
     return {
       title: "Article Not Found",
@@ -43,12 +59,16 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
   const isVideo = (article as any)?.article_type === 'video' && !!(article as any)?.youtube_link
   return {
-    title: article.title,
+    title: (article as any)?.seo_title || article.title,
     description: article.excerpt || undefined,
+    alternates: {
+      canonical: `/articles/${slug}`,
+    },
     openGraph: {
-      title: article.title,
+      title: (article as any)?.seo_title || article.title,
       description: article.excerpt || undefined,
       type: isVideo ? "video.other" : "article",
+      url: canonicalUrl,
       publishedTime: article.published_at || undefined,
       authors: author?.display_name ? [author.display_name] : undefined,
       images: article.featured_image ? [article.featured_image] : undefined,
@@ -56,7 +76,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     },
     twitter: {
       card: "summary_large_image",
-      title: article.title,
+      title: (article as any)?.seo_title || article.title,
       description: article.excerpt || undefined,
       images: article.featured_image ? [article.featured_image] : undefined,
     },
@@ -65,18 +85,13 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params
-  const hdrs = await headers()
-  const host = hdrs.get("host") || "localhost:3000"
-  const protocol = process.env.NODE_ENV === "development" ? "http" : "https"
-  const baseUrl = `${protocol}://${host}`
-
-  const res = await fetch(new URL(`/api/public/articles/${slug}`, baseUrl), { next: { revalidate } })
+  const res = await fetch(`${siteUrl}/api/public/articles/${slug}`, { next: { revalidate } })
   if (res.status === 404) return notFound()
   if (!res.ok) return notFound()
   const { article, media: mediaItems, related: finalRelated } = await res.json()
 
   // Increment view count (non-blocking via API route)
-  fetch(new URL(`/api/views/${slug}`, baseUrl), {
+  fetch(`${siteUrl}/api/views/${slug}`, {
     method: "POST",
   }).catch(() => {
     // Silently fail if view counter doesn't work
@@ -90,6 +105,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const tags = article.article_tags?.map((at: any) => at.tag).filter(Boolean) || []
 
   const isVideo = (article as any)?.article_type === 'video' && !!(article as any)?.youtube_link
+  const plainTextContent = String(article.content || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ").trim()
+  const wordCount = plainTextContent ? plainTextContent.split(/\s+/).filter(Boolean).length : 0
+  const readingTimeMinutes = Math.max(1, Math.ceil(wordCount / 200))
   const toEmbedUrl = (url: string) => {
     try {
       const short = url.match(/^https?:\/\/youtu\.be\/([\w-]{6,})/i)
@@ -104,35 +122,70 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   // Generate JSON-LD structured data
+  const canonicalUrl = `${siteUrl}/articles/${slug}`
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "NewsArticle",
-    headline: article.title,
-    description: article.excerpt || undefined,
-    image: article.featured_image ? [article.featured_image] : undefined,
-    datePublished: article.published_at || undefined,
-    dateModified: article.updated_at || undefined,
-    author: author?.display_name
-      ? {
-          "@type": "Person",
-          name: author.display_name,
-        }
-      : undefined,
-    publisher: {
-      "@type": "Organization",
-      name: "Tuganire News",
-      logo: {
-        "@type": "ImageObject",
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/placeholder-logo.png`,
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}#organization`,
+        name: "Tuganire News",
+        url: siteUrl,
+        logo: {
+          "@type": "ImageObject",
+          url: `${siteUrl}/placeholder-logo.png`,
+        },
       },
-    },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/articles/${slug}`,
-    },
+      {
+        "@type": "Article",
+        "@id": `${canonicalUrl}#article`,
+        headline: article.title,
+        description: article.excerpt || undefined,
+        image: article.featured_image ? [article.featured_image] : undefined,
+        datePublished: article.published_at || undefined,
+        dateModified: article.updated_at || undefined,
+        author: author?.display_name
+          ? {
+              "@type": "Person",
+              name: author.display_name,
+            }
+          : undefined,
+        publisher: {
+          "@id": `${siteUrl}#organization`,
+        },
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": canonicalUrl,
+        },
+      },
+      {
+        "@type": "NewsArticle",
+        "@id": `${canonicalUrl}#newsarticle`,
+        headline: article.title,
+        description: article.excerpt || undefined,
+        image: article.featured_image ? [article.featured_image] : undefined,
+        datePublished: article.published_at || undefined,
+        dateModified: article.updated_at || undefined,
+        articleSection: category?.name || undefined,
+        wordCount: wordCount || undefined,
+        author: author?.display_name
+          ? {
+              "@type": "Person",
+              name: author.display_name,
+            }
+          : undefined,
+        publisher: {
+          "@id": `${siteUrl}#organization`,
+        },
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": canonicalUrl,
+        },
+      },
+    ],
   }
 
-  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/articles/${slug}`
+  const shareUrl = canonicalUrl
   const shareText = article.title
 
   // Extract image URLs from content as fallback
@@ -210,6 +263,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <span className="flex items-center gap-2">
                   <Eye className="h-4 w-4" />
                   {article.views_count || 0} views
+                </span>
+                <span className="flex items-center gap-2">
+                  <Clock3 className="h-4 w-4" />
+                  {readingTimeMinutes} min read
                 </span>
                 <span className="flex items-center gap-2">
                   <MessageCircle className="h-4 w-4" />

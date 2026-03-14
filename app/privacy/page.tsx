@@ -1,6 +1,25 @@
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Shield, Lock, Eye, FileText } from "lucide-react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Read the Tuganire News privacy policy, including cookies, advertising, and data rights.",
+  alternates: {
+    canonical: "/privacy-policy",
+  },
+  openGraph: {
+    title: "Privacy Policy - Tuganire News",
+    description: "Read the Tuganire News privacy policy, including cookies, advertising, and data rights.",
+    url: "/privacy-policy",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy Policy - Tuganire News",
+    description: "Read the Tuganire News privacy policy, including cookies, advertising, and data rights.",
+  },
+}
 
 export default function PrivacyPage() {
   const lastUpdated = "January 2, 2026"

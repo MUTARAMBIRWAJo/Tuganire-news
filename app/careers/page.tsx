@@ -1,5 +1,24 @@
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Careers",
+  description: "Explore journalism and newsroom career opportunities at Tuganire News.",
+  alternates: {
+    canonical: "/careers",
+  },
+  openGraph: {
+    title: "Careers - Tuganire News",
+    description: "Explore journalism and newsroom career opportunities at Tuganire News.",
+    url: "/careers",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Careers - Tuganire News",
+    description: "Explore journalism and newsroom career opportunities at Tuganire News.",
+  },
+}
 
 export default function CareersPage() {
   return (

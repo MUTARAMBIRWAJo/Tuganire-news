@@ -42,6 +42,7 @@ export const metadata: Metadata = {
     description: "Stay informed with the latest breaking news and stories.",
   },
   alternates: {
+    canonical: "/",
     types: {
       "application/rss+xml": "/rss.xml",
     },

@@ -17,10 +17,10 @@ export default async function SuperAdminRolesPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Coming Soon</CardTitle>
+            <CardTitle>Role Management Roadmap</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-slate-600">Scaffold ready for role/permission management with server actions.</p>
+            <p className="text-sm text-slate-600">This module is prepared for role and permission management with server actions and policy controls.</p>
           </CardContent>
         </Card>
       </main>

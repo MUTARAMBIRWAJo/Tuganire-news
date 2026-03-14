@@ -1,9 +1,26 @@
-'use client'
-
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { CheckCircle, Shield, Users, Mail, Phone, MapPin } from "lucide-react"
 import Image from "next/image"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "About",
+  description: "Learn about Tuganire News, our mission, editorial standards, and contact details.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About Tuganire News",
+    description: "Learn about Tuganire News, our mission, editorial standards, and contact details.",
+    url: "/about",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Tuganire News",
+    description: "Learn about Tuganire News, our mission, editorial standards, and contact details.",
+  },
+}
 
 export default function AboutPage() {
   return (

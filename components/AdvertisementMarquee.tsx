@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 
 interface Advertisement {
   id: string
@@ -68,9 +69,13 @@ export default function AdvertisementMarquee() {
             playsInline
           />
         ) : (
-          <img
+          <Image
             src={ad.media_url}
             alt={ad.title || "Advertisement"}
+            width={1200}
+            height={600}
+            loading="lazy"
+            unoptimized
             className="w-full h-auto rounded-lg"
           />
         )}

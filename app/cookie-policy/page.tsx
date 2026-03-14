@@ -1,9 +1,23 @@
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+import type { Metadata } from "next"
 
-export const metadata = {
-  title: "Cookie Policy | Tuganire",
-  description: "How Tuganire uses cookies and how you can control them.",
+export const metadata: Metadata = {
+  title: "Cookie Policy",
+  description: "Learn how Tuganire News uses cookies and how you can control cookie preferences.",
+  alternates: {
+    canonical: "/cookie-policy",
+  },
+  openGraph: {
+    title: "Cookie Policy - Tuganire News",
+    description: "Learn how Tuganire News uses cookies and how you can control cookie preferences.",
+    url: "/cookie-policy",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cookie Policy - Tuganire News",
+    description: "Learn how Tuganire News uses cookies and how you can control cookie preferences.",
+  },
 }
 
 export default function CookiePolicyPage() {

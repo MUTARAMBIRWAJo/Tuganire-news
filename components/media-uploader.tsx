@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
+import Image from "next/image"
 import { supabase} from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -343,16 +344,14 @@ export function MediaUploader({ media, onChange, featuredImage, onFeaturedChange
           {media.map((item, index) => (
             <div key={index} className="relative group rounded-lg overflow-hidden border-2 border-slate-200">
               {item.type === "image" ? (
-                <img
+                <Image
                   src={item.url || "/placeholder.svg"}
                   alt={item.alt || "Uploaded media"}
+                  width={640}
+                  height={320}
+                  loading="lazy"
+                  unoptimized
                   className="w-full h-40 object-cover cursor-zoom-in"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/placeholder.svg"
-                  }}
-                  onLoad={() => {
-                    // Image loaded successfully
-                  }}
                   onClick={() => {
                     if (item.url) window.open(item.url, "_blank")
                   }}

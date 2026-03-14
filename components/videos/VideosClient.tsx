@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo, useState, useEffect, useCallback } from "react"
+import Image from "next/image"
 
 type VideoItem = {
   id: string | number
@@ -115,8 +116,7 @@ export default function VideosClient({ videos }: { videos: VideoItem[] }) {
                     >
                       <div className="relative flex-shrink-0 overflow-hidden rounded-xl bg-gray-100 w-28 h-[80px] aspect-video">
                         {t ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={t} alt={v.title} className="w-full h-full object-cover object-center" />
+                          <Image src={t} alt={v.title} fill unoptimized loading="lazy" className="object-cover object-center" />
                         ) : (
                           <div className="h-full w-full grid place-items-center text-slate-400 text-xs">No preview</div>
                         )}
@@ -150,8 +150,7 @@ export default function VideosClient({ videos }: { videos: VideoItem[] }) {
                   <button type="button" onClick={() => setSelected(v)} className="block w-full text-left">
                     <div className="relative overflow-hidden rounded-xl bg-gray-100 w-full aspect-video h-[180px]">
                       {t ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={t} alt={v.title} className="w-full h-full object-cover object-center" />
+                        <Image src={t} alt={v.title} fill unoptimized loading="lazy" className="object-cover object-center" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">No preview</div>
                       )}

@@ -4,6 +4,15 @@ import { getCurrentUser } from "@/lib/auth"
 
 export const runtime = "nodejs"
 
+function wordCountFromHtml(htmlOrText: string) {
+  const plain = (htmlOrText || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .trim()
+  if (!plain) return 0
+  return plain.split(/\s+/).filter(Boolean).length
+}
+
 export async function POST(req: Request) {
   try {
     const { id } = await req.json()
@@ -15,7 +24,7 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { data: rows, error: selErr } = await supabase
       .from("articles")
-      .select("id, status, title, slug, published_at")
+      .select("id, status, title, slug, published_at, content, article_type")
       .eq("id", id)
       .eq("author_id", me.id)
       .limit(1)
@@ -27,6 +36,16 @@ export async function POST(req: Request) {
     const next = current === "draft" ? "submitted" : current === "submitted" ? "published" : "published"
 
     const patch: any = { status: next }
+
+    if (next === "published" && String((row as any).article_type || "text") !== "video") {
+      const words = wordCountFromHtml(String((row as any).content || ""))
+      if (words < 600) {
+        return NextResponse.json(
+          { error: `Cannot publish article with fewer than 600 words. Current count: ${words}` },
+          { status: 400 },
+        )
+      }
+    }
 
     if (next === "published") {
       if (!row.published_at) {

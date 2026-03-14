@@ -1,17 +1,52 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import ArticlesList from '@/components/ArticlesList';
 import AdSenseFluid from '@/components/AdSenseFluid';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const sb = createClient(supabaseUrl, anonKey);
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://tuganire.site').replace(/\/+$/, '');
 
 export const revalidate = 120;
 
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const fallbackName = params.slug.replace(/-/g, ' ')
+  let categoryName = fallbackName
+
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    const { data: cat } = await sb.from('categories').select('name').eq('slug', params.slug).maybeSingle();
+    if (cat?.name) categoryName = cat.name
+  }
+
+  const title = `${categoryName} News`
+  const description = `Read the latest ${categoryName} stories and updates on Tuganire News.`
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/category/${params.slug}`,
+    },
+    openGraph: {
+      title: `${title} - Tuganire News`,
+      description,
+      url: `${siteUrl}/category/${params.slug}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} - Tuganire News`,
+      description,
+    },
+  }
+}
+
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
-  const { data: cat } = await sb.from('categories').select('id, name, slug').eq('slug', params.slug).maybeSingle();
+  let cat: { id?: number; name?: string; slug?: string } | null = null
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    const { data } = await sb.from('categories').select('id, name, slug').eq('slug', params.slug).maybeSingle();
+    cat = data
+  }
 
   return (
     <>

@@ -15,16 +15,16 @@ export function SiteFooter() {
               Your trusted source for breaking news and in-depth analysis. Stay informed with the latest updates.
             </p>
             <div className="flex gap-4">
-              <a href="#" aria-label="Facebook" className="hover:text-white transition-colors">
+              <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-white transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" aria-label="Twitter" className="hover:text-white transition-colors">
+              <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="hover:text-white transition-colors">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" aria-label="LinkedIn" className="hover:text-white transition-colors">
+              <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-white transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="#" aria-label="Instagram" className="hover:text-white transition-colors">
+              <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-white transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
@@ -34,6 +34,11 @@ export function SiteFooter() {
           <div>
             <h4 className="text-white font-semibold mb-4">Sections</h4>
             <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/" className="hover:text-white transition-colors">
+                  Home
+                </Link>
+              </li>
               <li>
                 <Link href="/articles" className="hover:text-white transition-colors">
                   All Articles
@@ -90,7 +95,7 @@ export function SiteFooter() {
             <h4 className="text-white font-semibold mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/privacy" className="hover:text-white transition-colors">
+                <Link href="/privacy-policy" className="hover:text-white transition-colors">
                   Privacy Policy
                 </Link>
               </li>

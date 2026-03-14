@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -191,9 +192,13 @@ export function ProfileManager({ userId, initialData }: ProfileManagerProps) {
           <div className="flex items-center gap-6">
             <div className="relative">
               {formData.avatar_url ? (
-                <img
+                <Image
                   src={formData.avatar_url}
                   alt="Profile"
+                  width={96}
+                  height={96}
+                  loading="lazy"
+                  unoptimized
                   className="w-24 h-24 rounded-full object-cover border-2 border-slate-200"
                 />
               ) : (
