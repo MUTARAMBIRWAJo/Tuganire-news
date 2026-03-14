@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://tuganire.site/sitemap.xml
+Sitemap: https://tuganire.site/news-sitemap.xml

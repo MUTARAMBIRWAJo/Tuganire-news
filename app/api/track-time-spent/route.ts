@@ -30,6 +30,8 @@ export async function POST(req: Request) {
       );
     }
 
+    let finalTimeSpent = timeSpentSeconds || 0;
+
     if (articleViewId) {
       // Fetch existing row
       const { data: row, error: fetchError } = await sb
@@ -46,6 +48,7 @@ export async function POST(req: Request) {
       }
 
       const newTime = (row.time_spent_seconds || 0) + timeSpentSeconds;
+      finalTimeSpent = newTime;
 
       const { data, error } = await sb
         .from("article_views_detailed")
@@ -82,6 +85,7 @@ export async function POST(req: Request) {
 
       const current = rows[0];
       const newTime = (current.time_spent_seconds || 0) + timeSpentSeconds;
+      finalTimeSpent = newTime;
 
       const { data, error } = await sb
         .from("article_views_detailed")
@@ -97,6 +101,34 @@ export async function POST(req: Request) {
         { error: "Provide articleViewId OR (visitorId and articleId)" },
         { status: 400 }
       );
+    }
+
+    if (articleId) {
+      const { data: articleRow } = await sb
+        .from("articles")
+        .select("content, reading_time")
+        .eq("id", articleId)
+        .maybeSingle();
+
+      const words = String((articleRow as any)?.content || "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+      const estimatedMinutes = Math.max(1, Number((articleRow as any)?.reading_time) || Math.ceil(words / 200));
+      const estimatedSeconds = estimatedMinutes * 60;
+      const completionPercent = Math.max(0, Math.min(100, Math.round((finalTimeSpent / estimatedSeconds) * 10000) / 100));
+
+      await sb
+        .from("article_reading_completion")
+        .insert({
+          article_id: articleId,
+          visitor_id: visitorId || null,
+          completion_percent: completionPercent,
+          completed: completionPercent >= 85,
+          time_spent_seconds: finalTimeSpent,
+        });
     }
 
     return NextResponse.json({ ok: true });

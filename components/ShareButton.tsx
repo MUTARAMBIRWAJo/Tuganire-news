@@ -5,12 +5,13 @@ import { useState } from "react"
 import { ShareMenu } from "./ShareMenu"
 
 interface ShareButtonProps {
+  articleId?: string
   url: string
   title: string
   size?: "sm" | "md"
 }
 
-export function ShareButton({ url, title, size = "sm" }: ShareButtonProps) {
+export function ShareButton({ articleId, url, title, size = "sm" }: ShareButtonProps) {
   const [open, setOpen] = useState(false)
   const iconSize = size === "sm" ? 16 : 20
 
@@ -26,7 +27,7 @@ export function ShareButton({ url, title, size = "sm" }: ShareButtonProps) {
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-max rounded-lg bg-white dark:bg-slate-900 shadow-lg border border-slate-200 dark:border-slate-700 p-2 z-20">
-          <ShareMenu url={url} title={title} size={size} />
+          <ShareMenu articleId={articleId} url={url} title={title} size={size} />
         </div>
       )}
     </div>

@@ -15,8 +15,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Save, Send, Star, Sparkles } from "lucide-react"
 import { RichTextEditor } from "./rich-text-editor"
+import { ArticleQualityPanel } from "./ArticleQualityPanel"
+import { InternalLinkSuggestions } from "./InternalLinkSuggestions"
 import { MediaUploader } from "./media-uploader"
 import type { MediaItem } from "@/lib/types"
+import { validateArticleForPublishing } from "@/lib/editorialValidation"
+import { calculateSeoScore } from "@/lib/seoScore"
+import { checkAdsenseReadiness } from "@/lib/adsenseCheck"
 
 interface ArticleFormProps {
   userId: string
@@ -35,6 +40,7 @@ interface ArticleFormProps {
     status: string
     category_id: string | null
     featured_image: string | null
+    published_at?: string | null
     media: MediaItem[]
     video_url?: string | null
     videos?: string[]
@@ -349,21 +355,48 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
           ? "pending"
           : submitStatus
 
-      if (effectiveStatus === "published" && formData.article_type !== "video") {
-        const wordCount = getWordCount(formData.content || "")
-        if (wordCount < 600) {
-          setError(`Published text articles must contain at least 600 words. Current count: ${wordCount}.`)
-          setIsLoading(false)
-          return
-        }
-      }
-
       // Prepare article data - derive featured image from media or content
       // Note: media is stored in formData but not saved to articles table (no media column exists)
       const firstMediaImage2 = (formData.media || []).find((m) => (m as any)?.type === 'image')?.url || null
       const firstImgMatch2 = (formData.content || '').match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i)
       const firstImgInContent2 = firstImgMatch2 ? firstImgMatch2[1] : null
       const derivedFeatured2 = formData.featured_image || firstMediaImage2 || firstImgInContent2 || null
+
+      if (effectiveStatus === "published") {
+        const editorial = validateArticleForPublishing({
+          title: formData.seo_title || formData.title,
+          content: formData.content || "",
+          featuredImage: derivedFeatured2 || "",
+          metaDescription: formData.seo_description || "",
+          articleType: formData.article_type || "text",
+        })
+        const seo = calculateSeoScore({
+          title: formData.title,
+          seoTitle: formData.seo_title,
+          metaDescription: formData.seo_description,
+          content: formData.content,
+          featuredImage: derivedFeatured2 || "",
+          keywords: formData.seo_keywords || [],
+        })
+        const adsense = checkAdsenseReadiness({
+          title: formData.title,
+          content: formData.content,
+          metaDescription: formData.seo_description,
+          featuredImage: derivedFeatured2 || "",
+        })
+
+        const blocking = [
+          ...editorial.errors,
+          ...(seo.score < 70 ? [`SEO score ${seo.score}/100 is below the minimum 70`] : []),
+          ...(!adsense.ready ? adsense.issues : []),
+        ]
+
+        if (blocking.length > 0) {
+          setError(blocking.join("; "))
+          setIsLoading(false)
+          return
+        }
+      }
 
       const articleData: any = {
         title: formData.title,
@@ -383,8 +416,8 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
         updated_at: new Date().toISOString(),
       }
 
-      // Only set published_at if publishing
-      if (effectiveStatus === "published") {
+      // Only set published_at when publishing for the first time — never overwrite on edits
+      if (effectiveStatus === "published" && !article?.published_at) {
         articleData.published_at = new Date().toISOString()
       }
 
@@ -707,6 +740,25 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
 
       {/* Right Column - Media Upload */}
       <div className="space-y-6">
+        {/* Quality Indicators Panel */}
+        <ArticleQualityPanel
+          data={{
+            articleId: article?.id,
+            title: formData.title,
+            content: formData.content,
+            metaDescription: formData.seo_description,
+            keywords: formData.seo_keywords || [],
+            featuredImage: formData.featured_image,
+            articleType: formData.article_type,
+          }}
+        />
+
+        <InternalLinkSuggestions
+          title={formData.title}
+          content={formData.content}
+          currentArticleId={article?.id}
+        />
+
         <Card>
           <CardHeader>
             <CardTitle>Media</CardTitle>

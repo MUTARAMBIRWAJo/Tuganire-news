@@ -1,20 +1,14 @@
 import { NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
+import { validateArticleForPublishing } from "@/lib/editorialValidation"
+import { calculateSeoScore } from "@/lib/seoScore"
+import { checkAdsenseReadiness } from "@/lib/adsenseCheck"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "invalid-service-role-key"
 
 export const runtime = "nodejs"
-
-function wordCountFromHtml(htmlOrText: string) {
-  const plain = (htmlOrText || "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .trim()
-  if (!plain) return 0
-  return plain.split(/\s+/).filter(Boolean).length
-}
 
 export async function POST(req: Request) {
   try {
@@ -42,30 +36,60 @@ export async function POST(req: Request) {
 
     const sb = createServiceClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
     const status = action === "approve" ? "published" : "rejected"
+    let existingPublishedAt: string | null = null
 
     if (status === "published") {
       const { data: article, error: findErr } = await sb
         .from("articles")
-        .select("id, content, article_type")
+        .select("id, content, article_type, featured_image, title, published_at, seo_description, seo_title, seo_keywords")
         .eq("id", id)
         .maybeSingle()
 
       if (findErr) return NextResponse.json({ error: findErr.message }, { status: 500 })
       if (!article) return NextResponse.json({ error: "Article not found" }, { status: 404 })
+      existingPublishedAt = (article as any).published_at || null
 
-      if (String((article as any).article_type || "text") !== "video") {
-        const words = wordCountFromHtml(String((article as any).content || ""))
-        if (words < 600) {
-          return NextResponse.json(
-            { error: `Cannot publish article with fewer than 600 words. Current count: ${words}` },
-            { status: 400 },
-          )
-        }
+      const editorial = validateArticleForPublishing({
+        title: String((article as any).seo_title || (article as any).title || ""),
+        content: String((article as any).content || ""),
+        featuredImage: String((article as any).featured_image || ""),
+        metaDescription: String((article as any).seo_description || ""),
+        articleType: String((article as any).article_type || "text"),
+      })
+      const seo = calculateSeoScore({
+        title: String((article as any).title || ""),
+        seoTitle: String((article as any).seo_title || ""),
+        metaDescription: String((article as any).seo_description || ""),
+        content: String((article as any).content || ""),
+        featuredImage: String((article as any).featured_image || ""),
+        keywords: Array.isArray((article as any).seo_keywords) ? (article as any).seo_keywords : [],
+      })
+      const adsense = checkAdsenseReadiness({
+        title: String((article as any).title || ""),
+        content: String((article as any).content || ""),
+        metaDescription: String((article as any).seo_description || ""),
+        featuredImage: String((article as any).featured_image || ""),
+      })
+
+      const blocking = [
+        ...editorial.errors,
+        ...(seo.score < 70 ? [`SEO score ${seo.score}/100 is below the minimum 70`] : []),
+        ...(!adsense.ready ? adsense.issues : []),
+      ]
+
+      if (blocking.length > 0) {
+        await sb.from("articles").update({ status: "draft" }).eq("id", id)
+        return NextResponse.json({ error: `Article reverted to draft: ${blocking.join("; ")}` }, { status: 400 })
       }
     }
 
     const payload: any = { status }
-    if (status === "published") payload.published_at = new Date().toISOString()
+    if (status === "published") {
+      // Only set published_at for first-time publication; preserve original date on re-approval
+      if (!existingPublishedAt) {
+        payload.published_at = new Date().toISOString()
+      }
+    }
 
     const { error } = await sb
       .from("articles")

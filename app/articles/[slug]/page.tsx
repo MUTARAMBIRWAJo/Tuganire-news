@@ -16,6 +16,7 @@ import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
 import AdSenseInContent from "@/components/ads/AdSenseInContent"
 import AdSenseSidebar from "@/components/ads/AdSenseSidebar"
+import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
@@ -105,9 +106,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const tags = article.article_tags?.map((at: any) => at.tag).filter(Boolean) || []
 
   const isVideo = (article as any)?.article_type === 'video' && !!(article as any)?.youtube_link
-  const plainTextContent = String(article.content || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ").trim()
-  const wordCount = plainTextContent ? plainTextContent.split(/\s+/).filter(Boolean).length : 0
-  const readingTimeMinutes = Math.max(1, Math.ceil(wordCount / 200))
+  const wordCount = getWordCount(String(article.content || ""))
+  const readingTimeLabel = formatReadingTime(String(article.content || ""))
   const toEmbedUrl = (url: string) => {
     try {
       const short = url.match(/^https?:\/\/youtu\.be\/([\w-]{6,})/i)
@@ -151,7 +151,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             }
           : undefined,
         publisher: {
+          "@type": "Organization",
           "@id": `${siteUrl}#organization`,
+          name: "Tuganire News",
+          logo: {
+            "@type": "ImageObject",
+            url: `${siteUrl}/placeholder-logo.png`,
+          },
         },
         mainEntityOfPage: {
           "@type": "WebPage",
@@ -175,7 +181,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             }
           : undefined,
         publisher: {
+          "@type": "Organization",
           "@id": `${siteUrl}#organization`,
+          name: "Tuganire News",
+          logo: {
+            "@type": "ImageObject",
+            url: `${siteUrl}/placeholder-logo.png`,
+          },
         },
         mainEntityOfPage: {
           "@type": "WebPage",
@@ -266,7 +278,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </span>
                 <span className="flex items-center gap-2">
                   <Clock3 className="h-4 w-4" />
-                  {readingTimeMinutes} min read
+                  {readingTimeLabel}
                 </span>
                 <span className="flex items-center gap-2">
                   <MessageCircle className="h-4 w-4" />
@@ -362,7 +374,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {/* Share Buttons */}
             <div className="border-t border-b border-gray-200 dark:border-slate-800 py-6 mb-12 flex items-center justify-between flex-wrap gap-4">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Share this article</span>
-              <ShareButton url={shareUrl} title={shareText} size="md" />
+              <ShareButton articleId={article.id} url={shareUrl} title={shareText} size="md" />
             </div>
 
             {/* Author Bio */}

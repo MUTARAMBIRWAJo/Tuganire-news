@@ -146,8 +146,8 @@
 
     const payload = {
       articleViewId: params.articleViewId || null,
-      visitorId: params.articleViewId ? null : params.visitorId || null,
-      articleId: params.articleViewId ? null : params.articleId || null,
+      visitorId: params.visitorId || null,
+      articleId: params.articleId || null,
       timeSpentSeconds: params.timeSpentSeconds,
     };
 
@@ -162,6 +162,37 @@
       });
     } catch (e) {
       console.warn("track-time-spent failed", e);
+    }
+  }
+
+  async function trackShare(params: {
+    articleId: string;
+    platform: string;
+    metadata?: Record<string, unknown>;
+  }) {
+    if (!params.articleId || !params.platform) return;
+
+    const payload = {
+      articleId: params.articleId,
+      visitorId: getVisitorId(),
+      sessionId: getSessionToken(),
+      platform: params.platform,
+      path: typeof window !== "undefined" ? window.location.pathname + window.location.search : null,
+      referrer: typeof document !== "undefined" ? document.referrer || null : null,
+      metadata: params.metadata || {},
+    };
+
+    try {
+      await fetch(`${API_BASE}/track-share`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        keepalive: true,
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      console.warn("track-share failed", e);
     }
   }
 
@@ -210,6 +241,7 @@
     (window as any).VisitorTracking = {
       initVisitorTracking,
       initArticleTracking,
+      trackShare,
     };
   }
 })();
