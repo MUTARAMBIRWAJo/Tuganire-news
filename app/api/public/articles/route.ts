@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       author:author_id ( id, display_name, avatar_url )
     `, { count: 'exact' })
     .eq('status', 'published')
+    .neq('article_type', 'video')
     .lte('published_at', new Date().toISOString())
     .not('published_at', 'is', null);
 

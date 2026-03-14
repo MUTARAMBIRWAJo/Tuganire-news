@@ -122,8 +122,9 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
   }, [formData])
 
   const handleGenerateSEO = async () => {
-    if (!formData.title || !formData.content) {
-      setError("Enter a title and content first to generate SEO metadata")
+    const hasBaseInput = Boolean(formData.title) && (isVideoArticle ? Boolean((formData.youtube_link || "").trim()) || Boolean(formData.content) : Boolean(formData.content))
+    if (!hasBaseInput) {
+      setError(isVideoArticle ? "Enter a title and YouTube link (or content) first to generate SEO metadata" : "Enter a title and content first to generate SEO metadata")
       return
     }
     setIsLoading(true)
@@ -131,7 +132,7 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       const res = await fetch("/api/seo-generator", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: formData.title, content: formData.content }),
+        body: JSON.stringify({ title: formData.title, content: formData.content || formData.youtube_link || "" }),
       })
       if (!res.ok) throw new Error(await res.text())
       const data = await res.json()
@@ -217,7 +218,7 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
         title: formData.title,
         slug: formData.slug || generateSlug(formData.title),
         excerpt: formData.excerpt || null,
-        content: isVideoArticle ? "" : formData.content,
+        content: formData.content || "",
         status: article ? article.status : "draft",
         category_id: formData.category_id ? Number(formData.category_id) : null,
         featured_image: derivedFeatured,
@@ -420,7 +421,7 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
         title: formData.title,
         slug: formData.slug || generateSlug(formData.title),
         excerpt: formData.excerpt || null,
-        content: isVideoArticle ? "" : formData.content,
+        content: formData.content || "",
         status: effectiveStatus,
         category_id: formData.category_id ? Number(formData.category_id) : null,
         featured_image: derivedFeatured2,
@@ -772,6 +773,7 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
             articleId: article?.id,
             title: formData.title,
             content: formData.content,
+            youtubeLink: formData.youtube_link,
             metaDescription: formData.seo_description,
             keywords: formData.seo_keywords || [],
             featuredImage: formData.featured_image,

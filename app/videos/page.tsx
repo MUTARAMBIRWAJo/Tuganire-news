@@ -61,8 +61,11 @@ export default async function VideosPage() {
   const { data: videos } = await supabase
     .from("articles")
     .select("id, title, slug, excerpt, published_at, youtube_link, article_type")
+    .eq("status", "published")
     .eq("article_type", "video")
-    .order("created_at", { ascending: false })
+    .not("published_at", "is", null)
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: false })
     .limit(30)
 
   return (

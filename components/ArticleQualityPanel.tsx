@@ -10,6 +10,7 @@ export interface ArticleQualityData {
   articleId?: string
   title: string
   content: string
+  youtubeLink?: string
   metaDescription: string
   keywords: string[]
   featuredImage: string
@@ -106,10 +107,12 @@ export function ArticleQualityPanel({ data }: { data: ArticleQualityData }) {
   const [showDetails, setShowDetails] = useState(false)
   const [analyzeKey, setAnalyzeKey] = useState("")
 
-  const seo = calcSeoScore(data)
-  const adsense = calcAdsenseReadiness(data)
+  const isVideoArticle = (data.articleType || "").toLowerCase() === "video"
+  const seo = isVideoArticle ? { score: 100, grade: "A", warnings: [] as string[] } : calcSeoScore(data)
+  const adsense = isVideoArticle ? { ready: true, issues: [] as string[] } : calcAdsenseReadiness(data)
 
   const analyzeContent = useCallback(async () => {
+    if (isVideoArticle) return
     if (!data.title && !data.content) return
     const key = `${data.title}__${(data.content || "").slice(0, 80)}__${data.metaDescription}__${data.featuredImage}`
     if (key === analyzeKey) return
@@ -135,18 +138,22 @@ export function ArticleQualityPanel({ data }: { data: ArticleQualityData }) {
     } finally {
       setIsLoading(false)
     }
-  }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [data, isVideoArticle]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const timer = setTimeout(analyzeContent, 1800)
     return () => clearTimeout(timer)
   }, [analyzeContent])
 
-  const contentScore = qualityResult?.score ?? null
+  const contentScore = isVideoArticle
+    ? ((data.title || "").trim() && (data.youtubeLink || "").trim() ? 100 : 40)
+    : (qualityResult?.score ?? null)
   const wordCount = qualityResult?.wordCount ?? 0
   const allErrors = qualityResult?.errors ?? []
   const allSuggestions = qualityResult?.suggestions ?? []
-  const isPublishReady = (qualityResult?.canPublish ?? false) && adsense.ready && seo.score >= 60
+  const isPublishReady = isVideoArticle
+    ? Boolean((data.title || "").trim()) && Boolean((data.youtubeLink || "").trim())
+    : (qualityResult?.canPublish ?? false) && adsense.ready && seo.score >= 60
 
   return (
     <Card className="border-l-4 border-l-blue-500">
@@ -183,7 +190,7 @@ export function ArticleQualityPanel({ data }: { data: ArticleQualityData }) {
               style={{ width: `${contentScore ?? 0}%` }}
             />
           </div>
-          {wordCount > 0 && (
+          {!isVideoArticle && wordCount > 0 && (
             <p className="text-xs text-slate-500">
               {wordCount} words · {Math.max(1, Math.ceil(wordCount / 200))} min read
             </p>
@@ -191,30 +198,40 @@ export function ArticleQualityPanel({ data }: { data: ArticleQualityData }) {
         </div>
 
         {/* ── SEO Score ── */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs font-medium">
-            <span>SEO Score</span>
-            <span className={scoreColor(seo.score)}>
-              {seo.score}% · Grade {seo.grade}
-            </span>
+        {!isVideoArticle && (
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs font-medium">
+              <span>SEO Score</span>
+              <span className={scoreColor(seo.score)}>
+                {seo.score}% · Grade {seo.grade}
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${progressColor(seo.score)}`}
+                style={{ width: `${seo.score}%` }}
+              />
+            </div>
           </div>
-          <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${progressColor(seo.score)}`}
-              style={{ width: `${seo.score}%` }}
-            />
-          </div>
-        </div>
+        )}
 
         {/* ── AdSense Readiness ── */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium">AdSense Readiness</span>
-          <Badge
-            className={`text-xs ${adsense.ready ? "bg-green-600 hover:bg-green-600 text-white" : "bg-red-600 hover:bg-red-600 text-white"}`}
-          >
-            {adsense.ready ? "✓ PASS" : "✗ FAIL"}
-          </Badge>
-        </div>
+        {!isVideoArticle && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium">AdSense Readiness</span>
+            <Badge
+              className={`text-xs ${adsense.ready ? "bg-green-600 hover:bg-green-600 text-white" : "bg-red-600 hover:bg-red-600 text-white"}`}
+            >
+              {adsense.ready ? "✓ PASS" : "✗ FAIL"}
+            </Badge>
+          </div>
+        )}
+
+        {isVideoArticle && (
+          <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded px-2 py-1.5">
+            Video mode: publish readiness uses Title + YouTube link. Text SEO and AdSense checks are skipped.
+          </div>
+        )}
 
         {/* ── All good banner ── */}
         {isPublishReady && (
@@ -237,7 +254,7 @@ export function ArticleQualityPanel({ data }: { data: ArticleQualityData }) {
         )}
 
         {/* ── AdSense issues ── */}
-        {adsense.issues.length > 0 && (
+        {!isVideoArticle && adsense.issues.length > 0 && (
           <div className="space-y-1">
             {adsense.issues.slice(0, 3).map((issue, i) => (
               <div key={i} className="flex items-start gap-1.5 text-xs text-orange-600">
@@ -252,7 +269,7 @@ export function ArticleQualityPanel({ data }: { data: ArticleQualityData }) {
         {showDetails && (
           <div className="space-y-2 pt-1 border-t border-slate-100">
             {/* SEO warnings */}
-            {seo.warnings.length > 0 && (
+            {!isVideoArticle && seo.warnings.length > 0 && (
               <div className="space-y-1">
                 <p className="text-[10px] uppercase font-semibold text-slate-400 tracking-wide">SEO Issues</p>
                 {seo.warnings.map((w, i) => (
