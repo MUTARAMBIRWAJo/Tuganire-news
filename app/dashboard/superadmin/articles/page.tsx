@@ -39,7 +39,7 @@ export default async function SuperAdminArticlesPage({
   let query = supabase
     .from("articles")
     .select(
-      `id, slug, title, excerpt, status, featured_image, views_count, is_featured, created_at, updated_at, published_at,
+      `id, slug, title, excerpt, status, article_type, featured_image, views_count, is_featured, created_at, updated_at, published_at,
       author:app_users(id, display_name, avatar_url),
       category:categories(id, name, slug)`,
       { count: "exact" }
@@ -185,6 +185,7 @@ export default async function SuperAdminArticlesPage({
                 const category = Array.isArray(article.category) ? article.category[0] : article.category
                 const authorName = (author as any)?.display_name || "Unknown"
                 const categoryName = (category as any)?.name || "Uncategorized"
+                const articleType = String((article as any).article_type || "text").toLowerCase() === "video" ? "video" : "text"
                 
                 return (
                 <div key={article.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -192,6 +193,15 @@ export default async function SuperAdminArticlesPage({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-lg font-semibold text-slate-800">{article.title}</h3>
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            articleType === "video"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          {articleType === "video" ? "Video" : "Text"}
+                        </span>
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           article.status === "published" ? "bg-green-100 text-green-700" :
                           article.status === "submitted" ? "bg-yellow-100 text-yellow-700" :

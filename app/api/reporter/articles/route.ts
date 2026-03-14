@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     let list = supabase
       .from("articles")
       .select(
-        `id, title, excerpt, status, is_featured, views_count, created_at, category_id,
+        `id, title, excerpt, status, is_featured, article_type, views_count, created_at, category_id,
          category:categories(name)`,
         { count: "exact" }
       )

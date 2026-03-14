@@ -109,11 +109,21 @@ export function ReporterArticlesList(props: ReporterArticlesListProps) {
         <div className="space-y-4">
           {items.map((article) => {
             const cat = Array.isArray(article.category) ? article.category?.[0] : article.category
+            const articleType = String(article.article_type || "text").toLowerCase() === "video" ? "video" : "text"
             return (
               <div key={article.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-slate-50 transition-colors">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="font-semibold text-lg">{article.title}</h3>
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs font-medium ${
+                        articleType === "video"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      {articleType === "video" ? "Video" : "Text"}
+                    </span>
                     <span
                       className={`rounded-full px-2 py-1 text-xs font-medium ${
                         article.status === "Published"

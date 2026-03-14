@@ -42,6 +42,11 @@ interface ArticleFormProps {
     featured_image: string | null
     published_at?: string | null
     media: MediaItem[]
+    article_type?: "text" | "video"
+    youtube_link?: string | null
+    seo_title?: string | null
+    seo_description?: string | null
+    seo_keywords?: string[] | null
     video_url?: string | null
     videos?: string[]
   }
@@ -73,14 +78,15 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
     media: article?.media || ([] as MediaItem[]),
     video_url: article?.video_url || null,
     videos: article?.videos || [],
-    article_type: (article as any)?.article_type || "text",
-    youtube_link: (article as any)?.youtube_link || "",
-    seo_title: (article as any)?.seo_title || "",
-    seo_description: (article as any)?.seo_description || "",
-    seo_keywords: ((article as any)?.seo_keywords as string[] | undefined) || [],
+    article_type: article?.article_type || "text",
+    youtube_link: article?.youtube_link || "",
+    seo_title: article?.seo_title || "",
+    seo_description: article?.seo_description || "",
+    seo_keywords: article?.seo_keywords || [],
   })
 
   const supabases = supabase
+  const isVideoArticle = formData.article_type === "video"
 
   // Fetch categories and tags
   useEffect(() => {
@@ -184,7 +190,10 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
   }
 
   const handleSaveDraft = async () => {
-    if (!formData.title || !formData.content) return
+    const youtubeLink = (formData.youtube_link || "").trim()
+    if (!formData.title) return
+    if (isVideoArticle && !youtubeLink) return
+    if (!isVideoArticle && !formData.content) return
     // Disable auto-insert for new articles; only allow auto-save for existing articles
     if (!article) return
 
@@ -208,14 +217,14 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
         title: formData.title,
         slug: formData.slug || generateSlug(formData.title),
         excerpt: formData.excerpt || null,
-        content: formData.content,
+        content: isVideoArticle ? "" : formData.content,
         status: article ? article.status : "draft",
         category_id: formData.category_id ? Number(formData.category_id) : null,
         featured_image: derivedFeatured,
         video_url: formData.video_url || null,
         videos: formData.videos || [],
         article_type: formData.article_type || 'text',
-        youtube_link: formData.youtube_link || null,
+        youtube_link: isVideoArticle ? youtubeLink : null,
         seo_title: formData.seo_title || null,
         seo_description: formData.seo_description || null,
         seo_keywords: (formData.seo_keywords || []).length ? formData.seo_keywords : null,
@@ -311,12 +320,14 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       setIsLoading(false)
       return
     }
-    if (formData.article_type === 'video' && !formData.youtube_link) {
+    const youtubeLink = (formData.youtube_link || "").trim()
+
+    if (isVideoArticle && !youtubeLink) {
       setError("YouTube link is required for video articles")
       setIsLoading(false)
       return
     }
-    if (formData.article_type !== 'video' && !formData.content) {
+    if (!isVideoArticle && !formData.content) {
       setError("Content is required for text articles")
       setIsLoading(false)
       return
@@ -368,25 +379,29 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       if (effectiveStatus === "published") {
         const editorial = validateArticleForPublishing({
           title: formData.seo_title || formData.title,
-          content: formData.content || "",
+          content: isVideoArticle ? "" : formData.content || "",
           featuredImage: derivedFeatured2 || "",
           metaDescription: formData.seo_description || "",
           articleType: formData.article_type || "text",
         })
-        const seo = calculateSeoScore({
-          title: formData.title,
-          seoTitle: formData.seo_title,
-          metaDescription: formData.seo_description,
-          content: formData.content,
-          featuredImage: derivedFeatured2 || "",
-          keywords: formData.seo_keywords || [],
-        })
-        const adsense = checkAdsenseReadiness({
-          title: formData.title,
-          content: formData.content,
-          metaDescription: formData.seo_description,
-          featuredImage: derivedFeatured2 || "",
-        })
+        const seo = isVideoArticle
+          ? { score: 100 }
+          : calculateSeoScore({
+              title: formData.title,
+              seoTitle: formData.seo_title,
+              metaDescription: formData.seo_description,
+              content: formData.content,
+              featuredImage: derivedFeatured2 || "",
+              keywords: formData.seo_keywords || [],
+            })
+        const adsense = isVideoArticle
+          ? { ready: true, issues: [] as string[] }
+          : checkAdsenseReadiness({
+              title: formData.title,
+              content: formData.content,
+              metaDescription: formData.seo_description,
+              featuredImage: derivedFeatured2 || "",
+            })
 
         const blocking = [
           ...editorial.errors,
@@ -405,14 +420,14 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
         title: formData.title,
         slug: formData.slug || generateSlug(formData.title),
         excerpt: formData.excerpt || null,
-        content: formData.content,
+        content: isVideoArticle ? "" : formData.content,
         status: effectiveStatus,
         category_id: formData.category_id ? Number(formData.category_id) : null,
         featured_image: derivedFeatured2,
         video_url: formData.video_url || null,
         videos: formData.videos || [],
         article_type: formData.article_type || 'text',
-        youtube_link: formData.youtube_link || null,
+        youtube_link: isVideoArticle ? youtubeLink : null,
         seo_title: formData.seo_title || null,
         seo_description: formData.seo_description || null,
         seo_keywords: (formData.seo_keywords || []).length ? formData.seo_keywords : null,
@@ -535,15 +550,17 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="youtube_link">YouTube Link {formData.article_type === 'video' ? '*' : ''}</Label>
-                <Input
-                  id="youtube_link"
-                  value={formData.youtube_link}
-                  onChange={(e) => setFormData({ ...formData, youtube_link: e.target.value })}
-                  placeholder="https://www.youtube.com/watch?v=abc123"
-                />
-              </div>
+              {isVideoArticle && (
+                <div className="space-y-2">
+                  <Label htmlFor="youtube_link">YouTube Link *</Label>
+                  <Input
+                    id="youtube_link"
+                    value={formData.youtube_link}
+                    onChange={(e) => setFormData({ ...formData, youtube_link: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=abc123"
+                  />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="title">Title *</Label>
@@ -643,12 +660,18 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
               />
             </div>
 
-            <RichTextEditor
-              label="Content *"
-              value={formData.content}
-              onChange={(content) => setFormData({ ...formData, content })}
-              placeholder="Write your article content here..."
-            />
+            {!isVideoArticle ? (
+              <RichTextEditor
+                label="Content *"
+                value={formData.content}
+                onChange={(content) => setFormData({ ...formData, content })}
+                placeholder="Write your article content here..."
+              />
+            ) : (
+              <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                Video articles use the YouTube link as primary content.
+              </div>
+            )}
 
             {/* SEO Section */}
             <div className="rounded-lg border p-4">
