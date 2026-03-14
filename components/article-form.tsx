@@ -148,6 +148,8 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
+      .slice(0, 200)
+      .replace(/-+$/, "")
   }
 
   const deriveSlug = (input: string, title: string, fallback?: string) => {
@@ -157,9 +159,10 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       .replace(/[^\w\s-]+/g, '')
       .trim()
       .replace(/\s+/g, '-');
-    const candidate = (input || '').trim() || normalized.replace(/-+/g, '-').replace(/(^-|-$)/g, '').toLowerCase();
+    const raw = (input || '').trim() || normalized.replace(/-+/g, '-').replace(/(^-|-$)/g, '').toLowerCase();
+    const candidate = raw.slice(0, 200).replace(/-+$/, '');
     if (candidate) return candidate;
-    if (fallback?.trim()) return fallback.trim();
+    if (fallback?.trim()) return fallback.trim().slice(0, 200).replace(/-+$/, '');
     return `article-${Date.now()}`;
   }
 

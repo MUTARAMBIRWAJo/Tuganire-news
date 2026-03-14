@@ -41,7 +41,11 @@ export async function generateStaticParams() {
     .order("published_at", { ascending: false })
     .limit(500)
 
-  return (data || []).filter((a: any) => a?.slug).map((a: any) => ({ slug: a.slug as string }))
+  // Exclude slugs longer than 200 chars — filesystem limit is 255 bytes and Next.js appends
+  // a '.segments' suffix during static generation, causing ENAMETOOLONG on some OS paths.
+  return (data || [])
+    .filter((a: any) => a?.slug && (a.slug as string).length <= 200)
+    .map((a: any) => ({ slug: a.slug as string }))
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
