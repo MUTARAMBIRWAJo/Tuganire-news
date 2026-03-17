@@ -132,7 +132,11 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       const res = await fetch("/api/seo-generator", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: formData.title, content: formData.content || formData.youtube_link || "" }),
+        body: JSON.stringify({ 
+          title: formData.title, 
+          content: formData.content || formData.youtube_link || "",
+          excerpt: formData.excerpt || ""
+        }),
       })
       if (!res.ok) throw new Error(await res.text())
       const data = await res.json()

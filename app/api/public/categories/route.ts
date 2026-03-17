@@ -30,7 +30,7 @@ export async function GET() {
   const { data: categories, error } = await sb.from('categories').select('id, name, slug').order('name', { ascending: true })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // for each category, fetch up to 4 latest published articles
+  // for each category, fetch up to 4 latest published text articles (exclude videos)
   const results = [] as any[]
   for (const c of categories || []) {
     const { data: arts } = await sb
@@ -40,6 +40,7 @@ export async function GET() {
       .not('published_at', 'is', null)
       .lte('published_at', new Date().toISOString())
       .eq('category_id', c.id)
+      .neq('article_type', 'video')
       .order('published_at', { ascending: false })
       .limit(4)
 

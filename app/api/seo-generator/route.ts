@@ -7,15 +7,14 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini"
 
 export async function POST(req: Request) {
   try {
-    const { title, content } = (await req.json()) as { title?: string; content?: string }
+    const { title, content, excerpt } = (await req.json()) as { title?: string; content?: string; excerpt?: string }
     if (!title || !content) {
       return NextResponse.json({ error: "title and content are required" }, { status: 400 })
     }
 
-    const prompt = `Generate SEO metadata for this news article. Return strict JSON with keys seoTitle, seoDescription, keywords (5-10 items array).\nTitle: ${title}\nContent: ${content.slice(
-      0,
-      8000
-    )}`
+    const contentPreview = content.slice(0, 8000)
+    const excerptText = excerpt ? `\nExcerpt: ${excerpt}` : ""
+    const prompt = `Generate SEO metadata for this news article. Return strict JSON with keys seoTitle, seoDescription, keywords (5-10 items array).\nTitle: ${title}${excerptText}\nContent: ${contentPreview}`
 
     const llmRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
