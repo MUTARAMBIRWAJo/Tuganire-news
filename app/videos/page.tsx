@@ -60,13 +60,19 @@ export default async function VideosPage() {
   const supabase = await createClient()
   const { data: videos } = await supabase
     .from("articles")
-    .select("id, title, slug, excerpt, published_at, youtube_link, article_type")
+    .select("id, title, slug, excerpt, featured_image, published_at, youtube_link, article_type")
     .eq("status", "published")
     .eq("article_type", "video")
     .not("published_at", "is", null)
     .lte("published_at", new Date().toISOString())
     .order("published_at", { ascending: false })
     .limit(30)
+
+  // Add YouTube thumbnails to videos that don't have featured images
+  const videosWithThumbnails = (videos ?? []).map(video => ({
+    ...video,
+    featured_image: video.featured_image || (video.youtube_link ? youtubeId(video.youtube_link) ? `https://img.youtube.com/vi/${youtubeId(video.youtube_link)}/maxresdefault.jpg` : null : null)
+  }))
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
@@ -76,7 +82,7 @@ export default async function VideosPage() {
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Videos</h1>
           <p className="text-slate-600 dark:text-slate-300 mt-2">Latest video stories</p>
         </div>
-        <VideosClient videos={videos ?? []} />
+        <VideosClient videos={videosWithThumbnails} />
       </main>
       <SiteFooter />
     </div>

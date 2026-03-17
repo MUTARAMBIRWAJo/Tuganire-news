@@ -6,7 +6,21 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "invalid-service-rol
 
 const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
 
-export const revalidate = 300
+export const revalidate = 60
+
+function extractYouTubeThumbnail(youtubeUrl: string): string {
+  if (!youtubeUrl) return ""
+  try {
+    // Handle youtu.be short links
+    const short = youtubeUrl.match(/^https?:\/\/youtu\.be\/(([\w-]{6,}))/i)
+    if (short) return `https://img.youtube.com/vi/${short[2]}/maxresdefault.jpg`
+    // Handle standard watch URLs
+    const u = new URL(youtubeUrl)
+    const v = u.searchParams.get("v")
+    if (v) return `https://img.youtube.com/vi/${v}/maxresdefault.jpg`
+  } catch {}
+  return ""
+}
 
 function normalizeArticle(a: any) {
   if (!a) return null
@@ -35,12 +49,12 @@ export async function GET() {
   for (const c of categories || []) {
     const { data: arts } = await sb
       .from('articles')
-      .select('id, slug, title, excerpt, featured_image, published_at, views_count, author:app_users(display_name, avatar_url), category:categories(name, slug)')
+      .select('id, slug, title, excerpt, featured_image, published_at, views_count, article_type, author:app_users(display_name, avatar_url), category:categories(name, slug)')
       .eq('status', 'published')
       .not('published_at', 'is', null)
       .lte('published_at', new Date().toISOString())
       .eq('category_id', c.id)
-      .neq('article_type', 'video')
+      .in('article_type', ['text', null])
       .order('published_at', { ascending: false })
       .limit(4)
 
