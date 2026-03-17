@@ -183,36 +183,37 @@ export async function getTrending(limit = 10) {
 }
 
 export async function getLatestByCategoryRows() {
-  const { data, error } = await sb
-    .from('v_latest4_by_category')
-    .select('*');
-  if (error) throw error;
+  // Get all categories
+  const { data: categories, error: catError } = await sb
+    .from('categories')
+    .select('id, name, slug')
+    .order('name', { ascending: true });
   
-  // Group by category to ensure proper structure
-  const groupedByCategory = (data || []).reduce((acc: any, article: any) => {
-    const categoryKey = article.category_slug || 'uncategorized';
-    if (!acc[categoryKey]) {
-      acc[categoryKey] = {
-        category_name: article.category_name || 'Uncategorized',
-        category_slug: categoryKey,
-        articles: []
+  if (catError) throw catError;
+  
+  // For each category, fetch latest 4 text articles (exclude videos)
+  const categoryRows = await Promise.all(
+    (categories || []).map(async (category: any) => {
+      const { data: articles, error: artError } = await sb
+        .from('articles')
+        .select('id, slug, title, excerpt, featured_image, published_at, views_count, author:app_users(display_name, avatar_url)')
+        .eq('status', 'published')
+        .not('published_at', 'is', null)
+        .lte('published_at', new Date().toISOString())
+        .eq('category_id', category.id)
+        .in('article_type', ['text', null])
+        .order('published_at', { ascending: false })
+        .limit(4);
+      
+      if (artError) return { 
+        category_name: category.name, 
+        category_slug: category.slug, 
+        articles: [] 
       };
-    }
-    acc[categoryKey].articles.push(article);
-    return acc;
-  }, {});
-  
-  // Convert to array and sort by category name
-  const categoryRows = Object.values(groupedByCategory).sort((a: any, b: any) => 
-    a.category_name.localeCompare(b.category_name)
-  );
-  
-  // Attach approved comments_count per item
-  const withCounts = await Promise.all(
-    categoryRows.map(async (categoryRow: any) => {
+      
+      // Attach comment counts
       const articlesWithCounts = await Promise.all(
-        (categoryRow.articles || []).map(async (a: any) => {
-          if (!a?.slug) return { ...a, comments_count: 0 };
+        (articles || []).map(async (a: any) => {
           try {
             const { count } = await sb
               .from('comments')
@@ -225,14 +226,16 @@ export async function getLatestByCategoryRows() {
           }
         })
       );
+      
       return {
-        ...categoryRow,
+        category_name: category.name,
+        category_slug: category.slug,
         articles: articlesWithCounts
       };
     })
   );
   
-  return withCounts ?? [];
+  return categoryRows ?? [];
 }
 
 export async function getPhotoGallery(limit = 8) {
