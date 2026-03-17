@@ -508,4 +508,83 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Responsive Prose Styles for Mobile */
+  .prose-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .prose-content p {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .prose-content a {
+    word-break: break-word;
+  }
+
+  .prose-content code,
+  .prose-content pre {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .prose-content table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .prose-content table th,
+  .prose-content table td {
+    padding: 0.75rem 0.5rem;
+    font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+  }
+
+  .prose-content blockquote {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .prose-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Responsive Typography on Mobile */
+  @media (max-width: 640px) {
+    .text-headline {
+      font-size: var(--text-2xl);
+      line-height: var(--leading-tight);
+    }
+
+    .text-subheadline {
+      font-size: var(--text-xl);
+      line-height: var(--leading-tight);
+    }
+
+    .text-title {
+      font-size: var(--text-lg);
+      line-height: var(--leading-normal);
+    }
+
+    .prose {
+      font-size: var(--text-base);
+    }
+
+    .prose p {
+      margin-bottom: 1rem;
+    }
+
+    .prose blockquote {
+      font-size: 1rem;
+      margin: 1.25em 0;
+      padding-left: 0.75rem;
+    }
+  }
 }

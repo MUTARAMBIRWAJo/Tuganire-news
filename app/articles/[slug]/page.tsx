@@ -224,7 +224,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <SiteHeader />
 
       <main className="flex-1">
-        <div className="max-w-6xl xl:max-w-7xl mx-auto sm:p-6 md:p-8">
+        <div className="max-w-6xl xl:max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
           <Button variant="ghost" size="sm" asChild className="mb-6">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -232,7 +232,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </Link>
           </Button>
 
-          <article className="max-w-3xl md:max-w-4xl mx-auto">
+          <article className="max-w-full md:max-w-3xl lg:max-w-4xl mx-auto">
             {/* Article Header */}
             <header className="mb-8">
               {category && (
@@ -243,13 +243,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   {category.name}
                 </Link>
               )}
-              <h1 className="text-headline leading-tight text-balance text-gray-900 dark:text-white">
+              <h1 className="text-2xl sm:text-3xl md:text-headline leading-tight text-balance text-gray-900 dark:text-white">
                 {article.title}
               </h1>
               {article.excerpt && (
-                <p className="text-body leading-relaxed-tight text-gray-700 dark:text-gray-300 mb-6 text-pretty">{article.excerpt}</p>
+                <p className="text-sm sm:text-base md:text-body leading-relaxed text-gray-700 dark:text-gray-300 mb-6 text-pretty">{article.excerpt}</p>
               )}
-              <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex-wrap">
                 {author && (
                   <span className="flex items-center gap-2">
                     {author.avatar_url ? (
@@ -328,15 +328,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 />
               </div>
             ) : article.featured_image && (
-              <div className="mb-8 mx-auto flex justify-center items-center w-full max-w-3xl p-4 bg-gray-50 rounded-xl">
+              <div className="mb-8 mx-auto flex justify-center items-center w-full max-w-full md:max-w-3xl lg:max-w-4xl p-2 sm:p-4 bg-gray-50 dark:bg-slate-800 rounded-lg sm:rounded-xl\">
                 <Image
                   src={article.featured_image}
                   alt={article.title}
                   width={1200}
                   height={800}
                   loading="lazy"
-                  className="w-full h-auto object-contain rounded-xl"
-                  sizes="(max-width: 768px) 100vw, 896px"
+                  className="w-full h-auto object-contain rounded-lg sm:rounded-xl"
+                  sizes="(max-width: 640px) calc(100vw - 16px), (max-width: 1024px) calc(100vw - 32px), 896px"
                 />
               </div>
             )}
