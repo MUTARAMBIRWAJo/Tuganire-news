@@ -78,7 +78,6 @@ export default function MostPopularSection({ items, period = "week" }: MostPopul
                     excerpt: article.excerpt,
                     featured_image: article.featured_image,
                     published_at: article.published_at,
-                    views_count: article.views_count ?? 0,
                     comments_count: article.comments_count ?? 0,
                     category: article.category || undefined,
                     author: article.author || undefined,

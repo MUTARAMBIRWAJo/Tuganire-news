@@ -51,7 +51,6 @@ export default function MostLikedSection({ items }: MostLikedSectionProps) {
                 excerpt: article.excerpt,
                 featured_image: article.featured_image,
                 published_at: article.published_at,
-                views_count: article.views_count ?? 0,
                 likes_count: article.likes_count ?? 0,
                 comments_count: article.comments_count ?? 0,
                 category: (article as any).category || undefined,

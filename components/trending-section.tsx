@@ -57,6 +57,7 @@ export function TrendingSection() {
                   ...article,
                   author: author || undefined,
                   category: category || undefined,
+                  views_count: undefined,
                 }}
                 compact
               />
