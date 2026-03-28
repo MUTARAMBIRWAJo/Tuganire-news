@@ -75,13 +75,17 @@ export function ArticleCard({
             {article.published_at && (
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3 flex-shrink-0" />
-                <span>{new Date(article.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                <span>{new Date(article.published_at).toLocaleString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  weekday: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false
+                })}</span>
               </span>
             )}
-            <span className="flex items-center gap-1">
-              <Eye className="h-3 w-3 flex-shrink-0" />
-              <span>{Number.isFinite(Number((article as any).views_count)) ? (article as any).views_count : 0}</span>
-            </span>
           </div>
         </div>
       </Link>
@@ -149,18 +153,19 @@ export function ArticleCard({
                 {article.published_at && (
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4 flex-shrink-0" />
-                    <span>{new Date(article.published_at).toLocaleDateString("en-US", {
+                    <span>{new Date(article.published_at).toLocaleString("en-US", {
+                      year: "numeric",
                       month: "short",
                       day: "numeric",
+                      weekday: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false
                     })}</span>
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <Eye className="h-4 w-4 flex-shrink-0" />
-                  <span>{Number.isFinite(Number((article as any).views_count)) ? (article as any).views_count : 0}</span>
-                </span>
                 <ShareButton url={shareUrl} title={article.title} size="sm" />
               </div>
             </div>
@@ -230,15 +235,19 @@ export function ArticleCard({
               {article.published_at && (
                 <span className="flex items-center gap-1 whitespace-nowrap">
                   <Calendar className="h-3 w-3 flex-shrink-0" />
-                  <span>{new Date(article.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                  <span>{new Date(article.published_at).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    weekday: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                  })}</span>
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1">
-                <Eye className="h-3 w-3 flex-shrink-0" />
-                <span>{Number.isFinite(Number((article as any).views_count)) ? (article as any).views_count : 0}</span>
-              </span>
               <ShareButton url={shareUrl} title={article.title} size="sm" />
             </div>
           </div>

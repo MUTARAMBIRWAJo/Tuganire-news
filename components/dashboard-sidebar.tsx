@@ -34,6 +34,7 @@ import { useSupabaseAuth } from "@/hooks/use-supabase-auth"
 import { useRouter } from "next/navigation"
 import { brandFromHost } from "@/lib/host"
 import { useEffect, useState } from "react"
+import { createBrowserClient } from "@supabase/ssr"
 
 interface NavLink {
   name: string
@@ -41,43 +42,7 @@ interface NavLink {
   path: string
 }
 
-const roleLinks: Record<string, NavLink[]> = {
-  superadmin: [
-    { name: "Dashboard", icon: Home, path: "/dashboard/superadmin" },
-    { name: "Profile", icon: User, path: "/dashboard/superadmin/profile" },
-    { name: "Manage Users", icon: Users, path: "/dashboard/superadmin/users" },
-    { name: "Manage Articles", icon: FileText, path: "/dashboard/superadmin/articles" },
-    { name: "Moderation Queue", icon: CheckCircle, path: "/dashboard/superadmin/moderation" },
-    { name: "Comments", icon: MessageSquare, path: "/dashboard/superadmin/comments" },
-    { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals" },
-    { name: "Categories", icon: FolderTree, path: "/dashboard/superadmin/categories" },
-    { name: "Tags", icon: Tag, path: "/dashboard/superadmin/tags" },
-    { name: "Analytics", icon: BarChart3, path: "/dashboard/superadmin/analytics" },
-    { name: "Visitors", icon: Activity, path: "/dashboard/superadmin/visitors" },
-    { name: "Reports", icon: FileBarChart, path: "/dashboard/superadmin/reports" },
-    { name: "System Logs", icon: ScrollText, path: "/dashboard/superadmin/logs" },
-    { name: "Storage Management", icon: HardDrive, path: "/dashboard/superadmin/storage" },
-    { name: "System Health", icon: Activity, path: "/dashboard/superadmin/health" },
-    { name: "Audit Logs", icon: Database, path: "/dashboard/superadmin/audit" },
-    { name: "Advertisements", icon: Monitor, path: "/dashboard/superadmin/advertisements" },
-    { name: "System Settings", icon: Settings, path: "/dashboard/superadmin/settings" },
-  ],
-  admin: [
-    { name: "Dashboard", icon: Home, path: "/dashboard/admin" },
-    { name: "Articles", icon: FileText, path: "/dashboard/articles" },
-    { name: "Reporters", icon: Users, path: "/dashboard/admin/reporters" },
-    { name: "Comments", icon: MessageSquare, path: "/dashboard/admin/comments" },
-    { name: "Analytics", icon: BarChart3, path: "/dashboard/admin/analytics" },
-    { name: "Newsletter", icon: Mail, path: "/dashboard/newsletter" },
-  ],
-  reporter: [
-    { name: "My Articles", icon: FileText, path: "/dashboard/reporter" },
-    { name: "Create Article", icon: Edit, path: "/dashboard/articles/new" },
-    { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts" },
-    { name: "Statistics", icon: PieChart, path: "/dashboard/reporter/stats" },
-    { name: "Profile", icon: User, path: "/dashboard/reporter/profile" },
-  ],
-}
+// We'll dynamically add a badge to Approvals for superadmin/admin
 
 export function DashboardSidebar() {
   const pathname = usePathname()
@@ -88,7 +53,67 @@ export function DashboardSidebar() {
     setHostBrand(brandFromHost(window.location.host))
   }, [])
 
-  const links = roleLinks[profile?.role?.toLowerCase() || "reporter"] || roleLinks.reporter
+
+  // Pending approvals badge state
+  const [pendingApprovals, setPendingApprovals] = useState<number>(0)
+
+  useEffect(() => {
+    // Only fetch for superadmin/admin
+    if (profile?.role === "superadmin" || profile?.role === "admin") {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      supabase
+        .from("app_users")
+        .select("id", { count: "exact", head: true })
+        .eq("is_approved", false)
+        .then(({ count }) => setPendingApprovals(count || 0))
+    }
+  }, [profile?.role])
+
+  // Build links with badge for Approvals
+  let links = []
+  if (profile?.role === "superadmin") {
+    links = [
+      { name: "Dashboard", icon: Home, path: "/dashboard/superadmin" },
+      { name: "Profile", icon: User, path: "/dashboard/superadmin/profile" },
+      { name: "Manage Users", icon: Users, path: "/dashboard/superadmin/users" },
+      { name: "Manage Articles", icon: FileText, path: "/dashboard/superadmin/articles" },
+      { name: "Moderation Queue", icon: CheckCircle, path: "/dashboard/superadmin/moderation" },
+      { name: "Comments", icon: MessageSquare, path: "/dashboard/superadmin/comments" },
+      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
+      { name: "Categories", icon: FolderTree, path: "/dashboard/superadmin/categories" },
+      { name: "Tags", icon: Tag, path: "/dashboard/superadmin/tags" },
+      { name: "Analytics", icon: BarChart3, path: "/dashboard/superadmin/analytics" },
+      { name: "Visitors", icon: Activity, path: "/dashboard/superadmin/visitors" },
+      { name: "Reports", icon: FileBarChart, path: "/dashboard/superadmin/reports" },
+      { name: "System Logs", icon: ScrollText, path: "/dashboard/superadmin/logs" },
+      { name: "Storage Management", icon: HardDrive, path: "/dashboard/superadmin/storage" },
+      { name: "System Health", icon: Activity, path: "/dashboard/superadmin/health" },
+      { name: "Audit Logs", icon: Database, path: "/dashboard/superadmin/audit" },
+      { name: "Advertisements", icon: Monitor, path: "/dashboard/superadmin/advertisements" },
+      { name: "System Settings", icon: Settings, path: "/dashboard/superadmin/settings" },
+    ]
+  } else if (profile?.role === "admin") {
+    links = [
+      { name: "Dashboard", icon: Home, path: "/dashboard/admin" },
+      { name: "Articles", icon: FileText, path: "/dashboard/articles" },
+      { name: "Reporters", icon: Users, path: "/dashboard/admin/reporters" },
+      { name: "Comments", icon: MessageSquare, path: "/dashboard/admin/comments" },
+      { name: "Analytics", icon: BarChart3, path: "/dashboard/admin/analytics" },
+      { name: "Newsletter", icon: Mail, path: "/dashboard/newsletter" },
+      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
+    ]
+  } else {
+    links = [
+      { name: "My Articles", icon: FileText, path: "/dashboard/reporter" },
+      { name: "Create Article", icon: Edit, path: "/dashboard/articles/new" },
+      { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts" },
+      { name: "Statistics", icon: PieChart, path: "/dashboard/reporter/stats" },
+      { name: "Profile", icon: User, path: "/dashboard/reporter/profile" },
+    ]
+  }
 
   const handleSignOut = async () => {
     await signOut()
@@ -116,14 +141,14 @@ export function DashboardSidebar() {
 
       <nav className="flex-1">
         <ul className="space-y-2">
-          {links.map(({ name, icon: Icon, path }) => {
+          {links.map(({ name, icon: Icon, path, badge }) => {
             const isActive = pathname === path
             return (
               <li key={name}>
                 <Link
                   href={path}
                   className={cn(
-                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors",
+                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors relative",
                     isActive
                       ? "bg-yellow-400 text-slate-900 font-medium"
                       : "hover:bg-slate-800 text-slate-300 hover:text-white",
@@ -131,6 +156,11 @@ export function DashboardSidebar() {
                 >
                   <Icon size={20} />
                   <span>{name}</span>
+                  {badge && badge > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-500 text-white absolute right-4 top-2">
+                      {badge}
+                    </span>
+                  )}
                 </Link>
               </li>
             )

@@ -40,7 +40,7 @@ export default function SignUpPage() {
     }
 
     try {
-      const { error } = await supabases.auth.signUp({
+      const { data, error } = await supabases.auth.signUp({
         email,
         password,
         options: {
@@ -52,6 +52,19 @@ export default function SignUpPage() {
         },
       })
       if (error) throw error
+
+      // Call Supabase Edge Function to notify admins
+      try {
+        await fetch("/functions/v1/notify-user-registration", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ record: { email, display_name: fullName } }),
+        })
+      } catch (notifyErr) {
+        // Optionally log notification error
+        console.warn("Admin notification failed", notifyErr)
+      }
+
       router.push("/auth/sign-up-success")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")

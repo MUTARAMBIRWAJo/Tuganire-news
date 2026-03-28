@@ -11,14 +11,19 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get all SuperAdmins
-    const { data: superAdmins } = await supabase.from("profiles").select("email, full_name").eq("role", "superadmin")
 
-    // Send email to each SuperAdmin
-    // Note: You'll need to configure email service (Resend, SendGrid, etc.)
-    for (const admin of superAdmins || []) {
-      console.log(`Sending notification to ${admin.email} about new user: ${record.email}`)
-      // TODO: Implement actual email sending
+    // Get all Admins and SuperAdmins from app_users
+    const { data: admins } = await supabase
+      .from("app_users")
+      .select("email, display_name, role")
+      .in("role", ["admin", "superadmin"])
+      .eq("is_approved", true)
+
+    // Send email to each admin (replace with your email sending logic)
+    for (const admin of admins || []) {
+      // TODO: Integrate with your email provider (Resend, SendGrid, etc.)
+      // Example: await sendEmail(admin.email, subject, html)
+      console.log(`Would send to: ${admin.email} about new user: ${record.email}`)
     }
 
     return new Response(JSON.stringify({ message: "Notifications sent" }), {

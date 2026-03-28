@@ -276,10 +276,20 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     })}
                   </span>
                 )}
-                <span className="flex items-center gap-2">
-                  <Eye className="h-4 w-4" />
-                  {article.views_count || 0} views
-                </span>
+                {article.published_at && (
+                  <span className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {new Date(article.published_at).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      weekday: "long",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false
+                    })}
+                  </span>
+                )}
                 <span className="flex items-center gap-2">
                   <Clock3 className="h-4 w-4" />
                   {readingTimeLabel}
