@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Clock, Eye, MessageCircle, ArrowRight } from "lucide-react"
+import { Clock, MessageCircle, ArrowRight } from "lucide-react"
 import ArticleCardSkeleton from "@/components/ArticleCardSkeleton"
 
 type Article = any
@@ -113,10 +113,7 @@ export default function HomeLatestGrid({ title = "Latest News" }: { title?: stri
                         {formatTimeAgo(article.published_at)}
                       </span>
                     )}
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      {article.views_count ?? 0}
-                    </span>
+                    {/* Views removed for public */}
                     <span className="flex items-center gap-1">
                       <MessageCircle className="h-3 w-3" />
                       {article.comments_count ?? 0}

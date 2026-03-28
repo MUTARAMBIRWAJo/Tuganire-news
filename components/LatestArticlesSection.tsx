@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, User, Eye } from 'lucide-react'
+import { Calendar, User } from 'lucide-react'
 
 interface Article {
   id: string
@@ -130,10 +130,7 @@ export default function LatestArticlesSection({ items, title = "Latest Articles"
                     </span>
                   )}
 
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    {article.views_count ?? 0}
-                  </span>
+                    {/* Views removed for public */}
                 </div>
               </div>
             </div>

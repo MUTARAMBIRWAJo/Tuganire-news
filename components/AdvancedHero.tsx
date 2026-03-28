@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, User, Eye, MessageCircle, ArrowRight } from 'lucide-react'
+import { Calendar, User, MessageCircle, ArrowRight } from 'lucide-react'
 
 interface AdvancedHeroProps {
   item?: {
@@ -108,10 +108,7 @@ export default function AdvancedHero({ item }: AdvancedHeroProps) {
                 </div>
               )}
 
-              <div className="flex items-center gap-1.5">
-                <Eye className="h-3.5 w-3.5" />
-                <span>{item.views_count ?? 0}</span>
-              </div>
+
 
               <div className="flex items-center gap-1.5">
                 <MessageCircle className="h-3.5 w-3.5" />

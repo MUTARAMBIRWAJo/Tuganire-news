@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, User, Eye, ArrowRight } from 'lucide-react'
+import { Calendar, User, ArrowRight } from 'lucide-react'
 import FeaturedSideList from './FeaturedSideList'
 
 interface HeroSectionProps {
@@ -117,10 +117,7 @@ export default function HeroSection({ item, sideStories = [] }: HeroSectionProps
                     </div>
                   )}
 
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-4 w-4" />
-                    <span>{item.views_count ?? 0} views</span>
-                  </div>
+
                 </div>
 
                 {/* Read More CTA */}

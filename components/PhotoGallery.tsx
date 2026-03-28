@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Camera, Eye, MessageCircle } from "lucide-react"
+import { Camera, MessageCircle } from "lucide-react"
 
 interface PhotoGalleryItem {
   id: string
@@ -62,10 +62,7 @@ export default function PhotoGallery({ items, title = "Photo Gallery" }: PhotoGa
               <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                 <h3 className="font-semibold text-sm mb-2 line-clamp-2">{item.title}</h3>
                 <div className="flex items-center gap-3 text-xs text-white/90">
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    {item.views_count ?? 0}
-                  </span>
+                  {/* Views removed for public */}
                   <span className="flex items-center gap-1">
                     <MessageCircle className="h-3 w-3" />
                     {item.comments_count ?? 0}

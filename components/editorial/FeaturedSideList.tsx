@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, Eye } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 
 interface FeaturedSideListProps {
   items?: Array<{
@@ -74,10 +74,7 @@ export default function FeaturedSideList({ items = [] }: FeaturedSideListProps) 
                     <span>{formatDate(item.published_at)}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-1">
-                  <Eye className="h-3 w-3" />
-                  <span>{item.views_count ?? 0}</span>
-                </div>
+
               </div>
             </div>
           </Link>
