@@ -83,10 +83,6 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
                 </span>
               )}
               <span className="flex items-center gap-1 tabular-nums">
-                <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                {Number.isFinite(Number((article as any).views_count)) ? (article as any).views_count : 0}
-              </span>
-              <span className="flex items-center gap-1 tabular-nums">
                 <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                 {Number.isFinite(Number((article as any).comments_count ?? (article as any).comment_count)) ? ((article as any).comments_count ?? (article as any).comment_count) : 0}
               </span>
