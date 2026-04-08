@@ -182,6 +182,9 @@ export default async function HomePage() {
                 
                 {/* Additional AdsKeeper Ad */}
                 <AdsKeeperBanner className="mb-6" />
+
+                {/* Additional AdsKeeper Widget */}
+                <AdsKeeperBanner widgetId="1992253" className="mb-6" />
               </div>
             </div>
           </div>
