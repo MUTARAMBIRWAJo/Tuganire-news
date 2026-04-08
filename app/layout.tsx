@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Inter, Merriweather } from "next/font/google"
 import "./globals.css"
 import ChatWidget from "@/components/ai/ChatWidget"
+import { AutoRefresh } from "@/components/auto-refresh"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -99,6 +100,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${merriweather.variable} font-sans antialiased`}>
         {shouldLoadAdSense && <amp-auto-ads type="adsense" data-ad-client={adSenseClient}></amp-auto-ads>}
         {children}
+        <AutoRefresh intervalMs={60000} />
         <ChatWidget />
       </body>
     </html>
