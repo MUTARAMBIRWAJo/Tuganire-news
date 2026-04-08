@@ -167,6 +167,7 @@ export default async function HomePage() {
               <EditorsPicksSection items={editorsPicks as any} />
               <MostPopularSection items={mostPopular as any} period="week" />
               <MostLikedSection items={mostLiked as any} />
+              <AdsKeeperBanner widgetId="1992253" className="mb-6" />
               <MostCommentedSection items={mostCommented as any} />
               <PhotoGallery items={photoGallery as any} />
             </div>
@@ -179,12 +180,6 @@ export default async function HomePage() {
                 
                 {/* AdsKeeper Vertical Ads */}
                 <AdsKeeperSidebar className="mb-6" />
-                
-                {/* Additional AdsKeeper Ad */}
-                <AdsKeeperBanner className="mb-6" />
-
-                {/* Additional AdsKeeper Widget */}
-                <AdsKeeperBanner widgetId="1992253" className="mb-6" />
               </div>
             </div>
           </div>
