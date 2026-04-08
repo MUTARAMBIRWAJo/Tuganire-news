@@ -7,7 +7,7 @@ interface AdsKeeperHeroProps {
   className?: string
 }
 
-export default function AdsKeeperHero({ widgetId = "1992228", className = "" }: AdsKeeperHeroProps) {
+export default function AdsKeeperHero({ widgetId = "1992246", className = "" }: AdsKeeperHeroProps) {
   useEffect(() => {
     // Trigger AdsKeeper widget load
     if ((window as any)._mgq) {

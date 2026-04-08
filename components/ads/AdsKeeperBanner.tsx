@@ -9,7 +9,7 @@ interface AdsKeeperBannerProps {
 }
 
 export default function AdsKeeperBanner({ 
-  widgetId = "1992228", 
+  widgetId = "1992246",
   className = "",
   fullWidth = true 
 }: AdsKeeperBannerProps) {

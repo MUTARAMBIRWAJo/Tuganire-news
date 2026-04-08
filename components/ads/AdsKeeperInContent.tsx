@@ -9,7 +9,7 @@ interface AdsKeeperInContentProps {
 }
 
 export default function AdsKeeperInContent({ 
-  widgetId = "1992228", 
+  widgetId = "1992246",
   className = "",
   position = "middle"
 }: AdsKeeperInContentProps) {

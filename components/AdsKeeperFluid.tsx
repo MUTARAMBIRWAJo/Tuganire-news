@@ -7,7 +7,7 @@ interface AdsKeeperFluidProps {
   className?: string
 }
 
-export default function AdsKeeperFluid({ widgetId = "1992228", className = "" }: AdsKeeperFluidProps) {
+export default function AdsKeeperFluid({ widgetId = "1992246", className = "" }: AdsKeeperFluidProps) {
   useEffect(() => {
     // Trigger AdsKeeper widget load
     if ((window as any)._mgq) {

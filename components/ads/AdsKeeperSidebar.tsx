@@ -7,7 +7,7 @@ interface AdsKeeperSidebarProps {
   className?: string
 }
 
-export default function AdsKeeperSidebar({ widgetId = "1992228", className = "" }: AdsKeeperSidebarProps) {
+export default function AdsKeeperSidebar({ widgetId = "1992246", className = "" }: AdsKeeperSidebarProps) {
   useEffect(() => {
     // Trigger AdsKeeper widget load
     if ((window as any)._mgq) {
