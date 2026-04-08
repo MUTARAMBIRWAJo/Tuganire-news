@@ -71,9 +71,33 @@ export function ArticleCard({
           </div>
 
           {/* Metadata - always at bottom */}
-          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-auto">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-auto">
+            {author && (
+              <span className="flex items-center gap-1 truncate max-w-[120px]">
+                {author.avatar_url ? (
+                  <Image
+                    src={author.avatar_url}
+                    alt={authorName || "Author"}
+                    width={16}
+                    height={16}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                )}
+                <span className="truncate">{authorName || "Anonymous"}</span>
+              </span>
+            )}
+            <span className="flex items-center gap-1 tabular-nums">
+              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+              {Number.isFinite(Number((article as any).comments_count ?? (article as any).comment_count)) ? ((article as any).comments_count ?? (article as any).comment_count) : 0}
+            </span>
+            <span className="flex items-center gap-1 tabular-nums">
+              <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+              {Number.isFinite(Number((article as any).likes_count)) ? (article as any).likes_count : 0}
+            </span>
             {article.published_at && (
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 whitespace-nowrap">
                 <Calendar className="h-3 w-3 flex-shrink-0" />
                 <span>{new Date(article.published_at).toLocaleString("en-US", {
                   year: "numeric",

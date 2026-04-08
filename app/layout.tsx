@@ -73,6 +73,12 @@ export default function RootLayout({
         {shouldLoadAdSense && <meta name="google-adsense-account" content={adSenseClient} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* AdsKeeper Ad Network */}
+        <Script 
+          src="https://jsc.adskeeper.com/site/1087913.js" 
+          async 
+          strategy="afterInteractive"
+        />
         {shouldLoadAdSense && (
           <>
             <Script

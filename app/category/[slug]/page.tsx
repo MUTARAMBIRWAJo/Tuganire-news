@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import ArticlesList from '@/components/ArticlesList';
-import AdSenseFluid from '@/components/AdSenseFluid';
+import AdsKeeperFluid from '@/components/AdsKeeperFluid';
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://tuganire.site').replace(/\/+$/, '');
 
@@ -66,7 +66,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         
         {/* First Ad - After Category Header */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <AdSenseFluid adSlot="5121245254" />
+          <AdsKeeperFluid />
         </div>
         
         {/* Articles List */}
@@ -76,7 +76,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         
         {/* Second Ad - After Articles List */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <AdSenseFluid adSlot="5121245254" />
+          <AdsKeeperFluid />
         </div>
       </main>
       <SiteFooter />

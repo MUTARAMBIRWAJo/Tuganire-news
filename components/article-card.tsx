@@ -64,10 +64,10 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
           {article.excerpt && (
             <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 line-clamp-1 mb-2">{article.excerpt}</p>
           )}
-          <div className="flex items-center justify-between text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-auto">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-auto">
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
               {author && (
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 truncate max-w-[120px]">
                   {author.avatar_url ? (
                     <Image
                       src={author.avatar_url}
@@ -90,12 +90,14 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
                 <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
                 {Number.isFinite(Number((article as any).likes_count)) ? (article as any).likes_count : 0}
               </span>
+              {article.published_at && (
+                <span className="flex items-center gap-1 whitespace-nowrap">
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                  {new Date(article.published_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                </span>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                {article.published_at ? new Date(article.published_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
-              </span>
+            <div className="flex items-center gap-2 ml-auto">
               <ShareButton url={shareUrl} title={article.title} size="sm" />
             </div>
           </div>

@@ -5,7 +5,7 @@ import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import ArticleCardSkeleton from '@/components/ArticleCardSkeleton';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import AdSenseFluid from '@/components/AdSenseFluid';
+import AdsKeeperFluid from '@/components/AdsKeeperFluid';
 
 export default function ArticlesPage() {
   const router = useRouter();
@@ -87,7 +87,7 @@ export default function ArticlesPage() {
         </div>
 
         {/* First Ad - After Search Filters */}
-        <AdSenseFluid adSlot="5121245254" />
+        <AdsKeeperFluid />
 
         <Suspense
           fallback={
@@ -102,7 +102,7 @@ export default function ArticlesPage() {
         </Suspense>
 
         {/* Second Ad - After Articles List */}
-        <AdSenseFluid adSlot="5121245254" />
+        <AdsKeeperFluid />
 
         {!infinite && (
         <div className="flex items-center justify-between pt-4">

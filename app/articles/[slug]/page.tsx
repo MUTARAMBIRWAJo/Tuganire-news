@@ -14,8 +14,8 @@ import CommentsSection from "@/components/comments-section"
 import RelatedArticles from "@/components/RelatedArticles"
 import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
-import AdSenseInContent from "@/components/ads/AdSenseInContent"
-import AdSenseSidebar from "@/components/ads/AdSenseSidebar"
+import AdsKeeperInContent from "@/components/ads/AdsKeeperInContent"
+import AdsKeeperSidebar from "@/components/ads/AdsKeeperSidebar"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 
 export const revalidate = 300 // Revalidate every 5 minutes
@@ -355,7 +355,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {article.content && (
               <>
                 {/* First Ad - After Featured Image */}
-                <AdSenseInContent adSlot="5121245254" position="top" />
+                <AdsKeeperInContent position="top" />
                 
                 <Prose className="mb-12">
                   <div
@@ -365,7 +365,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </Prose>
                 
                 {/* Second Ad - After Article Content */}
-                <AdSenseInContent adSlot="5121245255" position="bottom" />
+                <AdsKeeperInContent position="bottom" />
               </>
             )}
 
@@ -421,7 +421,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             )}
 
             {/* Sidebar Ad */}
-            <AdSenseSidebar adSlot="6789012345" className="mb-12" />
+            <AdsKeeperSidebar className="mb-12" />
           </article>
 
           {/* Related Articles */}

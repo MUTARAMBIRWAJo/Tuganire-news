@@ -17,10 +17,9 @@ import PhotoGallery from "@/components/PhotoGallery"
 import WeatherWidget from "@/components/WeatherWidget"
 import StockTicker from "@/components/StockTicker"
 import AdvertisementMarquee from "@/components/AdvertisementMarquee"
-import AdSenseHero from "@/components/ads/AdSenseHero"
-import AdSenseSidebar from "@/components/ads/AdSenseSidebar"
-import AdSenseBanner from "@/components/ads/AdSenseBanner"
-import AdSenseInContent from "@/components/ads/AdSenseInContent"
+import AdsKeeperHero from "@/components/ads/AdsKeeperHero"
+import AdsKeeperSidebar from "@/components/ads/AdsKeeperSidebar"
+import AdsKeeperBanner from "@/components/ads/AdsKeeperBanner"
 import Script from "next/script"
 
 export const revalidate = 120 // Revalidate every 2 minutes
@@ -120,7 +119,7 @@ export default async function HomePage() {
 
         {/* Hero Ad */}
         <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AdSenseHero adSlot="1234567890" className="mb-8" />
+          <AdsKeeperHero className="mb-8" />
         </section>
 
         {/* Trending Rail */}
@@ -144,7 +143,7 @@ export default async function HomePage() {
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 Latest by Category
               </h2>
-              <AdSenseBanner adSlot="2345678901" className="w-auto" fullWidth={false} />
+              <AdsKeeperBanner className="w-auto" fullWidth={false} />
             </div>
             <div className="space-y-8">
               {(rows as any[]).map((categoryRow: any) => (
@@ -178,11 +177,11 @@ export default async function HomePage() {
                 <StockTicker symbols={["AAPL", "GOOGL", "MSFT", "TSLA", "AMZN"]} />
                 <AdvertisementMarquee />
                 
-                {/* Google AdSense Vertical Ads */}
-                <AdSenseSidebar adSlot="3456789012" className="mb-6" />
+                {/* AdsKeeper Vertical Ads */}
+                <AdsKeeperSidebar className="mb-6" />
                 
-                {/* Additional Banner Ad */}
-                <AdSenseBanner adSlot="4567890123" adFormat="vertical" className="mb-6" />
+                {/* Additional AdsKeeper Ad */}
+                <AdsKeeperBanner className="mb-6" />
               </div>
             </div>
           </div>
