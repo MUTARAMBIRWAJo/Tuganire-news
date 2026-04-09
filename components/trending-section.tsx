@@ -32,7 +32,7 @@ const fetcher = async () => {
 
 export function TrendingSection() {
   const { data: trendingArticles, error } = useSWR("trending-articles", fetcher, {
-    refreshInterval: 60000, // Refresh every minute
+    refreshInterval: 30000, // Refresh every 30 seconds
   })
 
   if (error || !trendingArticles || trendingArticles.length === 0) {
