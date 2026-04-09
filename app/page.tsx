@@ -16,13 +16,9 @@ import NewsletterSignup from "@/components/NewsletterSignup"
 import PhotoGallery from "@/components/PhotoGallery"
 import WeatherWidget from "@/components/WeatherWidget"
 import StockTicker from "@/components/StockTicker"
-import AdvertisementMarquee from "@/components/AdvertisementMarquee"
 import AdsKeeperHero from "@/components/ads/AdsKeeperHero"
-import AdsKeeperSidebar from "@/components/ads/AdsKeeperSidebar"
-import AdsKeeperBanner from "@/components/ads/AdsKeeperBanner"
-import Script from "next/script"
 
-export const revalidate = 120 // Revalidate every 2 minutes
+export const revalidate = 30 // Revalidate every 30 seconds
 
 export const metadata: Metadata = {
   title: "Tuganire News - Latest Breaking News, Stories & Analysis",
@@ -139,11 +135,8 @@ export default async function HomePage() {
         {/* Category Sections using new SectionBlock */}
         {rows && (rows as any[]).length > 0 && (
           <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Latest by Category
-              </h2>
-              <AdsKeeperBanner className="w-auto" fullWidth={false} />
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Latest by Category</h2>
             </div>
             <div className="space-y-8">
               {(rows as any[]).map((categoryRow: any) => (
@@ -167,7 +160,6 @@ export default async function HomePage() {
               <EditorsPicksSection items={editorsPicks as any} />
               <MostPopularSection items={mostPopular as any} period="week" />
               <MostLikedSection items={mostLiked as any} />
-              <AdsKeeperBanner widgetId="1992253" className="mb-6" />
               <MostCommentedSection items={mostCommented as any} />
               <PhotoGallery items={photoGallery as any} />
             </div>
@@ -176,10 +168,6 @@ export default async function HomePage() {
               <div className="sticky top-6 space-y-6">
                 <WeatherWidget defaultLocation="Kigali" />
                 <StockTicker symbols={["AAPL", "GOOGL", "MSFT", "TSLA", "AMZN"]} />
-                <AdvertisementMarquee />
-                
-                {/* AdsKeeper Vertical Ads */}
-                <AdsKeeperSidebar className="mb-6" />
               </div>
             </div>
           </div>

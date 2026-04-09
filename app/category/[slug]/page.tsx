@@ -73,11 +73,6 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         <div className="py-8">
           <ArticlesList initialFilters={{ category: params.slug }} />
         </div>
-        
-        {/* Second Ad - After Articles List */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <AdsKeeperFluid />
-        </div>
       </main>
       <SiteFooter />
     </>

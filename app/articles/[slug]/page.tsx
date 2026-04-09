@@ -15,7 +15,6 @@ import RelatedArticles from "@/components/RelatedArticles"
 import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
 import AdsKeeperInContent from "@/components/ads/AdsKeeperInContent"
-import AdsKeeperSidebar from "@/components/ads/AdsKeeperSidebar"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 
 export const revalidate = 300 // Revalidate every 5 minutes
@@ -363,9 +362,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     dangerouslySetInnerHTML={{ __html: String(article.content || "") }}
                   />
                 </Prose>
-                
-                {/* Second Ad - After Article Content */}
-                <AdsKeeperInContent position="bottom" />
               </>
             )}
 
@@ -419,9 +415,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </CardContent>
               </Card>
             )}
-
-            {/* Sidebar Ad */}
-            <AdsKeeperSidebar className="mb-12" />
           </article>
 
           {/* Related Articles */}

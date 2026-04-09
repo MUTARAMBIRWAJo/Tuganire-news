@@ -9,7 +9,7 @@ interface AdSenseHeroProps {
 
 export default function AdSenseHero({ adSlot, className = "" }: AdSenseHeroProps) {
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full overflow-hidden ${className}`}>
       <Script
         async
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1524579863977140"

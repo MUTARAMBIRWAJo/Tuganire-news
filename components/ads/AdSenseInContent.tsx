@@ -13,19 +13,10 @@ export default function AdSenseInContent({
   className = "",
   position = "middle"
 }: AdSenseInContentProps) {
-  const getAdStyle = () => {
-    switch (position) {
-      case "top":
-        return { display: "block", width: "100%", height: "90px" }
-      case "bottom":
-        return { display: "block", width: "100%", height: "250px" }
-      default:
-        return { display: "block", width: "100%", height: "250px" }
-    }
-  }
+  const adStyle = { display: "block", width: "100%", height: "120px" }
 
   return (
-    <div className={`my-8 ${className}`}>
+    <div className={`my-8 overflow-hidden ${className}`}>
       <div className="text-center text-xs text-gray-500 mb-2">Advertisement</div>
       <Script
         async
@@ -33,14 +24,16 @@ export default function AdSenseInContent({
         crossOrigin="anonymous"
         strategy="afterInteractive"
       />
-      <ins
-        className="adsbygoogle"
-        style={getAdStyle()}
-        data-ad-client="ca-pub-1524579863977140"
-        data-ad-slot={adSlot}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      />
+      <div className="h-[120px] overflow-hidden">
+        <ins
+          className="adsbygoogle"
+          style={adStyle}
+          data-ad-client="ca-pub-1524579863977140"
+          data-ad-slot={adSlot}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+      </div>
       <Script id={`adsbygoogle-init-${adSlot}`} strategy="afterInteractive">
         {`(adsbygoogle = window.adsbygoogle || []).push({});`}
       </Script>

@@ -21,9 +21,11 @@ export default function AdsKeeperInContent({
   }, [])
 
   return (
-    <div className={`my-8 ${className}`}>
+    <div className={`my-8 overflow-hidden ${className}`}>
       <div className="text-center text-xs text-gray-500 mb-2">Advertisement</div>
-      <div data-type="_mgwidget" data-widget-id={widgetId}></div>
+      <div className="h-[120px] overflow-hidden">
+        <div data-type="_mgwidget" data-widget-id={widgetId}></div>
+      </div>
     </div>
   )
 }

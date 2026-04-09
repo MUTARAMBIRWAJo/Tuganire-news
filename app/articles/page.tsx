@@ -101,9 +101,6 @@ export default function ArticlesPage() {
           <ArticlesList initialFilters={filters} infinite={infinite} pageSize={pageSize} />
         </Suspense>
 
-        {/* Second Ad - After Articles List */}
-        <AdsKeeperFluid />
-
         {!infinite && (
         <div className="flex items-center justify-between pt-4">
           <button

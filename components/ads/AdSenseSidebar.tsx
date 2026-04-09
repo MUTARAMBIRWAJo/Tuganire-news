@@ -9,7 +9,7 @@ interface AdSenseSidebarProps {
 
 export default function AdSenseSidebar({ adSlot, className = "" }: AdSenseSidebarProps) {
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full overflow-hidden ${className}`}>
       <div className="text-center text-xs text-gray-500 mb-2">Advertisement</div>
       <Script
         async
@@ -17,17 +17,19 @@ export default function AdSenseSidebar({ adSlot, className = "" }: AdSenseSideba
         crossOrigin="anonymous"
         strategy="afterInteractive"
       />
-      <ins
-        className="adsbygoogle"
-        style={{ 
-          display: "block",
-          width: "300px",
-          height: "600px"
-        }}
-        data-ad-client="ca-pub-1524579863977140"
-        data-ad-slot={adSlot}
-        data-ad-format="vertical"
-      />
+      <div className="h-[120px] overflow-hidden">
+        <ins
+          className="adsbygoogle"
+          style={{ 
+            display: "block",
+            width: "100%",
+            height: "120px"
+          }}
+          data-ad-client="ca-pub-1524579863977140"
+          data-ad-slot={adSlot}
+          data-ad-format="horizontal"
+        />
+      </div>
       <Script id={`adsbygoogle-init-${adSlot}`} strategy="afterInteractive">
         {`(adsbygoogle = window.adsbygoogle || []).push({});`}
       </Script>

@@ -18,25 +18,27 @@ export default function AdSenseBanner({
   const adStyle = {
     display: "block",
     width: fullWidth ? "100%" : "300px",
-    height: adFormat === "horizontal" ? "90px" : adFormat === "vertical" ? "600px" : "250px"
+    height: "120px"
   }
 
   return (
-    <div className={`w-full flex justify-center ${className}`}>
+    <div className={`w-full flex justify-center overflow-hidden ${className}`}>
       <Script
         async
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1524579863977140"
         crossOrigin="anonymous"
         strategy="afterInteractive"
       />
-      <ins
-        className="adsbygoogle"
-        style={adStyle}
-        data-ad-client="ca-pub-1524579863977140"
-        data-ad-slot={adSlot}
-        data-ad-format={adFormat}
-        data-full-width-responsive={fullWidth ? "true" : "false"}
-      />
+      <div className="h-[120px] w-full overflow-hidden">
+        <ins
+          className="adsbygoogle"
+          style={adStyle}
+          data-ad-client="ca-pub-1524579863977140"
+          data-ad-slot={adSlot}
+          data-ad-format={adFormat}
+          data-full-width-responsive={fullWidth ? "true" : "false"}
+        />
+      </div>
       <Script id={`adsbygoogle-init-${adSlot}`} strategy="afterInteractive">
         {`(adsbygoogle = window.adsbygoogle || []).push({});`}
       </Script>

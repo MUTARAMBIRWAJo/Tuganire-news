@@ -46,7 +46,7 @@ export default function AdvertisementMarquee() {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 h-[400px] flex items-center justify-center">
+      <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700 h-[140px] flex items-center justify-center">
         <div className="animate-pulse text-gray-400">Loading ads...</div>
       </div>
     )
@@ -58,11 +58,11 @@ export default function AdvertisementMarquee() {
 
   const AdContent = ({ ad }: { ad: Advertisement }) => {
     const content = (
-      <div className="mb-2">
+      <div className="flex items-center gap-3">
         {ad.media_type === "video" ? (
           <video
             src={ad.media_url}
-            className="w-full h-auto rounded-lg"
+            className="h-20 w-32 sm:w-40 rounded-md object-cover shrink-0"
             autoPlay
             loop
             muted
@@ -76,16 +76,16 @@ export default function AdvertisementMarquee() {
             height={600}
             loading="lazy"
             unoptimized
-            className="w-full h-auto rounded-lg"
+            className="h-20 w-32 sm:w-40 rounded-md object-cover shrink-0"
           />
         )}
         {(ad.title || ad.description) && (
-          <div className="mt-2 text-center">
+          <div className="min-w-0 text-left">
             {ad.title && (
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{ad.title}</p>
+              <p className="mb-1 line-clamp-1 text-sm font-medium text-gray-800 dark:text-gray-200">{ad.title}</p>
             )}
             {ad.description && (
-              <p className="text-xs text-gray-600 dark:text-gray-400">{ad.description}</p>
+              <p className="mb-0 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">{ad.description}</p>
             )}
           </div>
         )}
@@ -113,14 +113,14 @@ export default function AdvertisementMarquee() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-      <div className="mb-3">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Advertisement</h3>
+    <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+      <div className="mb-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">Advertisement</h3>
       </div>
-      <div>
+      <div className="overflow-hidden">
         <AdContent ad={ads[index]} />
         {ads.length > 1 && (
-          <div className="mt-2 flex items-center justify-center gap-1">
+          <div className="mt-2 flex items-center justify-start gap-1">
             {ads.map((_, i) => (
               <span
                 key={i}
