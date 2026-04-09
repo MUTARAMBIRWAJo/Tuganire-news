@@ -14,7 +14,7 @@ import CommentsSection from "@/components/comments-section"
 import RelatedArticles from "@/components/RelatedArticles"
 import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
-import AdsKeeperInContent from "@/components/ads/AdsKeeperInContent"
+import AdsKeeperHero from "@/components/ads/AdsKeeperHero"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 
 export const revalidate = 300 // Revalidate every 5 minutes
@@ -202,6 +202,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const shareUrl = canonicalUrl
   const shareText = article.title
+  const articleAdWidgets = [
+    { widgetId: "1992830", adHeightPx: 300 },
+    { widgetId: "1992246", adHeightPx: 300 },
+    { widgetId: "1992253", adHeightPx: 300 },
+    { widgetId: "1992830", adHeightPx: 300 },
+  ]
 
   // Extract image URLs from content as fallback
   const contentMatches: string[] = ((article.content || "").match(/https?:\/\/[^\s)]+\.(?:png|jpe?g|webp|gif)/gi) || []) as string[]
@@ -353,8 +359,16 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {/* Article Content */}
             {article.content && (
               <>
-                {/* First Ad - After Featured Image */}
-                <AdsKeeperInContent position="top" />
+                {/* Ads row - keep reader flow uninterrupted */}
+                <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {articleAdWidgets.map((ad, index) => (
+                    <AdsKeeperHero
+                      key={`${ad.widgetId}-${index}`}
+                      widgetId={ad.widgetId}
+                      adHeightPx={ad.adHeightPx}
+                    />
+                  ))}
+                </div>
                 
                 <Prose className="mb-12">
                   <div
