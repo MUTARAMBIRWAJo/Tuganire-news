@@ -209,12 +209,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const shareUrl = canonicalUrl
   const shareText = article.title
-  const articleAds = [
-    { widgetId: "1992246", adHeightPx: 300 },
-    { widgetId: "1992253", adHeightPx: 300 },
-    { widgetId: "1992830", adHeightPx: 300 },
-    { widgetId: "1998800", adHeightPx: 300 },
-  ]
 
   const contentMatches: string[] = ((article.content || "").match(/https?:\/\/[^\s)]+\.(?:png|jpe?g|webp|gif)/gi) || []) as string[]
   const contentGallery: string[] = Array.from(new Set<string>(contentMatches)).slice(0, 6)
