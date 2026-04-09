@@ -14,7 +14,7 @@ import CommentsSection from "@/components/comments-section"
 import RelatedArticles from "@/components/RelatedArticles"
 import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
-import AdsKeeperInContentntent from "@/components/ads/AdsKInCententrInContent"
+import AdsKeeperMarqueeRow from "@/components/ads/AdsKeeperMarqueeRow"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 
 export const revalidate = 300 // Revalidate every 5 minutes
@@ -89,6 +89,13 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params
+  const articleAds = [
+    { widgetId: "1992246", adHeightPx: 300 },
+    { widgetId: "1992253", adHeightPx: 300 },
+    { widgetId: "1992830", adHeightPx: 300 },
+    { widgetId: "1998800", adHeightPx: 300 },
+  ]
+
   const res = await fetch(`${siteUrl}/api/public/articles/${slug}`, { next: { revalidate } })
   if (res.status === 404) return notFound()
   if (!res.ok) return notFound()
@@ -348,7 +355,7 @@ sGconst structuredGallery = [...images, ...videos, ...audios]
             {article.content && (
               <>
                 {/* First Ad - After Featured Image */}
-                <AdsKeeperInContent position="top" />
+                <AdsKeeperMarqueeRow ads={articleAds} className="mb-8" intervalMs={10000} />
                 
                 <Prose className="mb-12">
                   <div

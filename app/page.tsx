@@ -16,7 +16,7 @@ import NewsletterSignup from "@/components/NewsletterSignup"
 import PhotoGallery from "@/components/PhotoGallery"
 import WeatherWidget from "@/components/WeatherWidget"
 import StockTicker from "@/components/StockTicker"
-import AdsKeeperHero from "@/components/ads/AdsKeeperHero"
+import AdsKeeperMarqueeRow from "@/components/ads/AdsKeeperMarqueeRow"
 
 export const revalidate = 30 // Revalidate every 30 seconds
 
@@ -46,10 +46,10 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const heroAds = [
-    { widgetId: "1992830", adHeightPx: 300 },
+    { widgetId: "1992246", adHeightPx: 300 },
+    { widgetId: "1992253", adHeightPx: 300 },
     { widgetId: "1992830", adHeightPx: 300 },
     { widgetId: "1998800", adHeightPx: 300 },
-    { widgetId: "1992830", adHeightPx: 300 },
   ]
 
   let breaking: any[] = []
@@ -120,17 +120,9 @@ export default async function HomePage() {
           <HeroSection item={hero as any} sideStories={sideStories as any} />
         </section>
 
-        {/* Hero Ads Row */}
+        {/* Hero Ads Marquee: one ad at a time */}
         <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {heroAds.map((ad, index) => (
-              <AdsKeeperHero
-                key={`${ad.widgetId}-${index}`}
-                widgetId={ad.widgetId}
-                adHeightPx={ad.adHeightPx}
-              />
-            ))}
-          </div>
+          <AdsKeeperMarqueeRow ads={heroAds} className="mb-8" intervalMs={10000} />
         </section>
 
         {/* Trending Rail */}
