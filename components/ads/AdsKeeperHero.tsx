@@ -10,28 +10,31 @@ interface AdsKeeperHeroProps {
 
 export default function AdsKeeperHero({ widgetId = "1992246", className = "", adHeightPx = 260 }: AdsKeeperHeroProps) {
   useEffect(() => {
-    const queue = (window as any)._mgq
-    if (!queue) return
+    let tries = 0
+    const maxTries = 16
+    const timer = window.setInterval(() => {
+      const queue = (window as any)._mgq
+      if (!queue) {
+        tries += 1
+        if (tries >= maxTries) window.clearInterval(timer)
+        return
+      }
 
-    // Retry load a few times so all widgets in a multi-column row can initialize.
-    const loadWidget = () => queue.push(["_mgc.load"])
-    loadWidget()
-    const t1 = window.setTimeout(loadWidget, 250)
-    const t2 = window.setTimeout(loadWidget, 900)
+      queue.push(["_mgc.load"])
+      window.setTimeout(() => queue.push(["_mgc.load"]), 250)
+      window.clearInterval(timer)
+    }, 250)
 
-    return () => {
-      window.clearTimeout(t1)
-      window.clearTimeout(t2)
-    }
+    return () => window.clearInterval(timer)
   }, [])
 
-  const widgetStyle = widgetId === "1992830" ? { minHeight: "300px" } : undefined
+  const minHeightPx = Math.max(adHeightPx, widgetId === "1992830" ? 300 : adHeightPx)
 
   return (
-    <div className={`w-full overflow-hidden ${className}`}>
+    <div className={`w-full ${className}`}>
       <div className="text-center text-xs text-gray-500 mb-2">Advertisement</div>
-      <div className="overflow-hidden" style={{ height: `${adHeightPx}px` }}>
-        <div data-type="_mgwidget" data-widget-id={widgetId} style={widgetStyle}></div>
+      <div style={{ minHeight: `${minHeightPx}px` }}>
+        <div data-type="_mgwidget" data-widget-id={widgetId}></div>
       </div>
     </div>
   )
