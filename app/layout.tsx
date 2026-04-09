@@ -32,9 +32,6 @@ const merriweather = Merriweather({
 })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tuganire.site"
-const adSenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-REPLACE_WITH_MY_PUBLISHER_ID"
-const shouldLoadAdSense = process.env.NODE_ENV === "production" && adSenseClient.startsWith("ca-pub-") && !adSenseClient.includes("REPLACE_WITH")
-
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -71,7 +68,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {shouldLoadAdSense && <meta name="google-adsense-account" content={adSenseClient} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* AdsKeeper Ad Network */}
@@ -80,25 +76,8 @@ export default function RootLayout({
           async 
           strategy="afterInteractive"
         />
-        {shouldLoadAdSense && (
-          <>
-            <Script
-              async
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adSenseClient}`}
-              crossOrigin="anonymous"
-              strategy="afterInteractive"
-            />
-            <Script
-              async
-              custom-element="amp-auto-ads"
-              src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"
-              strategy="afterInteractive"
-            />
-          </>
-        )}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${merriweather.variable} font-sans antialiased`}>
-        {shouldLoadAdSense && <amp-auto-ads type="adsense" data-ad-client={adSenseClient}></amp-auto-ads>}
         {children}
         <AutoRefresh intervalMs={60000} />
         <ChatWidget />
