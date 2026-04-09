@@ -45,6 +45,8 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
+  const heroAdWidgetIds = ["1992246", "1992246", "1992246", "1992246"]
+
   let breaking: any[] = []
   let hero: any = null
   let trending: any[] = []
@@ -113,9 +115,17 @@ export default async function HomePage() {
           <HeroSection item={hero as any} sideStories={sideStories as any} />
         </section>
 
-        {/* Hero Ad */}
+        {/* Hero Ads Row */}
         <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AdsKeeperHero className="mb-8" />
+          <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {heroAdWidgetIds.map((widgetId, index) => (
+              <AdsKeeperHero
+                key={`${widgetId}-${index}`}
+                widgetId={widgetId}
+                adHeightPx={260}
+              />
+            ))}
+          </div>
         </section>
 
         {/* Trending Rail */}
