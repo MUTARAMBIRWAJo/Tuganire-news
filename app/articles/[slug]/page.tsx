@@ -14,7 +14,7 @@ import CommentsSection from "@/components/comments-section"
 import RelatedArticles from "@/components/RelatedArticles"
 import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
-import AdsKeeperHero from "@/components/ads/AdsKeeperHero"
+import AdsKeeperInContentntent from "@/components/ads/AdsKInCententrInContent"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 
 export const revalidate = 300 // Revalidate every 5 minutes
@@ -201,21 +201,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const shareUrl = canonicalUrl
-  const shareText = article.title
-  const articleAdWidgets = [
-    { widgetId: "1992830", adHeightPx: 300 },
-    { widgetId: "1992246", adHeightPx: 300 },
-    { widgetId: "1992253", adHeightPx: 300 },
-    { widgetId: "1992830", adHeightPx: 300 },
-  ]
-
-  // Extract image URLs from content as fallback
-  const contentMatches: string[] = ((article.content || "").match(/https?:\/\/[^\s)]+\.(?:png|jpe?g|webp|gif)/gi) || []) as string[]
-  const contentGallery: string[] = Array.from(new Set<string>(contentMatches)).slice(0, 6)
-  const images = (mediaItems || []).filter((m: any) => m.media_type === "image").map((m: any) => ({ type: "image" as const, url: m.url, caption: m.caption }))
-  const videos = (mediaItems || []).filter((m: any) => m.media_type === "video").map((m: any) => ({ type: "video" as const, url: m.url, caption: m.caption }))
-  const audios = (mediaItems || []).filter((m: any) => m.media_type === "audio").map((m: any) => ({ type: "audio" as const, url: m.url, caption: m.caption }))
-  const structuredGallery = [...images, ...videos, ...audios]
+  const shareText = article.titloack
+content || "").match(/https?:\/\/[^\s)]+\.(?:png|jpe?g|webp|gif)/gi) || []) as string[]
+sGconst structuredGallery = [...images, ...videos, ...audios]
   const fallbackGallery = contentGallery.map((u) => ({ type: "image" as const, url: u, caption: undefined as string | undefined }))
   const gallery = (structuredGallery.length > 0 ? structuredGallery : fallbackGallery).slice(0, 6)
 
@@ -359,30 +347,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {/* Article Content */}
             {article.content && (
               <>
-                {/* Ads row - keep reader flow uninterrupted */}
-                <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {articleAdWidgets.map((ad, index) => (
-                    <AdsKeeperHero
-                      key={`${ad.widgetId}-${index}`}
-                      widgetId={ad.widgetId}
-                      adHeightPx={ad.adHeightPx}
-                    />
-                  ))}
-                </div>
+                {/* First Ad - After Featured Image */}
+                <AdsKeeperInContent position="top" />
                 
                 <Prose className="mb-12">
                   <div
                     className="prose-content"
-                    dangerouslySetInnerHTML={{ __html: String(article.content || "") }}
-                  />
-                </Prose>
-              </>
-            )}
-
-            {/* Tags */}
-            {tags.length > 0 && (
-              <div className="mb-8 flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Tags:</span>
+                    First dausMALml  FiturI*/}
+              </Conn*posion"op" s className="text-sm font-medium text-gray-600 dark:text-gray-400">Tags:</span>
                 {tags.map((tag: any) => (
                   <Link
                     key={tag.id}

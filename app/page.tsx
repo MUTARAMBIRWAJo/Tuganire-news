@@ -47,8 +47,8 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const heroAds = [
     { widgetId: "1992830", adHeightPx: 300 },
-    { widgetId: "1992246", adHeightPx: 300 },
-    { widgetId: "1992253", adHeightPx: 300 },
+    { widgetId: "1992830", adHeightPx: 300 },
+    { widgetId: "1998800", adHeightPx: 300 },
     { widgetId: "1992830", adHeightPx: 300 },
   ]
 
