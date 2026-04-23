@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from "react"
+import { enqueueAdsKeeperLoad } from "@/lib/adskeeper"
 
 interface AdsKeeperSidebarProps {
   widgetId?: string
@@ -10,21 +11,7 @@ interface AdsKeeperSidebarProps {
 
 export default function AdsKeeperSidebar({ widgetId = "1992246", className = "", adHeightPx = 300 }: AdsKeeperSidebarProps) {
   useEffect(() => {
-    let tries = 0
-    const maxTries = 16
-    const timer = window.setInterval(() => {
-      const queue = (window as any)._mgq
-      if (!queue) {
-        tries += 1
-        if (tries >= maxTries) window.clearInterval(timer)
-        return
-      }
-
-      queue.push(["_mgc.load"])
-      window.clearInterval(timer)
-    }, 250)
-
-    return () => window.clearInterval(timer)
+    enqueueAdsKeeperLoad()
   }, [])
 
   return (

@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Inter, Merriweather } from "next/font/google"
 import "./globals.css"
 import ChatWidget from "@/components/ai/ChatWidget"
+import AdsKeeperPopup from "@/components/ads/AdsKeeperPopup"
 import { AutoRefresh } from "@/components/auto-refresh"
 
 const geistSans = Geist({
@@ -74,11 +75,12 @@ export default function RootLayout({
         <Script 
           src="https://jsc.adskeeper.com/site/1087913.js" 
           async 
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${merriweather.variable} font-sans antialiased`}>
         {children}
+        <AdsKeeperPopup widgetId="1999345" />
         <AutoRefresh intervalMs={60000} />
         <ChatWidget />
       </body>

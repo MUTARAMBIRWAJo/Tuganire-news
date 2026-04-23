@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from "react"
+import { enqueueAdsKeeperLoad } from "@/lib/adskeeper"
 
 interface AdsKeeperHeroProps {
   widgetId?: string
@@ -10,22 +11,7 @@ interface AdsKeeperHeroProps {
 
 export default function AdsKeeperHero({ widgetId = "1992246", className = "", adHeightPx = 260 }: AdsKeeperHeroProps) {
   useEffect(() => {
-    let tries = 0
-    const maxTries = 16
-    const timer = window.setInterval(() => {
-      const queue = (window as any)._mgq
-      if (!queue) {
-        tries += 1
-        if (tries >= maxTries) window.clearInterval(timer)
-        return
-      }
-
-      queue.push(["_mgc.load"])
-      window.setTimeout(() => queue.push(["_mgc.load"]), 250)
-      window.clearInterval(timer)
-    }, 250)
-
-    return () => window.clearInterval(timer)
+    enqueueAdsKeeperLoad()
   }, [])
 
   const minHeightPx = Math.max(adHeightPx, widgetId === "1992830" ? 300 : adHeightPx)
