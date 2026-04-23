@@ -71,7 +71,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <meta name="yandex-verification" content="f6575f91308a959a" />
+        <meta name="yandex-verification" content="a0e9f1b474420893" />
         {/* AdsKeeper Ad Network */}
         <Script 
           src="https://jsc.adskeeper.com/site/1087913.js" 
