@@ -2,12 +2,12 @@
 
 import { useMemo } from "react"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
-import { loadStripe } from "@stripe/stripe-js"
 import Link from "next/link"
 import { ArrowLeft, Lock, Sparkles } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { stripePromise } from "@/lib/stripe-client"
 
 interface CheckoutProps {
   clientSecret?: string | null
@@ -18,9 +18,6 @@ interface CheckoutProps {
   className?: string
 }
 
-const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
-const stripePromise = publishableKey ? loadStripe(publishableKey) : null
-
 export default function Checkout({
   clientSecret,
   title,
@@ -30,17 +27,6 @@ export default function Checkout({
   className = "",
 }: CheckoutProps) {
   const memoizedSecret = useMemo(() => clientSecret || null, [clientSecret])
-
-  if (!stripePromise) {
-    return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle>Payments are not configured yet</CardTitle>
-          <CardDescription>Add the Stripe publishable key to enable embedded checkout.</CardDescription>
-        </CardHeader>
-      </Card>
-    )
-  }
 
   if (!memoizedSecret) {
     return (

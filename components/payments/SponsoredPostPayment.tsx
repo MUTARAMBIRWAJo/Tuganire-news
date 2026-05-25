@@ -16,7 +16,7 @@ import {
   eventPromotionPlans,
   premiumPromotedPostPlans,
   sponsoredPostPlans,
-} from "@/lib/stripe"
+} from "@/lib/payment-config"
 import {
   createArticleBoostCheckoutAction,
   createBusinessAdvertisingCheckoutAction,

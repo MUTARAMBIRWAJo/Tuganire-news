@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Spinner } from "@/components/ui/spinner"
 import Checkout from "@/components/payments/Checkout"
-import { donationPresets } from "@/lib/stripe"
+import { donationPresets } from "@/lib/payment-config"
 import { createDonationCheckoutAction } from "@/app/actions/stripe"
 
 interface DonationCardProps {

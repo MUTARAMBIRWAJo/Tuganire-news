@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
-import { getStripeClient, getStripeWebhookSecret, persistStripePaymentRecord } from "@/lib/stripe"
+import { getStripeWebhookSecret, persistStripePaymentRecord, stripeServer } from "@/lib/stripe-server"
 
 export const runtime = "nodejs"
 
@@ -13,11 +13,10 @@ export async function POST(request: Request) {
   }
 
   const body = await request.text()
-  const stripe = getStripeClient()
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, signature, secret)
+    event = stripeServer.webhooks.constructEvent(body, signature, secret)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid Stripe webhook signature."
     return NextResponse.json({ error: message }, { status: 400 })

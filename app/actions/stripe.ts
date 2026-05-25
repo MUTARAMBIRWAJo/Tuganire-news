@@ -4,13 +4,15 @@ import { z } from "zod"
 import {
   articleBoostDurations,
   businessAdvertisingPlans,
-  createArticleBoostSession,
-  createDonationSession,
-  createSponsoredCheckoutSession,
   eventPromotionPlans,
   premiumPromotedPostPlans,
   sponsoredPostPlans,
-} from "@/lib/stripe"
+} from "@/lib/payment-config"
+import {
+  createArticleBoostSession,
+  createDonationSession,
+  createSponsoredCheckoutSession,
+} from "@/lib/stripe-server"
 import type { CheckoutSessionResult, DonationCheckoutInput, SponsoredCheckoutInput, ArticleBoostInput } from "@/types/payment"
 
 export interface ActionResult {
