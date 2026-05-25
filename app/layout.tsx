@@ -1,11 +1,10 @@
 import type React from "react"
 import type { Metadata } from "next"
-import Script from "next/script"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Inter, Merriweather } from "next/font/google"
 import "./globals.css"
 import ChatWidget from "@/components/ai/ChatWidget"
-import AdsKeeperPopup from "@/components/ads/AdsKeeperPopup"
+import AdNetworkManager from "@/components/ads/AdNetworkManager"
 import { AutoRefresh } from "@/components/auto-refresh"
 
 const geistSans = Geist({
@@ -72,16 +71,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <meta name="yandex-verification" content="a0e9f1b474420893" />
-        {/* AdsKeeper Ad Network */}
-        <Script 
-          src="https://jsc.adskeeper.com/site/1087913.js" 
-          async 
-          strategy="beforeInteractive"
-        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${merriweather.variable} font-sans antialiased`}>
+        <AdNetworkManager />
         {children}
-        <AdsKeeperPopup widgetId="1999345" />
         <AutoRefresh intervalMs={60000} />
         <ChatWidget />
       </body>

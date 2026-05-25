@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { ArticleForm } from "@/components/article-form"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
+import PromoteArticleButton from "@/components/payments/PromoteArticleButton"
 import Link from "next/link"
 import type { MediaItem } from "@/lib/types"
 
@@ -97,6 +98,11 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
             ← Back to Articles
           </Link>
           <h1 className="text-3xl font-bold text-slate-800">Edit Article</h1>
+          <PromoteArticleButton
+            articleId={article.id}
+            articleTitle={article.title}
+            className="ml-auto"
+          />
         </div>
         <div className="max-w-4xl">
           <ArticleForm

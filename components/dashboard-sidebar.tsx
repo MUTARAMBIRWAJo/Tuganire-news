@@ -27,6 +27,7 @@ import {
   ScrollText,
   HardDrive,
   Monitor,
+  CreditCard,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -88,6 +89,7 @@ export function DashboardSidebar() {
       { name: "Analytics", icon: BarChart3, path: "/dashboard/superadmin/analytics" },
       { name: "Visitors", icon: Activity, path: "/dashboard/superadmin/visitors" },
       { name: "Reports", icon: FileBarChart, path: "/dashboard/superadmin/reports" },
+      { name: "Monetization", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "System Logs", icon: ScrollText, path: "/dashboard/superadmin/logs" },
       { name: "Storage Management", icon: HardDrive, path: "/dashboard/superadmin/storage" },
       { name: "System Health", icon: Activity, path: "/dashboard/superadmin/health" },
@@ -102,6 +104,7 @@ export function DashboardSidebar() {
       { name: "Reporters", icon: Users, path: "/dashboard/admin/reporters" },
       { name: "Comments", icon: MessageSquare, path: "/dashboard/admin/comments" },
       { name: "Analytics", icon: BarChart3, path: "/dashboard/admin/analytics" },
+      { name: "Monetization", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Newsletter", icon: Mail, path: "/dashboard/newsletter" },
       { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
     ]

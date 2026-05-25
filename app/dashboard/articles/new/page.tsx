@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation"
 import { getCurrentUser, hasRole } from "@/lib/auth"
 import { ArticleForm } from "@/components/article-form"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default async function NewArticlePage() {
   const user = await getCurrentUser()
@@ -20,8 +22,16 @@ export default async function NewArticlePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b bg-white">
-        <div className="container mx-auto flex h-16 items-center px-4">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 gap-4">
           <h1 className="text-2xl font-bold">Create New Article</h1>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/promote">Promotion Packages</Link>
+            </Button>
+            <Button variant="ghost" asChild>
+              <Link href="/donate">Support Journalism</Link>
+            </Button>
+          </div>
         </div>
       </header>
 

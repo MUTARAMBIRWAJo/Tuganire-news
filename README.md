@@ -1,8 +1,16 @@
------BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABADffoajK
-ww/09kmrHyA3pIAAAAGAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIEnYJxmcpjGWBhAt
-EI38yQG6yQzIdAr7w4438Uh3WSqUAAAAoKk/hsfUYSiz+Rpy6t9+IaGE3Gznnji1zD4h4K
-A8y+e4PjFBYgWpZiIZaui/lWFAOHyuPd1Vqt95KkInqQ2QWCqNVMCW9Yl/H8haV6ay8k2+
-hjmrrLNogOkZWXLp5FtyLgMgsF0QoEnaC2hXtr4XkFAlPuKNWMvKN9FEg1jnWp/rhXJNQx
-1zbZANUAEz+2El7RDNukvYICcXWvWjaaept/8=
------END OPENSSH PRIVATE KEY-----
+
+# Tuganire News
+
+Professional multilingual news and magazine platform built with Next.js.
+
+## Environment Setup
+
+Create a local environment file with the required values for Supabase, Stripe, and other services.
+
+For Stripe monetization, define:
+
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+Keep secret values in `.env.local` and out of version control.

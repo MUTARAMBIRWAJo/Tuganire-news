@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, User, Eye, ArrowLeft, MessageCircle, Clock3 } from "lucide-react"
+import { Calendar, User, Eye, MessageCircle, Clock3 } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { ArticleCard } from "@/components/article-card"
@@ -15,11 +14,77 @@ import RelatedArticles from "@/components/RelatedArticles"
 import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
 import AdsKeeperMarqueeRow from "@/components/ads/AdsKeeperMarqueeRow"
+import ArticleBreadcrumbs from "@/components/article-breadcrumbs"
+import ArticleTableOfContents from "@/components/article-table-of-contents"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://tuganire.site").replace(/\/+$/, "")
+
+type HeadingLevel = 2 | 3 | 4
+
+interface ArticleHeading {
+  id: string
+  text: string
+  level: HeadingLevel
+}
+
+function decodeHtmlEntities(value: string) {
+  return value
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+}
+
+function stripHtml(value: string) {
+  return decodeHtmlEntities(value.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim()
+}
+
+function slugifyHeading(value: string) {
+  return stripHtml(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "section"
+}
+
+function buildArticleHeadings(html: string): ArticleHeading[] {
+  const matches = Array.from(html.matchAll(/<h([2-4])([^>]*)>([\s\S]*?)<\/h\1>/gi))
+  const seen = new Map<string, number>()
+
+  return matches.map((match) => {
+    const level = Number(match[1]) as HeadingLevel
+    const text = stripHtml(match[3])
+    const baseId = slugifyHeading(text)
+    const currentCount = seen.get(baseId) ?? 0
+    seen.set(baseId, currentCount + 1)
+
+    return {
+      level,
+      text,
+      id: currentCount === 0 ? baseId : `${baseId}-${currentCount + 1}`,
+    }
+  })
+}
+
+function injectHeadingIds(html: string) {
+  const seen = new Map<string, number>()
+
+  return html.replace(/<h([2-4])([^>]*)>([\s\S]*?)<\/h\1>/gi, (full, level: string, attrs: string, inner: string) => {
+    if (/\sid\s*=/.test(attrs)) return full
+
+    const text = stripHtml(inner)
+    const baseId = slugifyHeading(text)
+    const currentCount = seen.get(baseId) ?? 0
+    seen.set(baseId, currentCount + 1)
+    const id = currentCount === 0 ? baseId : `${baseId}-${currentCount + 1}`
+
+    return `<h${level}${attrs} id="${id}">${inner}</h${level}>`
+  })
+}
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>
@@ -209,6 +274,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const shareUrl = canonicalUrl
   const shareText = article.title
+  const articleContentHtml = injectHeadingIds(String(article.content || ""))
+  const articleTocHeadings = buildArticleHeadings(articleContentHtml)
 
   const contentMatches: string[] = ((article.content || "").match(/https?:\/\/[^\s)]+\.(?:png|jpe?g|webp|gif)/gi) || []) as string[]
   const contentGallery: string[] = Array.from(new Set<string>(contentMatches)).slice(0, 6)
@@ -230,14 +297,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
       <main className="flex-1">
         <div className="max-w-6xl xl:max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
-          <Button variant="ghost" size="sm" asChild className="mb-6">
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-
           <article className="max-w-full md:max-w-3xl lg:max-w-4xl mx-auto">
+            <ArticleBreadcrumbs
+              categoryName={category?.name}
+              categorySlug={category?.slug}
+              articleTitle={article.title}
+            />
+
             {/* Article Header */}
             <header className="mb-8">
               {category && (
@@ -343,7 +409,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 />
               </div>
             ) : article.featured_image && (
-              <div className="mb-8 mx-auto flex justify-center items-center w-full max-w-full md:max-w-3xl lg:max-w-4xl p-2 sm:p-4 bg-gray-50 dark:bg-slate-800 rounded-lg sm:rounded-xl\">
+              <div className="mb-8 mx-auto flex justify-center items-center w-full max-w-full md:max-w-3xl lg:max-w-4xl p-2 sm:p-4 bg-gray-50 dark:bg-slate-800 rounded-lg sm:rounded-xl">
                 <Image
                   src={article.featured_image}
                   alt={article.title}
@@ -362,10 +428,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 {/* Ads row - keep reader flow uninterrupted */}
                 <AdsKeeperMarqueeRow ads={articleAds} className="mb-8" intervalMs={10000} />
 
+                <ArticleTableOfContents headings={articleTocHeadings} />
+
                 <Prose className="mb-12">
                   <div
                     className="prose-content"
-                    dangerouslySetInnerHTML={{ __html: String(article.content || "") }}
+                    dangerouslySetInnerHTML={{ __html: articleContentHtml }}
                   />
                 </Prose>
               </>

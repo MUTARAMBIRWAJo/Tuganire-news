@@ -48,6 +48,9 @@ export default async function ArticlesPage() {
               New Article
             </Link>
           </Button>
+          <Button variant="outline" asChild>
+            <Link href="/promote">Boost Article</Link>
+          </Button>
         </div>
       </header>
 
