@@ -14,9 +14,11 @@ import RelatedArticles from "@/components/RelatedArticles"
 import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
 import AdsKeeperMarqueeRow from "@/components/ads/AdsKeeperMarqueeRow"
+import ArticleAdsenseSlot from "@/components/ads/ArticleAdsenseSlot"
 import ArticleBreadcrumbs from "@/components/article-breadcrumbs"
 import ArticleTableOfContents from "@/components/article-table-of-contents"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
+import { enableGoogleAdsenseArticleSlot } from "@/lib/feature-flags"
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
@@ -84,6 +86,46 @@ function injectHeadingIds(html: string) {
 
     return `<h${level}${attrs} id="${id}">${inner}</h${level}>`
   })
+}
+
+type ArticleContentBlock =
+  | { type: "html"; key: string; html: string }
+  | { type: "slot"; key: string }
+
+function buildArticleContentBlocks(html: string, insertAfterParagraph: number): ArticleContentBlock[] {
+  const paragraphMatches = Array.from(html.matchAll(/<p\b[^>]*>[\s\S]*?<\/p>/gi))
+
+  if (insertAfterParagraph < 2 || paragraphMatches.length < 2) {
+    return [{ type: "html", key: "article-content", html }]
+  }
+
+  const targetParagraph = paragraphMatches.length >= 3 ? Math.min(3, insertAfterParagraph) : 2
+  let lastIndex = 0
+  let paragraphCount = 0
+  let buffer = ""
+  let slotInserted = false
+  const blocks: ArticleContentBlock[] = []
+
+  for (const match of paragraphMatches) {
+    const matchIndex = match.index ?? 0
+    buffer += html.slice(lastIndex, matchIndex) + match[0]
+    lastIndex = matchIndex + match[0].length
+    paragraphCount += 1
+
+    if (!slotInserted && paragraphCount === targetParagraph) {
+      blocks.push({ type: "html", key: `article-content-${blocks.length}`, html: buffer })
+      blocks.push({ type: "slot", key: "article-adsense-slot" })
+      buffer = ""
+      slotInserted = true
+    }
+  }
+
+  buffer += html.slice(lastIndex)
+  if (buffer.trim()) {
+    blocks.push({ type: "html", key: `article-content-${blocks.length}`, html: buffer })
+  }
+
+  return blocks.length > 0 ? blocks : [{ type: "html", key: "article-content", html }]
 }
 
 interface ArticlePageProps {
@@ -276,6 +318,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const shareText = article.title
   const articleContentHtml = injectHeadingIds(String(article.content || ""))
   const articleTocHeadings = buildArticleHeadings(articleContentHtml)
+  const articleContentBlocks = enableGoogleAdsenseArticleSlot
+    ? buildArticleContentBlocks(articleContentHtml, 3)
+    : [{ type: "html" as const, key: "article-content", html: articleContentHtml }]
 
   const contentMatches: string[] = ((article.content || "").match(/https?:\/\/[^\s)]+\.(?:png|jpe?g|webp|gif)/gi) || []) as string[]
   const contentGallery: string[] = Array.from(new Set<string>(contentMatches)).slice(0, 6)
@@ -431,10 +476,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <ArticleTableOfContents headings={articleTocHeadings} />
 
                 <Prose className="mb-12">
-                  <div
-                    className="prose-content"
-                    dangerouslySetInnerHTML={{ __html: articleContentHtml }}
-                  />
+                  {articleContentBlocks.map((block) =>
+                    block.type === "slot" ? (
+                      <ArticleAdsenseSlot key={block.key} />
+                    ) : (
+                      <div key={block.key} className="prose-content" dangerouslySetInnerHTML={{ __html: block.html }} />
+                    ),
+                  )}
                 </Prose>
               </>
             )}
