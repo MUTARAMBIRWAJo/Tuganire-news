@@ -1,7 +1,6 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { Calendar, User, ArrowRight } from 'lucide-react'
-import FeaturedSideList from './FeaturedSideList'
+import Link from "next/link"
+import Image from "next/image"
+import { ArrowRight, Calendar, User } from "lucide-react"
 
 interface HeroSectionProps {
   item?: {
@@ -27,6 +26,8 @@ interface HeroSectionProps {
 export default function HeroSection({ item, sideStories = [] }: HeroSectionProps) {
   if (!item) return null
 
+  const secondaryStories = sideStories.slice(0, 4)
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return ""
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -37,107 +38,131 @@ export default function HeroSection({ item, sideStories = [] }: HeroSectionProps
   }
 
   return (
-    <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-transparent to-slate-50/50 dark:to-slate-900/50">
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
-        {/* Large Hero - 65% width (3/5 columns) */}
-        <div className="lg:col-span-3">
-          <article className="group relative bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            
-            {/* Hero Image - 16:9 aspect ratio */}
-            <div className="relative aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-900">
-              {item.featured_image ? (
-                <Image
-                  src={item.featured_image}
-                  alt={item.title}
-                  fill
-                  className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 65vw"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                  <span className="text-lg">No Image Available</span>
-                </div>
-              )}
-              
-              {/* Category Badge Overlay */}
-              {item.categories?.name && (
-                <Link
-                  href={`/category/${item.categories.slug}`}
-                  className="absolute top-4 left-4 px-3 py-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm rounded-full text-sm font-semibold text-slate-900 dark:text-white hover:bg-white transition-colors"
-                >
-                  {item.categories.name}
-                </Link>
-              )}
-            </div>
+    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">
+        <span className="h-2 w-2 rounded-full bg-brand-500" />
+        Top story
+      </div>
 
-            {/* Hero Content */}
-            <div className="p-6 lg:p-8">
-              <div className="space-y-4">
-                {/* Title - 3 lines max */}
-                <h1 className="text-headline leading-tight line-clamp-3 tracking-editorial">
-                  <Link
-                    href={`/articles/${item.slug}`}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {item.title}
-                  </Link>
-                </h1>
-
-                {/* Description - 2 lines max */}
-                {item.excerpt && (
-                  <p className="text-lg text-gray-700 dark:text-gray-300 line-clamp-2 leading-relaxed">
-                    {item.excerpt}
-                  </p>
-                )}
-
-                {/* Metadata */}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                  {item.authors?.display_name && (
-                    <div className="flex items-center gap-2">
-                      {item.authors.avatar_url ? (
-                        <Image
-                          src={item.authors.avatar_url}
-                          alt={item.authors.display_name}
-                          width={20}
-                          height={20}
-                          className="rounded-full"
-                        />
-                      ) : (
-                        <User className="h-4 w-4" />
-                      )}
-                      <span>{item.authors.display_name}</span>
-                    </div>
-                  )}
-
-                  {item.published_at && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>{formatDate(item.published_at)}</span>
-                    </div>
-                  )}
-
-
-                </div>
-
-                {/* Read More CTA */}
-                <Link
-                  href={`/articles/${item.slug}`}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors group-hover:shadow-lg"
-                >
-                  Read More
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.95fr)]">
+        <article className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_-32px_rgba(15,23,42,0.45)] dark:border-slate-800 dark:bg-slate-950">
+          <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-900">
+            {item.featured_image ? (
+              <Image
+                src={item.featured_image}
+                alt={item.title}
+                fill
+                className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03]"
+                priority
+                sizes="(max-width: 1024px) 100vw, 62vw"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-slate-400">
+                <span className="text-lg">No image available</span>
               </div>
-            </div>
-          </article>
-        </div>
+            )}
 
-        {/* Side Stories - 35% width (2/5 columns) */}
-        <div className="lg:col-span-2">
-          <div className="sticky top-6">
-            <FeaturedSideList items={sideStories} />
+            {item.categories?.name && (
+              <Link
+                href={`/category/${item.categories.slug}`}
+                className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-900 backdrop-blur dark:bg-slate-950/95 dark:text-white"
+              >
+                {item.categories.name}
+              </Link>
+            )}
           </div>
+
+          <div className="space-y-4 p-6 sm:p-8">
+            <h1 className="text-balance text-3xl font-bold leading-tight tracking-tight text-slate-950 dark:text-white sm:text-4xl lg:text-5xl">
+              <Link href={`/articles/${item.slug}`} className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">
+                {item.title}
+              </Link>
+            </h1>
+
+            {item.excerpt && (
+              <p className="max-w-3xl text-pretty text-lg leading-8 text-slate-600 dark:text-slate-300">{item.excerpt}</p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+              {item.authors?.display_name && (
+                <div className="flex items-center gap-2">
+                  {item.authors.avatar_url ? (
+                    <Image
+                      src={item.authors.avatar_url}
+                      alt={item.authors.display_name}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <User className="h-4 w-4" />
+                  )}
+                  <span>{item.authors.display_name}</span>
+                </div>
+              )}
+
+              {item.published_at && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>{formatDate(item.published_at)}</span>
+                </div>
+              )}
+            </div>
+
+            <Link
+              href={`/articles/${item.slug}`}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 hover:bg-brand-600 dark:bg-white dark:text-slate-950 dark:hover:bg-brand-200"
+            >
+              Read full story
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </article>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+          {secondaryStories.map((story) => (
+            <article
+              key={story.slug}
+              className="group overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950"
+            >
+              <Link href={`/articles/${story.slug}`} className="block">
+                <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-900">
+                  {story.featured_image ? (
+                    <Image
+                      src={story.featured_image}
+                      alt={story.title}
+                      fill
+                      className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                      sizes="(max-width: 1024px) 50vw, 24vw"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-slate-400">
+                      <span className="text-sm">No image</span>
+                    </div>
+                  )}
+                  {story.categories?.name && (
+                    <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-900 backdrop-blur dark:bg-slate-950/90 dark:text-white">
+                      {story.categories.name}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-3 p-4">
+                  <h3 className="line-clamp-3 text-base font-semibold leading-snug text-slate-950 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-lg">
+                    {story.title}
+                  </h3>
+
+                  {story.published_at && (
+                    <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>{formatDate(story.published_at)}</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            </article>
+          ))}
         </div>
       </div>
     </section>

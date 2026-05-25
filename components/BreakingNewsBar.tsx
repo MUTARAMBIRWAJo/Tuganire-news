@@ -7,21 +7,22 @@ interface BreakingNewsItem {
 
 interface BreakingNewsBarProps {
   items: BreakingNewsItem[]
+  className?: string
 }
 
-export default function BreakingNewsBar({ items }: BreakingNewsBarProps) {
+export default function BreakingNewsBar({ items, className = "" }: BreakingNewsBarProps) {
   if (!items || items.length === 0) return null
 
   const joinedTitles = items
 
   return (
-    <section className="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white sticky top-0 z-50 shadow-md">
-      <div className="max-w-7xl mx-auto flex items-center gap-4 p-2 overflow-hidden">
-        <div className="bg-white text-blue-600 font-bold px-2 py-1 rounded-sm text-xs md:text-sm uppercase flex-shrink-0">
+    <section className={`w-full bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white shadow-sm ${className}`}>
+      <div className="mx-auto flex max-w-7xl items-center gap-4 overflow-hidden px-4 py-2 sm:px-6 lg:px-8">
+        <div className="flex-shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-900">
           Breaking
         </div>
         <div className="relative flex-1 overflow-hidden">
-          <div className="inline-flex whitespace-nowrap animate-marquee text-xs md:text-sm font-medium gap-6">
+          <div className="inline-flex animate-marquee whitespace-nowrap gap-6 text-xs font-medium md:text-sm">
             {joinedTitles.map((item, idx) => (
               <span key={item.slug + idx} className="inline-flex items-center gap-2">
                 <Link href={`/articles/${item.slug}`} className="hover:underline">

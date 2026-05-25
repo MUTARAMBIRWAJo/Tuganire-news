@@ -191,7 +191,7 @@ export async function getLatestByCategoryRows() {
   
   if (catError) throw catError;
   
-  // For each category, fetch latest 4 text articles (exclude videos)
+  // For each category, fetch latest 5 text articles (exclude videos)
   const categoryRows = await Promise.all(
     (categories || []).map(async (category: any) => {
       const { data: articles, error: artError } = await sb
@@ -203,7 +203,7 @@ export async function getLatestByCategoryRows() {
         .eq('category_id', category.id)
         .in('article_type', ['text', null])
         .order('published_at', { ascending: false })
-        .limit(4);
+        .limit(5);
       
       if (artError) return { 
         category_name: category.name, 

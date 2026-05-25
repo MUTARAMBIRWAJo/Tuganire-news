@@ -1,28 +1,21 @@
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import type { Metadata } from "next"
-import BreakingNewsBar from "@/components/BreakingNewsBar"
 import HeroSection from "@/components/editorial/HeroSection"
-import FeaturedSideList from "@/components/editorial/FeaturedSideList"
-import SectionBlock from "@/components/editorial/SectionBlock"
 import TrendingRail from "@/components/TrendingRail"
-import { getBreaking, getFeaturedHero, getTrending, getLatestByCategoryRows, getEditorsPicks, getMostPopular, getMostLiked, getMostCommented, getPhotoGallery, getLatestArticles, getLatestArticlesOffset } from "@/lib/homeQueries"
+import { getBreaking, getEditorsPicks, getFeaturedHero, getLatestArticles, getLatestByCategoryRows, getMostPopular, getPhotoGallery, getTrending } from "@/lib/homeQueries"
 import EditorsPicksSection from "@/components/EditorsPicksSection"
 import MostPopularSection from "@/components/MostPopularSection"
-import MostLikedSection from "@/components/MostLikedSection"
-import MostCommentedSection from "@/components/MostCommentedSection"
-import LatestArticlesSection from "@/components/LatestArticlesSection"
-import NewsletterSignup from "@/components/NewsletterSignup"
 import PhotoGallery from "@/components/PhotoGallery"
-import WeatherWidget from "@/components/WeatherWidget"
-import StockTicker from "@/components/StockTicker"
-import AdsKeeperMarqueeRow from "@/components/ads/AdsKeeperMarqueeRow"
+import CategoryFeatureSection from "@/components/home/CategoryFeatureSection"
+import StayUpdatedWidget from "@/components/payments/StayUpdatedWidget"
 
-export const revalidate = 30 // Revalidate every 30 seconds
+export const revalidate = 30
 
 export const metadata: Metadata = {
   title: "Tuganire News - Latest Breaking News, Stories & Analysis",
-  description: "Stay informed with the latest breaking news, in-depth analysis, and exclusive stories from Tuganire News. Your trusted source for world news, politics, technology, sports, and culture.",
+  description:
+    "Stay informed with the latest breaking news, in-depth analysis, and exclusive stories from Tuganire News. Your trusted source for world news, politics, technology, sports, and culture.",
   keywords: ["news", "breaking news", "latest news", "world news", "politics", "technology", "sports", "culture"],
   openGraph: {
     title: "Tuganire News - Latest Breaking News & Stories",
@@ -45,56 +38,30 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const heroAds = [
-    { widgetId: "1992246", adHeightPx: 300 },
-    { widgetId: "1992253", adHeightPx: 300 },
-    { widgetId: "1992830", adHeightPx: 300 },
-    { widgetId: "1998800", adHeightPx: 300 },
-  ]
-
   let breaking: any[] = []
   let hero: any = null
   let trending: any[] = []
   let rows: any[] = []
   let editorsPicks: any[] = []
   let mostPopular: any[] = []
-  let mostLiked: any[] = []
-  let mostCommented: any[] = []
   let photoGallery: any[] = []
   let latestArticles: any[] = []
-  let latestArticlesOffset: any[] = []
 
   try {
-    ;[
-      breaking,
-      hero,
-      trending,
-      rows,
-      editorsPicks,
-      mostPopular,
-      mostLiked,
-      mostCommented,
-      photoGallery,
-      latestArticles,
-      latestArticlesOffset,
-    ] = await Promise.all([
+    ;[breaking, hero, trending, rows, editorsPicks, mostPopular, photoGallery, latestArticles] = await Promise.all([
       getBreaking(10),
       getFeaturedHero(),
-      getTrending(12),
+      getTrending(10),
       getLatestByCategoryRows(),
       getEditorsPicks(6),
       getMostPopular(6, 7),
-      getMostLiked(6),
-      getMostCommented(6, 30),
       getPhotoGallery(8),
-      getLatestArticles(6),
-      getLatestArticlesOffset(6, 6),
+      getLatestArticles(5),
     ])
   } catch (error) {
     console.error("Homepage data unavailable:", error)
   }
 
-  // Get side stories for hero section (latest 6 articles)
   const sideStories = (latestArticles as any[]).map((article: any) => ({
     slug: article.slug,
     title: article.title,
@@ -104,85 +71,69 @@ export default async function HomePage() {
     categories: article.category,
   }))
 
+  const categoryTargets = [
+    { title: "Politics", keywords: ["politics", "political"] },
+    { title: "Sports", keywords: ["sports", "sport"] },
+    { title: "Business", keywords: ["business", "market", "economy"] },
+    { title: "Entertainment", keywords: ["entertainment", "culture", "lifestyle"] },
+    { title: "Technology", keywords: ["technology", "tech", "science"] },
+    { title: "World", keywords: ["world", "international", "global"] },
+  ]
+
+  const normalizedRows = (rows as any[])
+    .map((row) => ({
+      ...row,
+      matchKey: `${String(row.category_name || "").toLowerCase()} ${String(row.category_slug || "").toLowerCase()}`,
+    }))
+    .filter((row) => row.articles?.length)
+
+  const categorySections = categoryTargets
+    .map((target) => {
+      const row = normalizedRows.find((entry) => target.keywords.some((keyword) => entry.matchKey.includes(keyword)))
+      if (!row) return null
+      return {
+        title: target.title,
+        categorySlug: row.category_slug,
+        articles: row.articles,
+      }
+    })
+    .filter(Boolean) as Array<{ title: string; categorySlug: string; articles: any[] }>
+
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950">
-      <BreakingNewsBar
-        items={(breaking as any[]).map((b: any) => ({
+    <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+      <SiteHeader
+        breakingItems={(breaking as any[]).map((b: any) => ({
           slug: b.slug,
           title: b.title,
         }))}
       />
-      <SiteHeader />
 
-      <main className="space-y-8">
-        {/* Hero Section with Side Stories */}
-        <section className="relative">
-          <HeroSection item={hero as any} sideStories={sideStories as any} />
-        </section>
+      <main className="space-y-8 pb-16">
+        <HeroSection item={hero as any} sideStories={sideStories.slice(0, 4) as any} />
 
-        {/* Hero Ads Marquee: one ad at a time */}
-        <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AdsKeeperMarqueeRow ads={heroAds} className="mb-8" intervalMs={10000} />
-        </section>
+        <TrendingRail items={trending as any} />
 
-        {/* Trending Rail */}
-        <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <TrendingRail items={trending as any} />
-        </section>
-
-        {/* Latest Articles (7-12) */}
-        {latestArticlesOffset && (latestArticlesOffset as any[]).length > 0 && (
-          <LatestArticlesSection 
-            items={latestArticlesOffset as any}
-            title="More Latest Stories"
-            subtitle="Continue reading more of the newest articles"
-          />
-        )}
-
-        {/* Category Sections using new SectionBlock */}
-        {rows && (rows as any[]).length > 0 && (
-          <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Latest by Category</h2>
-            </div>
-            <div className="space-y-8">
-              {(rows as any[]).map((categoryRow: any) => (
-                <SectionBlock
-                  key={categoryRow.category_slug}
-                  title={categoryRow.category_name}
-                  categorySlug={categoryRow.category_slug}
-                  articles={categoryRow.articles || []}
-                  showReadMore={true}
-                  maxArticles={4}
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+            <div className="space-y-10">
+              {categorySections.map((section) => (
+                <CategoryFeatureSection
+                  key={section.categorySlug}
+                  title={section.title}
+                  categorySlug={section.categorySlug}
+                  articles={section.articles}
                 />
               ))}
-            </div>
-          </section>
-        )}
 
-        {/* Sidebar Widgets Row */}
-        <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3 space-y-8">
               <EditorsPicksSection items={editorsPicks as any} />
               <MostPopularSection items={mostPopular as any} period="week" />
-              <MostLikedSection items={mostLiked as any} />
-              <MostCommentedSection items={mostCommented as any} />
-              <PhotoGallery items={photoGallery as any} />
+              <PhotoGallery items={photoGallery as any} title="Video / Photo Gallery" />
             </div>
-            
-            <div className="lg:col-span-1 space-y-6">
-              <div className="sticky top-6 space-y-6">
-                <WeatherWidget defaultLocation="Kigali" />
-                <StockTicker symbols={["AAPL", "GOOGL", "MSFT", "TSLA", "AMZN"]} />
-              </div>
+
+            <div className="lg:sticky lg:top-24">
+              <StayUpdatedWidget />
             </div>
           </div>
-        </section>
-        
-        {/* Newsletter Signup */}
-        <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <NewsletterSignup />
         </section>
       </main>
 

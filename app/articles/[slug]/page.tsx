@@ -14,6 +14,8 @@ import RelatedArticles from "@/components/RelatedArticles"
 import { ShareButton } from "@/components/ShareButton"
 import { LikeButton } from "@/components/LikeButton"
 import AdsKeeperMarqueeRow from "@/components/ads/AdsKeeperMarqueeRow"
+import ArticleProgressBar from "@/components/articles/ArticleProgressBar"
+import ArticleShareRail from "@/components/articles/ArticleShareRail"
 import ArticleAdsenseSlot from "@/components/ads/ArticleAdsenseSlot"
 import ArticleBreadcrumbs from "@/components/article-breadcrumbs"
 import ArticleTableOfContents from "@/components/article-table-of-contents"
@@ -337,12 +339,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <ArticleProgressBar />
       <div className="min-h-screen bg-white dark:bg-slate-950">
         <SiteHeader />
 
       <main className="flex-1">
-        <div className="max-w-6xl xl:max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
-          <article className="max-w-full md:max-w-3xl lg:max-w-4xl mx-auto">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+          <article className="min-w-0">
             <ArticleBreadcrumbs
               categoryName={category?.name}
               categorySlug={category?.slug}
@@ -470,12 +474,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {/* Article Content */}
             {article.content && (
               <>
-                {/* Ads row - keep reader flow uninterrupted */}
-                <AdsKeeperMarqueeRow ads={articleAds} className="mb-8" intervalMs={10000} />
+                <div className="mb-8 lg:hidden">
+                  <ArticleShareRail url={shareUrl} title={shareText} slug={slug} />
+                </div>
 
                 <ArticleTableOfContents headings={articleTocHeadings} />
 
-                <Prose className="mb-12">
+                <Prose className="mb-10 prose-lg max-w-none">
                   {articleContentBlocks.map((block) =>
                     block.type === "slot" ? (
                       <ArticleAdsenseSlot key={block.key} />
@@ -485,6 +490,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   )}
                 </Prose>
               </>
+            )}
+
+            {finalRelated && finalRelated.length > 0 && (
+              <section className="mb-12 rounded-[24px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900/40">
+                <div className="mb-4 flex items-end justify-between gap-4">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">More from the newsroom</div>
+                    <h2 className="text-2xl font-bold text-slate-950 dark:text-white">Related stories</h2>
+                  </div>
+                </div>
+                <RelatedArticles articles={finalRelated} currentSlug={slug} />
+              </section>
             )}
 
             {/* Tags */}
@@ -511,8 +528,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             {/* Author Bio */}
             {author && (
-              <Card className="mb-12">
-                <CardContent className="p-6">
+              <Card className="mb-12 border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <CardContent className="p-6 sm:p-8">
                   <div className="flex items-start gap-4">
                     {author.avatar_url ? (
                       <Image
@@ -539,10 +556,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             )}
           </article>
 
-          {/* Related Articles */}
-          {finalRelated && finalRelated.length > 0 && (
-            <RelatedArticles articles={finalRelated} currentSlug={slug} />
-          )}
+          <aside className="space-y-6 lg:sticky lg:top-24">
+            <ArticleShareRail url={shareUrl} title={shareText} slug={slug} />
+
+            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">Advertising</div>
+              <AdsKeeperMarqueeRow ads={articleAds} className="mb-0" intervalMs={10000} />
+            </div>
+          </aside>
+          </div>
         </div>
       </main>
 
