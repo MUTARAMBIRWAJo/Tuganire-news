@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { AlertCircle } from "lucide-react"
 import { roleFromHost } from "@/lib/host"
+import { getRedirectTarget } from "@/lib/auth-redirect"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -21,6 +22,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isPendingApproval, setIsPendingApproval] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = getRedirectTarget(searchParams.get("redirectTo"))
 
   // If already authenticated, route away from login immediately
   useEffect(() => {
@@ -32,9 +35,9 @@ export default function LoginPage() {
         const { data: profile } = (await supabase
           .rpc("get_current_user_profile")
           .single()) as { data: { role: string } | null }
-        let target = "/dashboard"
+        let target = redirectTo
         const hostRole = roleFromHost(typeof window !== "undefined" ? window.location.host : "")
-        if (hostRole) target = `/dashboard/${hostRole}`
+        if (target === "/dashboard" && hostRole) target = `/dashboard/${hostRole}`
         if (profile?.role === "admin") target = "/dashboard/admin"
         else if (profile?.role === "superadmin") target = "/dashboard/superadmin"
         else if (profile?.role === "reporter") target = "/dashboard/reporter"
@@ -92,11 +95,11 @@ export default function LoginPage() {
 
         if (rpcError) {
           // Non-fatal: fallback to dashboard
-          router.push("/dashboard")
+          router.push(redirectTo)
           router.refresh()
           setTimeout(() => {
             if (window.location.pathname.startsWith("/auth")) {
-              window.location.href = "/dashboard"
+              window.location.href = redirectTo
             }
           }, 150)
           return
@@ -104,11 +107,11 @@ export default function LoginPage() {
 
         // If the profile row doesn't exist yet (trigger delay), proceed for now
         if (!profile) {
-          router.push("/dashboard")
+          router.push(redirectTo)
           router.refresh()
           setTimeout(() => {
             if (window.location.pathname.startsWith("/auth")) {
-              window.location.href = "/dashboard"
+              window.location.href = redirectTo
             }
           }, 150)
           return
@@ -143,11 +146,11 @@ export default function LoginPage() {
       }
 
       // Fallback
-      router.push("/dashboard")
+      router.push(redirectTo)
       router.refresh()
       setTimeout(() => {
         if (window.location.pathname.startsWith("/auth")) {
-          window.location.href = "/dashboard"
+          window.location.href = redirectTo
         }
       }, 150)
     } catch (error: unknown) {
@@ -224,7 +227,7 @@ export default function LoginPage() {
               </div>
               <div className="mt-4 text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <Link href="/auth/sign-up" className="font-medium text-primary underline-offset-4 hover:underline">
+                <Link href={`/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`} className="font-medium text-primary underline-offset-4 hover:underline">
                   Sign up
                 </Link>
               </div>

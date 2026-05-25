@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+import { buildAuthLoginHref, buildAuthSignUpHref } from "@/lib/auth-redirect"
 
 export const metadata: Metadata = {
   title: "Payment Success",
@@ -20,6 +21,9 @@ interface SuccessPageProps {
 }
 
 export default function PaymentSuccessPage({ searchParams }: SuccessPageProps) {
+  const loginHref = buildAuthLoginHref("/dashboard")
+  const signUpHref = buildAuthSignUpHref("/dashboard")
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
       <SiteHeader />
@@ -63,7 +67,10 @@ export default function PaymentSuccessPage({ searchParams }: SuccessPageProps) {
                 <Link href="/">Back to homepage</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/dashboard">Open dashboard</Link>
+                <Link href={loginHref}>Open dashboard</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href={signUpHref}>Create account</Link>
               </Button>
             </div>
           </CardContent>

@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import Image from "next/image"
+import { getRedirectTarget } from "@/lib/auth-redirect"
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
@@ -20,6 +21,8 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = getRedirectTarget(searchParams.get("redirectTo"))
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +47,7 @@ export default function SignUpPage() {
         email,
         password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}${redirectTo}`,
           data: {
             full_name: fullName,
             role: "Public",
@@ -149,7 +152,7 @@ export default function SignUpPage() {
               </div>
               <div className="mt-4 text-center text-sm">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="font-medium text-primary underline-offset-4 hover:underline">
+                <Link href={`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`} className="font-medium text-primary underline-offset-4 hover:underline">
                   Login
                 </Link>
               </div>

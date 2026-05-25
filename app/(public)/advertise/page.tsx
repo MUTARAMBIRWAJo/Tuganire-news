@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import SponsoredPostPayment from "@/components/payments/SponsoredPostPayment"
+import { buildAuthLoginHref, buildAuthSignUpHref } from "@/lib/auth-redirect"
 
 export const metadata: Metadata = {
   title: "Advertise",
@@ -14,6 +15,9 @@ export const metadata: Metadata = {
 }
 
 export default function AdvertisePage() {
+  const loginHref = buildAuthLoginHref("/dashboard")
+  const signUpHref = buildAuthSignUpHref("/dashboard")
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
       <SiteHeader />
@@ -38,6 +42,12 @@ export default function AdvertisePage() {
               </Button>
               <Button variant="outline" size="lg" asChild>
                 <Link href="/contact">Contact sales</Link>
+              </Button>
+              <Button variant="ghost" size="lg" asChild>
+                <Link href={loginHref}>Open dashboard</Link>
+              </Button>
+              <Button variant="ghost" size="lg" asChild>
+                <Link href={signUpHref}>Create account</Link>
               </Button>
             </div>
           </div>
