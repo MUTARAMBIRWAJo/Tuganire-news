@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Spinner } from "@/components/ui/spinner"
 import Checkout from "@/components/payments/Checkout"
+import ErrorBoundary from '@/components/errors/ErrorBoundary'
 import { donationPresets } from "@/lib/payment-config"
 import { createDonationCheckoutAction } from "@/app/actions/stripe"
 
@@ -61,8 +62,9 @@ export default function DonationCard({ sourcePage = "/donate" }: DonationCardPro
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-      <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <ErrorBoundary label="Donation widget">
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
         <CardHeader>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
             <Heart className="size-4" />
@@ -159,13 +161,14 @@ export default function DonationCard({ sourcePage = "/donate" }: DonationCardPro
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           {sessionSummary && !error && <p className="text-sm text-emerald-600 dark:text-emerald-400">{sessionSummary}</p>}
         </CardContent>
-      </Card>
+        </Card>
 
-      <Checkout
-        clientSecret={clientSecret}
-        title="Secure donation checkout"
-        description="Complete your contribution inside Stripe's embedded checkout without leaving the site."
-      />
-    </div>
+        <Checkout
+          clientSecret={clientSecret}
+          title="Secure donation checkout"
+          description="Complete your contribution inside Stripe's embedded checkout without leaving the site."
+        />
+      </div>
+    </ErrorBoundary>
   )
 }

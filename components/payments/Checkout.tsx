@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { stripePromise } from "@/lib/stripe-client"
+import ErrorBoundary from '@/components/errors/ErrorBoundary'
 
 interface CheckoutProps {
   clientSecret?: string | null
@@ -48,7 +49,8 @@ export default function Checkout({
   }
 
   return (
-    <Card className={className}>
+    <ErrorBoundary label="Payment checkout">
+      <Card className={className}>
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
           <Sparkles className="size-4" />
@@ -82,6 +84,7 @@ export default function Checkout({
           </div>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </ErrorBoundary>
   )
 }

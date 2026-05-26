@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import Checkout from "@/components/payments/Checkout"
+import ErrorBoundary from '@/components/errors/ErrorBoundary'
 import PricingCards from "@/components/payments/PricingCards"
 import {
   articleBoostDurations,
@@ -158,8 +159,9 @@ export default function SponsoredPostPayment({
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <ErrorBoundary label="Monetization package">
+      <div className="space-y-6">
+        <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
         <CardHeader>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
             <Icon className="size-4" />
@@ -274,13 +276,14 @@ export default function SponsoredPostPayment({
 
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         </CardContent>
-      </Card>
+        </Card>
 
-      <Checkout
-        clientSecret={clientSecret}
-        title="Secure Stripe checkout"
-        description="Embedded checkout is used so the page remains on-brand, fast, and mobile friendly."
-      />
-    </div>
+        <Checkout
+          clientSecret={clientSecret}
+          title="Secure Stripe checkout"
+          description="Embedded checkout is used so the page remains on-brand, fast, and mobile friendly."
+        />
+      </div>
+    </ErrorBoundary>
   )
 }
