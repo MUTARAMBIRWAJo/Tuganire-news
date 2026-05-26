@@ -9,7 +9,9 @@ interface AdsKeeperHeroProps {
   adHeightPx?: number
 }
 
-export default function AdsKeeperHero({ widgetId = "1992246", className = "", adHeightPx = 260 }: AdsKeeperHeroProps) {
+const DEFAULT_WIDGET = process.env.NEXT_PUBLIC_ADSKEEPER_WIDGET_DEFAULT || "1992246"
+
+export default function AdsKeeperHero({ widgetId = DEFAULT_WIDGET, className = "", adHeightPx = 260 }: AdsKeeperHeroProps) {
   useEffect(() => {
     enqueueAdsKeeperLoad()
   }, [])

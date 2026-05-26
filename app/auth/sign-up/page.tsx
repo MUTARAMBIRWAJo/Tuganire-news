@@ -50,7 +50,7 @@ export default function SignUpPage() {
           emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}${redirectTo}`,
           data: {
             full_name: fullName,
-            role: "Public",
+            role: "public",
           },
         },
       })

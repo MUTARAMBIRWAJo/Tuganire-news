@@ -10,8 +10,10 @@ interface AdsKeeperBannerProps {
   adHeightPx?: number
 }
 
+const DEFAULT_WIDGET = process.env.NEXT_PUBLIC_ADSKEEPER_WIDGET_DEFAULT || "1992246"
+
 export default function AdsKeeperBanner({ 
-  widgetId = "1992246",
+  widgetId = DEFAULT_WIDGET,
   className = "",
   fullWidth = true,
   adHeightPx = 300

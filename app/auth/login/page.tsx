@@ -41,6 +41,10 @@ export default function LoginPage() {
         if (profile?.role === "admin") target = "/dashboard/admin"
         else if (profile?.role === "superadmin") target = "/dashboard/superadmin"
         else if (profile?.role === "reporter") target = "/dashboard/reporter"
+        else if (profile?.role === "subscriber") target = "/dashboard/subscriber"
+        else if (profile?.role === "advertiser") target = "/dashboard/advertiser"
+        else if (profile?.role === "supporter") target = "/dashboard/supporter"
+        else target = "/dashboard/public"
         if (!cancelled) router.replace(target)
       } catch {}
     })()
@@ -131,6 +135,10 @@ export default function LoginPage() {
         if (profile.role === "admin") target = "/dashboard/admin"
         else if (profile.role === "superadmin") target = "/dashboard/superadmin"
         else if (profile.role === "reporter") target = "/dashboard/reporter"
+        else if (profile.role === "subscriber") target = "/dashboard/subscriber"
+        else if (profile.role === "advertiser") target = "/dashboard/advertiser"
+        else if (profile.role === "supporter") target = "/dashboard/supporter"
+        else target = "/dashboard/public"
 
         // Small confirmation the session exists before navigation
         const { data: confirm } = await supabases.auth.getSession()

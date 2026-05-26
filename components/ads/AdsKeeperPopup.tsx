@@ -13,8 +13,10 @@ type PopupWindow = Window & {
   __adsKeeperPopupMounted?: boolean
 }
 
+const DEFAULT_POPUP = process.env.NEXT_PUBLIC_ADSKEEPER_WIDGET_DEFAULT_POPUP || "1999345"
+
 export default function AdsKeeperPopup({
-  widgetId = "1999345",
+  widgetId = DEFAULT_POPUP,
   adHeightPx = 320,
   delayMs = 5000,
 }: AdsKeeperPopupProps) {

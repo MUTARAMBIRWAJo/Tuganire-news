@@ -24,8 +24,17 @@ export default async function DashboardPage() {
     redirect("/dashboard/reporter")
   }
 
-  // Default fallback
-  redirect("/dashboard/reporter")
+  // Additional role mappings
+  else if (role === "subscriber") {
+    redirect("/dashboard/subscriber")
+  } else if (role === "advertiser") {
+    redirect("/dashboard/advertiser")
+  } else if (role === "supporter") {
+    redirect("/dashboard/supporter")
+  }
+
+  // Default fallback for regular/public users
+  redirect("/dashboard/public")
 
   const supabase = await createClient()
 

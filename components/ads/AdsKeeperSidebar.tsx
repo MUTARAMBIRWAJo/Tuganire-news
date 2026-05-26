@@ -9,7 +9,9 @@ interface AdsKeeperSidebarProps {
   adHeightPx?: number
 }
 
-export default function AdsKeeperSidebar({ widgetId = "1992246", className = "", adHeightPx = 300 }: AdsKeeperSidebarProps) {
+const DEFAULT_WIDGET = process.env.NEXT_PUBLIC_ADSKEEPER_WIDGET_DEFAULT || "1992246"
+
+export default function AdsKeeperSidebar({ widgetId = DEFAULT_WIDGET, className = "", adHeightPx = 300 }: AdsKeeperSidebarProps) {
   useEffect(() => {
     enqueueAdsKeeperLoad()
   }, [])
