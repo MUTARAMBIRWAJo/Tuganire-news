@@ -26,14 +26,27 @@ function statusTone(status: string) {
 }
 
 export default function PaymentHistoryTable({ rows, enabled }: PaymentHistoryTableProps) {
-  const fetcher = (url: string) => fetch(url).then((r) => r.json())
+  const fetcher = async (url: string) => {
+    try {
+      const r = await fetch(url)
+      if (!r.ok) return { rows, enabled }
+      return await r.json()
+    } catch (e) {
+      console.warn('[PaymentHistoryTable] fetch error', e)
+      return { rows, enabled }
+    }
+  }
+
   const { data } = useSWR(enabled ? `/api/admin/payment-history?limit=20` : null, fetcher, {
     fallbackData: { rows, enabled },
     refreshInterval: 15000,
     revalidateOnFocus: false,
+    onError(err) {
+      console.warn('[PaymentHistoryTable] SWR error', err)
+    },
   })
 
-  const displayRows: PaymentHistoryRow[] = (data && data.rows) || rows
+  const displayRows: PaymentHistoryRow[] = Array.isArray(data?.rows) ? data.rows : Array.isArray(rows) ? rows : []
 
   return (
     <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
@@ -63,24 +76,41 @@ export default function PaymentHistoryTable({ rows, enabled }: PaymentHistoryTab
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayRows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium capitalize">{row.payment_kind.replace(/_/g, " ")}</TableCell>
-                  <TableCell>
-                    <Badge className={statusTone(row.payment_status)}>{row.payment_status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {(row.amount_cents / 100).toFixed(2)} {row.currency.toUpperCase()}
-                  </TableCell>
-                  <TableCell>{row.customer_name || row.customer_email || "Unknown"}</TableCell>
-                  <TableCell>
-                    <div className="max-w-[220px] truncate text-sm text-slate-600 dark:text-slate-300">
-                      {row.article_title || row.advertiser_company || row.promoted_article_id || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell>{new Date(row.created_at).toLocaleDateString()}</TableCell>
-                </TableRow>
-              ))}
+              {displayRows.map((row) => {
+                try {
+                  const kind = typeof row.payment_kind === 'string' ? row.payment_kind.replace(/_/g, ' ') : 'payment'
+                  const status = typeof row.payment_status === 'string' ? row.payment_status : 'unknown'
+                  const amountCents = typeof row.amount_cents === 'number' ? row.amount_cents : 0
+                  const currency = (row.currency || 'usd').toString()
+                  const customer = row.customer_name || row.customer_email || 'Unknown'
+                  const campaign = row.article_title || row.advertiser_company || row.promoted_article_id || '-'
+                  let dateLabel = '-'
+                  try {
+                    const d = row.created_at ? new Date(row.created_at) : null
+                    if (d && !isNaN(d.getTime())) dateLabel = d.toLocaleDateString()
+                  } catch {}
+
+                  return (
+                    <TableRow key={(row && (row.id ?? Math.random().toString(36).slice(2))) as any}>
+                      <TableCell className="font-medium capitalize">{kind}</TableCell>
+                      <TableCell>
+                        <Badge className={statusTone(status)}>{status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {(amountCents / 100).toFixed(2)} {currency.toUpperCase()}
+                      </TableCell>
+                      <TableCell>{customer}</TableCell>
+                      <TableCell>
+                        <div className="max-w-[220px] truncate text-sm text-slate-600 dark:text-slate-300">{campaign}</div>
+                      </TableCell>
+                      <TableCell>{dateLabel}</TableCell>
+                    </TableRow>
+                  )
+                } catch (e) {
+                  console.warn('[PaymentHistoryTable] render row error', e)
+                  return null
+                }
+              })}
             </TableBody>
           </Table>
         )}
