@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { validateArticleForPublishing } from "@/lib/editorialValidation"
 import { calculateSeoScore } from "@/lib/seoScore"
@@ -12,10 +13,7 @@ export const runtime = "nodejs"
 
 export async function POST(req: Request) {
   try {
-    const me = await getCurrentUser()
-    if (!me || (me.role !== "admin" && me.role !== "superadmin")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    await requireRole(["admin", "superadmin"]) // will redirect/throw if not allowed
 
     const contentType = req.headers.get("content-type") || ""
     let id = ""
