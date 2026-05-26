@@ -11,6 +11,8 @@ import PhotoGallery from "@/components/PhotoGallery"
 import CategoryFeatureSection from "@/components/home/CategoryFeatureSection"
 import NewsroomIdentitySection from "@/components/home/NewsroomIdentitySection"
 import StayUpdatedWidget from "@/components/payments/StayUpdatedWidget"
+import AdsKeeperHero from '@/components/ads/AdsKeeperHero'
+import ArticleAdsenseSlot from '@/components/ads/ArticleAdsenseSlot'
 
 export const revalidate = 30
 
@@ -136,6 +138,9 @@ export default async function HomePage() {
                 <EditorsPicksSection items={editorsPicks as any} />
               </ErrorBoundary>
               <ErrorBoundary>
+                <ArticleAdsenseSlot />
+              </ErrorBoundary>
+              <ErrorBoundary>
                 <MostPopularSection items={mostPopular as any} period="week" />
               </ErrorBoundary>
               <ErrorBoundary>
@@ -145,7 +150,10 @@ export default async function HomePage() {
             </div>
 
             <div className="lg:sticky lg:top-24">
-              <StayUpdatedWidget />
+              <div className="space-y-6">
+                <AdsKeeperHero className="mb-4" widgetId="1992246" adHeightPx={260} />
+                <StayUpdatedWidget />
+              </div>
             </div>
           </div>
         </section>

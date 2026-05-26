@@ -12,8 +12,21 @@ interface BreakingNewsBarProps {
 
 export default function BreakingNewsBar({ items, className = "" }: BreakingNewsBarProps) {
   if (!items || items.length === 0) return null
-
   const joinedTitles = items
+
+  // build a single content node and duplicate it for smooth infinite scroll
+  const content = (
+    <div className="inline-flex whitespace-nowrap gap-6 text-xs font-medium md:text-sm">
+      {joinedTitles.map((item, idx) => (
+        <span key={item.slug + idx} className="inline-flex items-center gap-2">
+          <Link href={`/articles/${item.slug}`} className="hover:underline text-white hover:text-blue-100">
+            {item.title}
+          </Link>
+          {idx < joinedTitles.length - 1 && <span className="opacity-60">•</span>}
+        </span>
+      ))}
+    </div>
+  )
 
   return (
     <section className={`w-full bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white shadow-sm ${className}`}>
@@ -22,15 +35,14 @@ export default function BreakingNewsBar({ items, className = "" }: BreakingNewsB
           Breaking
         </div>
         <div className="relative flex-1 overflow-hidden" aria-live="polite">
-          <div className="inline-flex whitespace-nowrap gap-6 text-xs font-medium md:text-sm" style={{ animationDuration: '60s' }}>
-            {joinedTitles.map((item, idx) => (
-              <span key={item.slug + idx} className="inline-flex items-center gap-2">
-                <Link href={`/articles/${item.slug}`} className="hover:underline text-white hover:text-blue-100">
-                  {item.title}
-                </Link>
-                {idx < joinedTitles.length - 1 && <span className="opacity-60">•</span>}
-              </span>
-            ))}
+          <div className="flex items-center">
+            <div className="min-w-full" aria-hidden>
+              <div className="flex" style={{ minWidth: '200%' }}>
+                <div className="flex items-center" style={{ minWidth: '50%' }}>
+                  <div className="animate-marquee">{content}{content}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
