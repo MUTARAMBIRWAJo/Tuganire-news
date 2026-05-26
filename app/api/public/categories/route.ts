@@ -40,9 +40,14 @@ function normalizeArticle(a: any) {
 }
 
 export async function GET() {
-  // get all categories
-  const { data: categories, error } = await sb.from('categories').select('id, name, slug').order('name', { ascending: true })
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  try {
+    // get all categories
+    if (!supabaseUrl || !serviceKey || supabaseUrl.includes('invalid.supabase')) {
+      return NextResponse.json({ categories: [] }, { status: 200 })
+    }
+    const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+    const { data: categories, error } = await sb.from('categories').select('id, name, slug').order('name', { ascending: true })
+    if (error) return NextResponse.json({ categories: [], note: error.message }, { status: 200 })
 
   // for each category, fetch up to 4 latest published text articles (exclude videos)
   const results = [] as any[]
@@ -81,5 +86,9 @@ export async function GET() {
     })
   }
 
-  return NextResponse.json({ categories: results }, { status: 200 })
+    return NextResponse.json({ categories: results }, { status: 200 })
+  } catch (err: any) {
+    console.error('public/categories route error', err)
+    return NextResponse.json({ categories: [] }, { status: 200 })
+  }
 }

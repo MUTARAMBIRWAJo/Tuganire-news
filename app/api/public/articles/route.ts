@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local";
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "invalid-service-role-key";
-
-// Server-side: use service role to bypass RLS safely in this API route
-const sb = createClient(supabaseUrl, serviceKey, {
-  auth: { persistSession: false }
-});
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function GET(request: Request) {
+  try {
   const { searchParams } = new URL(request.url);
   const page = Math.max(0, Number.isFinite(Number(searchParams.get('page'))) ? parseInt(searchParams.get('page') as string, 10) : 0);
   const pageSizeRaw = Number.isFinite(Number(searchParams.get('pageSize'))) ? parseInt(searchParams.get('pageSize') as string, 10) : 12;
@@ -19,6 +15,13 @@ export async function GET(request: Request) {
   const author = searchParams.get('author');
   const q = searchParams.get('q');
   const sort = searchParams.get('sort') || 'published_at_desc';
+
+  // If Supabase is not configured, return a safe empty response so pages can render
+  if (!supabaseUrl || !serviceKey || supabaseUrl.includes('invalid.supabase')) {
+    return NextResponse.json({ items: [], total: 0, note: 'Supabase not configured' }, { status: 200 });
+  }
+
+  const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
   let query = sb
     .from('articles')
@@ -130,6 +133,10 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({ items: finalItems, total: count ?? 0 }, { status: 200 });
+  } catch (err: any) {
+    console.error('public/articles route error', err)
+    return NextResponse.json({ items: [], total: 0, note: 'Articles temporarily unavailable' }, { status: 200 })
+  }
 }
 
 
