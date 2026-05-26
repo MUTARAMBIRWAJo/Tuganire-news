@@ -13,12 +13,15 @@ const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://tuganire.site').re
 export const revalidate = 120;
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const fallbackName = params.slug.replace(/-/g, ' ')
+  const raw = decodeURIComponent(params.slug || '')
+  const fallbackName = raw.replace(/-/g, ' ')
   let categoryName = fallbackName
 
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    const { data: cat } = await sb.from('categories').select('name').eq('slug', params.slug).maybeSingle();
+    // case-insensitive slug lookup
+    const slug = raw.trim()
+    const { data: cat } = await sb.from('categories').select('name').ilike('slug', slug).maybeSingle();
     if (cat?.name) categoryName = cat.name
   }
 
@@ -44,17 +47,22 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
+  const raw = decodeURIComponent(params.slug || '')
   let cat: { id?: number; name?: string; slug?: string } | null = null
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    const { data } = await sb.from('categories').select('id, name, slug').eq('slug', params.slug).maybeSingle();
+    const slug = raw.trim()
+    // case-insensitive slug lookup; fall back to name match if needed
+    const { data } = await sb.from('categories').select('id, name, slug').ilike('slug', slug).maybeSingle();
     cat = data
+    if (!cat) {
+      const nameLookup = raw.replace(/-/g, ' ').trim()
+      const { data: byName } = await sb.from('categories').select('id, name, slug').ilike('name', nameLookup).maybeSingle();
+      if (byName) cat = byName
+    }
   }
 
-  // If Supabase is configured and the category wasn't found, return 404
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && !cat) {
-    return notFound()
-  }
+  // Don't automatically 404 on missing category; render page with fallback title and let ArticlesList show empty state if no articles
 
   return (
     <>
