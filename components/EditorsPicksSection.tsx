@@ -47,9 +47,9 @@ export default function EditorsPicksSection({ items }: EditorsPicksSectionProps)
               published_at: article.published_at,
               views_count: article.views_count ?? 0,
               comments_count: article.comments_count ?? 0,
-              category: article.category || undefined,
-              author: article.author || undefined,
-            }}
+              category: (article.category as any) || undefined,
+              author: (article.author as any) || undefined,
+            } as any}
             compact
           />
         ))}

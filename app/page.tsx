@@ -3,11 +3,13 @@ import { SiteHeader } from "@/components/site-header"
 import type { Metadata } from "next"
 import HeroSection from "@/components/editorial/HeroSection"
 import TrendingRail from "@/components/TrendingRail"
+import ErrorBoundary from '@/components/errors/ErrorBoundary'
 import { getBreaking, getEditorsPicks, getFeaturedHero, getLatestArticles, getLatestByCategoryRows, getMostPopular, getPhotoGallery, getTrending } from "@/lib/homeQueries"
 import EditorsPicksSection from "@/components/EditorsPicksSection"
 import MostPopularSection from "@/components/MostPopularSection"
 import PhotoGallery from "@/components/PhotoGallery"
 import CategoryFeatureSection from "@/components/home/CategoryFeatureSection"
+import NewsroomIdentitySection from "@/components/home/NewsroomIdentitySection"
 import StayUpdatedWidget from "@/components/payments/StayUpdatedWidget"
 
 export const revalidate = 30
@@ -111,7 +113,9 @@ export default async function HomePage() {
       <main className="space-y-8 pb-16">
         <HeroSection item={hero as any} sideStories={sideStories.slice(0, 4) as any} />
 
-        <TrendingRail items={trending as any} />
+        <ErrorBoundary>
+          <TrendingRail items={trending as any} />
+        </ErrorBoundary>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
@@ -125,9 +129,16 @@ export default async function HomePage() {
                 />
               ))}
 
-              <EditorsPicksSection items={editorsPicks as any} />
-              <MostPopularSection items={mostPopular as any} period="week" />
-              <PhotoGallery items={photoGallery as any} title="Video / Photo Gallery" />
+              <ErrorBoundary>
+                <EditorsPicksSection items={editorsPicks as any} />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <MostPopularSection items={mostPopular as any} period="week" />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <PhotoGallery items={photoGallery as any} title="Video / Photo Gallery" />
+              </ErrorBoundary>
+              <NewsroomIdentitySection />
             </div>
 
             <div className="lg:sticky lg:top-24">

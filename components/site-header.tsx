@@ -8,6 +8,7 @@ import { Moon, Sun, Search, User, Menu, X } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import BreakingNewsBar from "@/components/BreakingNewsBar"
+import { nav } from '@/components/nav'
 
 interface BreakingNewsItem {
   slug: string

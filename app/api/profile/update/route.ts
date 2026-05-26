@@ -63,9 +63,10 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Profile update error:", error)
+      const errAny = error as any
       return NextResponse.json(
         { 
-          error: error.message || error.error || "Failed to update profile",
+          error: errAny?.message || errAny?.error || "Failed to update profile",
           details: error 
         },
         { status: 500 }

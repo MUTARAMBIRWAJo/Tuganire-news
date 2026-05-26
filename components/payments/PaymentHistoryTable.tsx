@@ -1,3 +1,6 @@
+"use client"
+
+import useSWR from "swr"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -23,6 +26,15 @@ function statusTone(status: string) {
 }
 
 export default function PaymentHistoryTable({ rows, enabled }: PaymentHistoryTableProps) {
+  const fetcher = (url: string) => fetch(url).then((r) => r.json())
+  const { data } = useSWR(enabled ? `/api/admin/payment-history?limit=20` : null, fetcher, {
+    fallbackData: { rows, enabled },
+    refreshInterval: 15000,
+    revalidateOnFocus: false,
+  })
+
+  const displayRows: PaymentHistoryRow[] = (data && data.rows) || rows
+
   return (
     <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
       <CardHeader>
@@ -34,7 +46,7 @@ export default function PaymentHistoryTable({ rows, enabled }: PaymentHistoryTab
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {rows.length === 0 ? (
+        {displayRows.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
             No payment records are available yet. Once Stripe webhooks start firing, completed donations and campaigns will appear here.
           </div>
@@ -51,7 +63,7 @@ export default function PaymentHistoryTable({ rows, enabled }: PaymentHistoryTab
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((row) => (
+              {displayRows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell className="font-medium capitalize">{row.payment_kind.replace(/_/g, " ")}</TableCell>
                   <TableCell>

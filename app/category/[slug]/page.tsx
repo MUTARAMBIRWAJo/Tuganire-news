@@ -1,9 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import ArticlesList from '@/components/ArticlesList';
+import EmptyCategoryState from '@/components/EmptyCategoryState';
 import AdsKeeperFluid from '@/components/AdsKeeperFluid';
+import ErrorBoundary from '@/components/errors/ErrorBoundary';
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://tuganire.site').replace(/\/+$/, '');
 
@@ -48,6 +51,11 @@ export default async function CategoryPage({ params }: { params: { slug: string 
     cat = data
   }
 
+  // If Supabase is configured and the category wasn't found, return 404
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && !cat) {
+    return notFound()
+  }
+
   return (
     <>
       <SiteHeader />
@@ -71,7 +79,9 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         
         {/* Articles List */}
         <div className="py-8">
-          <ArticlesList initialFilters={{ category: params.slug }} />
+          <ErrorBoundary>
+            <ArticlesList initialFilters={{ category: params.slug }} emptyFallback={<EmptyCategoryState title={`No articles in ${cat?.name ?? 'this category'}`} message={`There are currently no published articles in ${cat?.name ?? 'this category'}. Check back later or explore other sections.`} />} />
+          </ErrorBoundary>
         </div>
       </main>
       <SiteFooter />

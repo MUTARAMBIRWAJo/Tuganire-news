@@ -1,16 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://invalid.supabase.local';
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'invalid-anon-key';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || null;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || null;
 
-const sb = createClient(supabaseUrl, anonKey);
+let sb: any = null
+if (supabaseUrl && anonKey) {
+  sb = createClient(supabaseUrl, anonKey)
+} else {
+  console.warn('Supabase not configured — homeQueries returning safe fallbacks')
+}
 
 export async function getBreaking(limit = 10) {
+  if (!sb) return []
+
   let { data, error } = await sb
     .from('v_breaking')
     .select('*')
-    .limit(limit);
-  if (error) throw error;
+    .limit(limit)
+
+  if (error) {
+    console.error('getBreaking error', error)
+    return []
+  }
 
   if (!data || data.length === 0) {
     const { data: latest } = await sb
@@ -21,7 +32,7 @@ export async function getBreaking(limit = 10) {
       .neq('article_type', 'video')
       .lte('published_at', new Date().toISOString())
       .order('published_at', { ascending: false })
-      .limit(limit);
+      .limit(limit)
 
     data = (latest || []).map((a: any) => ({
       id: a.id,
@@ -32,7 +43,7 @@ export async function getBreaking(limit = 10) {
       published_at: a.published_at,
       category_name: Array.isArray(a.category) ? a.category[0]?.name : a.category?.name,
       category_slug: Array.isArray(a.category) ? a.category[0]?.slug : a.category?.slug,
-    }));
+    }))
   }
 
   // Attach approved comments_count per item
@@ -56,6 +67,8 @@ export async function getBreaking(limit = 10) {
 }
 
 export async function getFeaturedHero() {
+  if (!sb) return null
+
   const { data: initialArticle, error } = await sb
     .from('articles')
     .select('id, slug, title, excerpt, featured_image, published_at, is_featured, is_editor_pick, author_id, category_id')
@@ -66,7 +79,10 @@ export async function getFeaturedHero() {
     .order('published_at', { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (error) throw error;
+  if (error) {
+    console.error('getFeaturedHero query error', error)
+    return null
+  }
   let article = initialArticle as any | null;
   if (!article) {
     // fallback to most recent published
@@ -118,11 +134,16 @@ export async function getFeaturedHero() {
 }
 
 export async function getTrending(limit = 10) {
+  if (!sb) return []
+
   let { data, error } = await sb
     .from('v_trending')
     .select('*')
     .limit(limit);
-  if (error) throw error;
+  if (error) {
+    console.error('getTrending error', error)
+    return []
+  }
   if (!data || data.length === 0) {
     // fallback to latest published
     const { data: latest } = await sb
@@ -183,13 +204,18 @@ export async function getTrending(limit = 10) {
 }
 
 export async function getLatestByCategoryRows() {
+  if (!sb) return []
+
   // Get all categories
   const { data: categories, error: catError } = await sb
     .from('categories')
     .select('id, name, slug')
     .order('name', { ascending: true });
   
-  if (catError) throw catError;
+  if (catError) {
+    console.error('getLatestByCategoryRows categories error', catError)
+    return []
+  }
   
   // For each category, fetch latest 5 text articles (exclude videos)
   const categoryRows = await Promise.all(
@@ -205,11 +231,14 @@ export async function getLatestByCategoryRows() {
         .order('published_at', { ascending: false })
         .limit(5);
       
-      if (artError) return { 
-        category_name: category.name, 
-        category_slug: category.slug, 
-        articles: [] 
-      };
+      if (artError) {
+        console.error('getLatestByCategoryRows articles error for', category.slug, artError)
+        return { 
+          category_name: category.name, 
+          category_slug: category.slug, 
+          articles: [] 
+        };
+      }
       
       // Attach comment counts
       const articlesWithCounts = await Promise.all(
@@ -239,6 +268,8 @@ export async function getLatestByCategoryRows() {
 }
 
 export async function getPhotoGallery(limit = 8) {
+  if (!sb) return []
+
   const { data, error } = await sb
     .from('articles')
     .select(`
@@ -253,7 +284,10 @@ export async function getPhotoGallery(limit = 8) {
     .order('published_at', { ascending: false })
     .limit(limit);
   
-  if (error) throw error;
+  if (error) {
+    console.error('getPhotoGallery error', error)
+    return []
+  }
   
   // Attach approved comments_count per item
   const withCounts = await Promise.all(
@@ -284,16 +318,23 @@ export async function getPhotoGallery(limit = 8) {
 }
 
 export async function getHomepageCategories(limit = 8) {
+  if (!sb) return []
+
   const { data, error } = await sb
     .from('categories')
     .select('id, name, slug')
     .order('name')
     .limit(limit);
-  if (error) throw error;
+  if (error) {
+    console.error('getHomepageCategories error', error)
+    return []
+  }
   return data ?? [];
 }
 
 export async function getEditorsPicks(limit = 6) {
+  if (!sb) return []
+
   const { data, error } = await sb
     .from('articles')
     .select(`
@@ -309,7 +350,10 @@ export async function getEditorsPicks(limit = 6) {
     .order('published_at', { ascending: false })
     .limit(limit);
   
-  if (error) throw error;
+  if (error) {
+    console.error('getEditorsPicks error', error)
+    return []
+  }
   
   // Attach approved comments_count per item
   const withCounts = await Promise.all(
@@ -342,6 +386,8 @@ export async function getEditorsPicks(limit = 6) {
 }
 
 export async function getMostPopular(limit = 6, days = 7) {
+  if (!sb) return []
+
   const dateThreshold = new Date();
   dateThreshold.setDate(dateThreshold.getDate() - days);
   
@@ -361,7 +407,10 @@ export async function getMostPopular(limit = 6, days = 7) {
     .order('published_at', { ascending: false })
     .limit(limit);
   
-  if (error) throw error;
+  if (error) {
+    console.error('getMostPopular error', error)
+    return []
+  }
   
   // Attach approved comments_count per item
   const withCounts = await Promise.all(
@@ -394,6 +443,8 @@ export async function getMostPopular(limit = 6, days = 7) {
 }
 
 export async function getMostLiked(limit = 6) {
+  if (!sb) return []
+
   const { data, error } = await sb
     .from('articles')
     .select(`
@@ -409,7 +460,10 @@ export async function getMostLiked(limit = 6) {
     .order('published_at', { ascending: false })
     .limit(limit);
 
-  if (error) throw error
+  if (error) {
+    console.error('getMostLiked error', error)
+    return []
+  }
 
   const base = (data || []).map((a: any) => ({
     ...a,
@@ -443,6 +497,8 @@ export async function getMostLiked(limit = 6) {
 }
 
 export async function getMostCommented(limit = 6, days = 30) {
+  if (!sb) return []
+
   const dateThreshold = new Date()
   dateThreshold.setDate(dateThreshold.getDate() - days)
 
@@ -459,7 +515,10 @@ export async function getMostCommented(limit = 6, days = 30) {
     .lte('published_at', new Date().toISOString())
     .gte('published_at', dateThreshold.toISOString())
 
-  if (error) throw error
+  if (error) {
+    console.error('getMostCommented error', error)
+    return []
+  }
 
   const base = (data || []).map((a: any) => ({
     ...a,
@@ -509,6 +568,8 @@ export async function getMostCommented(limit = 6, days = 30) {
 }
 
 export async function getLatestVideos(limit = 6) {
+  if (!sb) return []
+
   const { data, error } = await sb
     .from('articles')
     .select('id, slug, title, excerpt, featured_image, youtube_link, article_type, published_at')
@@ -519,11 +580,16 @@ export async function getLatestVideos(limit = 6) {
     .order('published_at', { ascending: false })
     .limit(limit)
 
-  if (error) throw error
+  if (error) {
+    console.error('getLatestVideos error', error)
+    return []
+  }
   return data ?? []
 }
 
 export async function getLatestArticles(limit = 6) {
+  if (!sb) return []
+
   const { data, error } = await sb
     .from('articles')
     .select(`
@@ -538,7 +604,10 @@ export async function getLatestArticles(limit = 6) {
     .order('published_at', { ascending: false })
     .limit(limit);
   
-  if (error) throw error;
+  if (error) {
+    console.error('getLatestArticles error', error)
+    return []
+  }
   
   // Attach approved comments_count per item
   const withCounts = await Promise.all(
@@ -572,6 +641,8 @@ export async function getLatestArticles(limit = 6) {
 
 
 export async function getLatestArticlesOffset(offset = 6, limit = 6) {
+  if (!sb) return []
+
   const { data, error } = await sb
     .from('articles')
     .select(`
@@ -586,7 +657,10 @@ export async function getLatestArticlesOffset(offset = 6, limit = 6) {
     .order('published_at', { ascending: false })
     .range(offset, offset + limit - 1);
   
-  if (error) throw error;
+  if (error) {
+    console.error('getLatestArticlesOffset error', error)
+    return []
+  }
   
   // Attach approved comments_count per item
   const withCounts = await Promise.all(

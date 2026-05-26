@@ -29,7 +29,7 @@ function buildQuery(filters: Filters) {
   return params.toString();
 }
 
-export default function ArticlesList({ initialFilters, pageSize = 12, infinite = true }: { initialFilters?: Filters; pageSize?: number; infinite?: boolean }) {
+export default function ArticlesList({ initialFilters, pageSize = 12, infinite = true, emptyFallback }: { initialFilters?: Filters; pageSize?: number; infinite?: boolean; emptyFallback?: React.ReactNode }) {
   const controlled = typeof initialFilters?.page === 'number' && typeof initialFilters?.pageSize === 'number';
 
   // Controlled single-page mode (respects page & pageSize from parent)
@@ -82,6 +82,8 @@ export default function ArticlesList({ initialFilters, pageSize = 12, infinite =
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading
           ? Array.from({ length: pageSize }).map((_, i) => <ArticleCardSkeleton key={i} />)
+          : items.length === 0
+          ? (emptyFallback ?? <div className="col-span-full text-center text-sm text-gray-600 dark:text-gray-400">No articles found.</div>)
           : items.map((a, idx) => (
               <ArticleCard 
                 key={a?.id ?? idx} 

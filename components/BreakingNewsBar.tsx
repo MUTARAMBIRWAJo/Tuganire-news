@@ -16,16 +16,16 @@ export default function BreakingNewsBar({ items, className = "" }: BreakingNewsB
   const joinedTitles = items
 
   return (
-    <section className={`w-full bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white shadow-sm ${className}`}>
+    <section className={`w-full bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white shadow-sm ${className}`}>
       <div className="mx-auto flex max-w-7xl items-center gap-4 overflow-hidden px-4 py-2 sm:px-6 lg:px-8">
-        <div className="flex-shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-900">
+        <div className="flex-shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
           Breaking
         </div>
-        <div className="relative flex-1 overflow-hidden">
-          <div className="inline-flex animate-marquee whitespace-nowrap gap-6 text-xs font-medium md:text-sm">
+        <div className="relative flex-1 overflow-hidden" aria-live="polite">
+          <div className="inline-flex whitespace-nowrap gap-6 text-xs font-medium md:text-sm" style={{ animationDuration: '60s' }}>
             {joinedTitles.map((item, idx) => (
               <span key={item.slug + idx} className="inline-flex items-center gap-2">
-                <Link href={`/articles/${item.slug}`} className="hover:underline">
+                <Link href={`/articles/${item.slug}`} className="hover:underline text-white hover:text-blue-100">
                   {item.title}
                 </Link>
                 {idx < joinedTitles.length - 1 && <span className="opacity-60">•</span>}

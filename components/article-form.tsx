@@ -544,7 +544,7 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
                 <Label htmlFor="article_type">Article Type</Label>
                 <Select
                   value={formData.article_type}
-                  onValueChange={(value) => setFormData({ ...formData, article_type: value })}
+                  onValueChange={(value) => setFormData({ ...formData, article_type: value as 'text' | 'video' })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />

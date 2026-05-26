@@ -52,6 +52,11 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Prevent unexpected horizontal overflow across pages */
+html, body {
+  overflow-x: clip;
+}
+
 @layer utilities {
   /* Editorial Typography Variables */
   :root {

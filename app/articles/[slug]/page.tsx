@@ -19,8 +19,11 @@ import ArticleShareRail from "@/components/articles/ArticleShareRail"
 import ArticleAdsenseSlot from "@/components/ads/ArticleAdsenseSlot"
 import ArticleBreadcrumbs from "@/components/article-breadcrumbs"
 import ArticleTableOfContents from "@/components/article-table-of-contents"
+import ErrorBoundary from '@/components/errors/ErrorBoundary'
+import AuthorProfileCard from "@/components/articles/AuthorProfileCard"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 import { enableGoogleAdsenseArticleSlot } from "@/lib/feature-flags"
+import { getSponsoredLabel, getFactCheckLabel, socialLinksFromAuthor } from "@/lib/editorialTrust"
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
@@ -223,6 +226,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const author = Array.isArray(article.author) ? article.author[0] : article.author
   const category = Array.isArray(article.category) ? article.category[0] : article.category
   const tags = article.article_tags?.map((at: any) => at.tag).filter(Boolean) || []
+
+  const sponsoredLabel = getSponsoredLabel(article)
+  const factCheckLabel = getFactCheckLabel(article)
+  const authorSameAs = socialLinksFromAuthor(author).map((s: any) => s.href)
 
   const isVideo = (article as any)?.article_type === 'video' && !!(article as any)?.youtube_link
   const wordCount = getWordCount(String(article.content || ""))
@@ -478,7 +485,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   <ArticleShareRail url={shareUrl} title={shareText} slug={slug} />
                 </div>
 
-                <ArticleTableOfContents headings={articleTocHeadings} />
+                <ErrorBoundary>
+                  <ArticleTableOfContents headings={articleTocHeadings} />
+                </ErrorBoundary>
 
                 <Prose className="mb-10 prose-lg max-w-none">
                   {articleContentBlocks.map((block) =>

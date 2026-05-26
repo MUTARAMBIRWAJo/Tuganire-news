@@ -1,3 +1,7 @@
+"use client"
+
+import { useEffect } from 'react'
+
 interface TocHeading {
   id: string
   text: string
@@ -9,10 +13,48 @@ interface ArticleTableOfContentsProps {
 }
 
 export default function ArticleTableOfContents({ headings }: ArticleTableOfContentsProps) {
-  if (headings.length === 0) return null
+  if (!headings || headings.length === 0) return null
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const target = e.target as HTMLElement | null
+      if (!target) return
+      const anchor = target.closest('a') as HTMLAnchorElement | null
+      if (!anchor || !anchor.hash) return
+      const id = anchor.hash.replace('#', '')
+      const el = document.getElementById(id)
+      if (!el) return
+      e.preventDefault()
+      const header = document.querySelector('header')
+      const offset = (header ? (header as HTMLElement).offsetHeight : 80) + 12
+      const top = window.scrollY + el.getBoundingClientRect().top - offset
+      window.scrollTo({ top, behavior: 'smooth' })
+      // update hash without jumping
+      history.replaceState(null, '', `#${id}`)
+    }
+
+    const container = document.getElementById('article-toc')
+    container?.addEventListener('click', handler)
+
+    // If page loaded with a hash, scroll to it with offset
+    if (location.hash) {
+      const id = location.hash.replace('#', '')
+      setTimeout(() => {
+        const el = document.getElementById(id)
+        if (el) {
+          const header = document.querySelector('header')
+          const offset = (header ? (header as HTMLElement).offsetHeight : 80) + 12
+          const top = window.scrollY + el.getBoundingClientRect().top - offset
+          window.scrollTo({ top, behavior: 'smooth' })
+        }
+      }, 120)
+    }
+
+    return () => container?.removeEventListener('click', handler)
+  }, [headings])
 
   return (
-    <aside className="mb-8 rounded-2xl border border-slate-200 bg-slate-50/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+    <aside id="article-toc" className="mb-8 rounded-2xl border border-slate-200 bg-slate-50/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
       <div className="mb-4">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
           Quick navigation
@@ -23,7 +65,7 @@ export default function ArticleTableOfContents({ headings }: ArticleTableOfConte
         {headings.map((heading) => (
           <li
             key={heading.id}
-            className={heading.level === 3 ? "pl-4" : heading.level === 4 ? "pl-8" : ""}
+            className={heading.level === 3 ? 'pl-4' : heading.level === 4 ? 'pl-8' : ''}
           >
             <a
               href={`#${heading.id}`}

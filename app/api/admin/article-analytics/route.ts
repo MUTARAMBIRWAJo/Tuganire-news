@@ -23,6 +23,7 @@ export async function GET(req: Request) {
     if (envError || !sb) {
       return NextResponse.json({ error: envError || "Service unavailable" }, { status: 503 });
     }
+    const sbAny = sb as any;
 
     const { searchParams } = new URL(req.url);
     const from = searchParams.get("from");
@@ -32,9 +33,7 @@ export async function GET(req: Request) {
     const toIso = to ? new Date(to + "T23:59:59.999Z").toISOString() : null;
 
     // Top articles by detailed views (aggregate in JS)
-    let topQuery = sb
-      .from("article_views_detailed")
-      .select("article_id");
+    let topQuery = sbAny.from("article_views_detailed").select("article_id");
 
     if (fromIso) topQuery = topQuery.gte("started_at", fromIso);
     if (toIso) topQuery = topQuery.lte("started_at", toIso);
@@ -54,10 +53,7 @@ export async function GET(req: Request) {
       .slice(0, 20);
 
     // Unique visitors per day
-    let uniqueQuery = sb
-      .from("article_views_detailed")
-      .select("visitor_id, started_at")
-      .order("started_at", { ascending: true });
+    let uniqueQuery = sbAny.from("article_views_detailed").select("visitor_id, started_at").order("started_at", { ascending: true });
 
     if (fromIso) uniqueQuery = uniqueQuery.gte("started_at", fromIso);
     if (toIso) uniqueQuery = uniqueQuery.lte("started_at", toIso);
@@ -77,10 +73,7 @@ export async function GET(req: Request) {
     );
 
     // Average read time per article
-    let avgQuery = sb
-      .from("article_views_detailed")
-      .select("article_id, time_spent_seconds")
-      .not("time_spent_seconds", "is", null);
+    let avgQuery = sbAny.from("article_views_detailed").select("article_id, time_spent_seconds").not("time_spent_seconds", "is", null);
 
     if (fromIso) avgQuery = avgQuery.gte("started_at", fromIso);
     if (toIso) avgQuery = avgQuery.lte("started_at", toIso);
@@ -119,10 +112,7 @@ export async function GET(req: Request) {
 
     let articlesById = new Map<string, { title: string | null; slug: string | null }>();
     if (allArticleIds.length > 0) {
-      const { data: articleRows, error: articleErr } = await sb
-        .from("articles")
-        .select("id, title, slug")
-        .in("id", allArticleIds);
+      const { data: articleRows, error: articleErr } = await sbAny.from("articles").select("id, title, slug").in("id", allArticleIds);
 
       if (articleErr) throw articleErr;
 
@@ -145,9 +135,7 @@ export async function GET(req: Request) {
     });
 
     // Browser stats
-    let browserQuery = sb
-      .from("article_views_detailed")
-      .select("browser, started_at");
+    let browserQuery = sbAny.from("article_views_detailed").select("browser, started_at");
 
     if (fromIso) browserQuery = browserQuery.gte("started_at", fromIso);
     if (toIso) browserQuery = browserQuery.lte("started_at", toIso);
@@ -166,9 +154,7 @@ export async function GET(req: Request) {
       .sort((a, b) => b.views - a.views);
 
     // Device stats
-    let deviceQuery = sb
-      .from("article_views_detailed")
-      .select("device_type, started_at");
+    let deviceQuery = sbAny.from("article_views_detailed").select("device_type, started_at");
 
     if (fromIso) deviceQuery = deviceQuery.gte("started_at", fromIso);
     if (toIso) deviceQuery = deviceQuery.lte("started_at", toIso);
@@ -188,9 +174,7 @@ export async function GET(req: Request) {
     }));
 
     // Traffic by hour of day
-    let hourQuery = sb
-      .from("article_views_detailed")
-      .select("started_at");
+    let hourQuery = sbAny.from("article_views_detailed").select("started_at");
 
     if (fromIso) hourQuery = hourQuery.gte("started_at", fromIso);
     if (toIso) hourQuery = hourQuery.lte("started_at", toIso);

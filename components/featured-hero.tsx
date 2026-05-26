@@ -50,7 +50,7 @@ export function FeaturedHero({ articles }: FeaturedHeroProps) {
                   {mainArticle.author.avatar_url ? (
                     <Image
                       src={mainArticle.author.avatar_url}
-                      alt={mainArticle.author.display_name || "Author"}
+                          alt={mainArticle.author.full_name || "Author"}
                       width={24}
                       height={24}
                       className="rounded-full"
@@ -58,7 +58,7 @@ export function FeaturedHero({ articles }: FeaturedHeroProps) {
                   ) : (
                     <User className="h-4 w-4" />
                   )}
-                  {mainArticle.author.display_name || "Anonymous"}
+                  {mainArticle.author.full_name || "Anonymous"}
                 </span>
               )}
               {mainArticle.published_at && (

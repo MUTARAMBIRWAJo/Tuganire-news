@@ -18,9 +18,17 @@ function normalizeArticle(a: any) {
     content: a.content || '',
     featured_image: a.featured_image || a.image_url || null,
     published_at: a.published_at || a.created_at || null,
+    updated_at: a.updated_at || a.published_at || a.created_at || null,
     views_count: a.views_count || 0,
     likes_count: a.likes_count || 0,
     comments_count: a.comments_count ?? 0,
+    content_label: a.content_label || null,
+    promotion_type: a.promotion_type || null,
+    is_sponsored: a.is_sponsored === true,
+    is_partner_content: a.is_partner_content === true,
+    is_promoted_story: a.is_promoted_story === true,
+    fact_check_status: a.fact_check_status || a.factcheck_status || null,
+    is_fact_checked: a.is_fact_checked === true || a.fact_checked === true || false,
     author: author && (author.display_name || author.full_name || author.name) ? author : null,
     category: category && (category.name || category.slug) ? category : (a.category ? { name: String(a.category), slug: String(a.category).toLowerCase().replace(/\s+/g, '-') } : null),
   }
@@ -32,7 +40,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   // Priority 1: published relational
   const { data: primary } = await sb
     .from('articles')
-    .select(`*, likes_count, author:app_users(display_name, avatar_url), category:categories(name, slug)`).eq('slug', slug)
+    .select(`*, likes_count, author:app_users(id, display_name, avatar_url), category:categories(name, slug)`).eq('slug', slug)
     .eq('status', 'published')
     .maybeSingle()
 
@@ -55,6 +63,45 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   }
 
   if (!article) return NextResponse.json({ error: 'not_found' }, { status: 404 })
+
+  let authorProfile = article.author
+  const authorId = (article.author as any)?.id || (primary as any)?.author_id || null
+  if (authorId) {
+    try {
+      const { data: user } = await sb.from('app_users').select('*').eq('id', authorId).maybeSingle()
+      if (user) {
+        let articleCount = 0
+        try {
+          const { count } = await sb
+            .from('articles')
+            .select('id', { count: 'exact', head: true })
+            .eq('author_id', authorId)
+            .eq('status', 'published')
+          articleCount = count ?? 0
+        } catch {
+          articleCount = 0
+        }
+
+        authorProfile = {
+          id: user.id,
+          display_name: user.display_name || user.full_name || user.name || article.author?.display_name || 'Newsroom Reporter',
+          avatar_url: user.avatar_url || article.author?.avatar_url || null,
+          bio: user.bio || user.short_bio || null,
+          role: user.role || null,
+          title: user.title || user.job_title || null,
+          twitter_url: user.twitter_url || user.x_url || null,
+          linkedin_url: user.linkedin_url || null,
+          instagram_url: user.instagram_url || null,
+          website_url: user.website_url || user.website || null,
+          article_count: articleCount,
+        }
+      }
+    } catch {
+      // keep fallback author object if profile query fails
+    }
+  }
+
+  article = { ...article, author: authorProfile }
 
   // Media
   const { data: media } = await sb
