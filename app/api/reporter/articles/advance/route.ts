@@ -21,8 +21,7 @@ export async function POST(req: Request) {
   try {
     const { id } = await req.json()
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 })
-    await requireRole(["reporter", "admin", "superadmin"]) // ensures the caller is a reporter or above
-    const me = await getCurrentUser()
+    const me = await requireRole(["reporter", "admin", "superadmin"]) // ensures the caller is a reporter or above
 
     const supabase = await createClient()
     const { data: rows, error: selErr } = await supabase
