@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { createClient } from "@supabase/supabase-js"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
@@ -18,10 +18,7 @@ function toCsv(rows: any[], headers: string[]) {
 
 export async function GET(req: Request) {
   try {
-    const me = await getCurrentUser().catch(() => null)
-    if (!me || (me.role !== "admin" && me.role !== "superadmin")) {
-      return new NextResponse("Unauthorized", { status: 401 })
-    }
+    await requireRole(["admin", "superadmin"]) // will redirect/throw if not allowed
 
     const url = new URL(req.url)
     const from = url.searchParams.get("from")

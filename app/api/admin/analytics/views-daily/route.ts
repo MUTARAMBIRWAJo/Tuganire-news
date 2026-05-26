@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 
 function isAdmin(role?: string | null) {
   const r = (role || "").toLowerCase()
@@ -8,8 +8,7 @@ function isAdmin(role?: string | null) {
 }
 
 export async function GET(request: Request) {
-  const me = await getCurrentUser()
-  if (!me || !isAdmin(me.role)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  await requireRole(["admin", "superadmin"])
 
   const url = new URL(request.url)
   const range = (url.searchParams.get("range") || "30d").toLowerCase()

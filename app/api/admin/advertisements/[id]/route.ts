@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
@@ -12,10 +12,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser()
-    if (!user || (user.role !== "superadmin" && user.role !== "admin")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    await requireRole(["admin", "superadmin"])
 
     const { id } = await params
     const body = await req.json()
@@ -46,10 +43,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser()
-    if (!user || (user.role !== "superadmin" && user.role !== "admin")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    await requireRole(["admin", "superadmin"])
 
     const { id } = await params
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
@@ -9,8 +9,7 @@ function isAdmin(role?: string | null) {
 }
 
 export async function GET(request: Request) {
-  const me = await getCurrentUser()
-  if (!me || !isAdmin(me.role)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  await requireRole(["admin", "superadmin"])
 
   const url = new URL(request.url)
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10) || 1)
@@ -37,8 +36,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const me = await getCurrentUser()
-  if (!me || !isAdmin(me.role)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  await requireRole(["admin", "superadmin"])
 
   const body = await request.json().catch(() => null)
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
