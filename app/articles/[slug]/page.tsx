@@ -509,7 +509,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     <h2 className="text-2xl font-bold text-slate-950 dark:text-white">Related stories</h2>
                   </div>
                 </div>
-                <RelatedArticles articles={finalRelated} currentSlug={slug} />
+                <ErrorBoundary>
+                  <RelatedArticles articles={finalRelated} currentSlug={slug} />
+                </ErrorBoundary>
               </section>
             )}
 
@@ -566,12 +568,16 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </article>
 
           <aside className="space-y-6 lg:sticky lg:top-24">
-            <ArticleShareRail url={shareUrl} title={shareText} slug={slug} />
+            <ErrorBoundary>
+              <ArticleShareRail url={shareUrl} title={shareText} slug={slug} />
+            </ErrorBoundary>
 
-            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">Advertising</div>
-              <AdsKeeperMarqueeRow ads={articleAds} className="mb-0" intervalMs={10000} />
-            </div>
+            <ErrorBoundary>
+              <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">Advertising</div>
+                <AdsKeeperMarqueeRow ads={articleAds} className="mb-0" intervalMs={10000} />
+              </div>
+            </ErrorBoundary>
           </aside>
           </div>
         </div>

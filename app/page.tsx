@@ -111,7 +111,9 @@ export default async function HomePage() {
       />
 
       <main className="space-y-8 pb-16">
-        <HeroSection item={hero as any} sideStories={sideStories.slice(0, 4) as any} />
+        <ErrorBoundary>
+          <HeroSection item={hero as any} sideStories={sideStories.slice(0, 4) as any} />
+        </ErrorBoundary>
 
         <ErrorBoundary>
           <TrendingRail items={trending as any} />
@@ -121,12 +123,13 @@ export default async function HomePage() {
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
             <div className="space-y-10">
               {categorySections.map((section) => (
-                <CategoryFeatureSection
-                  key={section.categorySlug}
-                  title={section.title}
-                  categorySlug={section.categorySlug}
-                  articles={section.articles}
-                />
+                <ErrorBoundary key={section.categorySlug}>
+                  <CategoryFeatureSection
+                    title={section.title}
+                    categorySlug={section.categorySlug}
+                    articles={section.articles}
+                  />
+                </ErrorBoundary>
               ))}
 
               <ErrorBoundary>

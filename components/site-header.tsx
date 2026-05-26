@@ -51,17 +51,7 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
 
-  const nav = [
-    { href: "/", label: "Home" },
-    { href: "/articles", label: "Articles" },
-    { href: "/category/politics", label: "Politics" },
-    { href: "/category/business", label: "Business" },
-    { href: "/category/world", label: "World" },
-    { href: "/category/sports", label: "Sports" },
-    { href: "/category/technology", label: "Technology" },
-    { href: "/category/entertainment", label: "Entertainment" },
-    { href: "/videos", label: "Videos" },
-  ]
+  // use centralized nav from components/nav
 
   const linkClass = (href: string) => {
     const active = pathname === href
@@ -101,7 +91,7 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
           </Link>
 
           <nav className="hidden flex-1 items-center justify-center gap-5 overflow-x-auto lg:flex">
-            {nav.slice(0, 8).map((n) => (
+            {nav.slice(0, 7).map((n) => (
               <Link key={n.href} href={n.href} className={linkClass(n.href)}>
                 {n.label}
               </Link>
@@ -149,7 +139,7 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
 
         <div className="hidden border-t border-slate-200/80 py-2 lg:flex dark:border-slate-800">
           <nav className="flex w-full items-center gap-4 overflow-x-auto text-sm">
-            {nav.slice(2).map((n) => (
+            {nav.slice(1).map((n) => (
               <Link key={n.href} href={n.href} className={linkClass(n.href)}>
                 {n.label}
               </Link>
