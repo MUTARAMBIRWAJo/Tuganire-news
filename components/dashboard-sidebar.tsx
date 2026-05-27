@@ -36,11 +36,13 @@ import { useRouter } from "next/navigation"
 import { brandFromHost } from "@/lib/host"
 import { useEffect, useState } from "react"
 import { createBrowserClient } from "@supabase/ssr"
+import type { UserRole } from "@/lib/auth/roles"
 
 interface NavLink {
   name: string
   icon: any
   path: string
+  badge?: number
 }
 
 // We'll dynamically add a badge to Approvals for superadmin/admin
@@ -73,9 +75,11 @@ export function DashboardSidebar() {
     }
   }, [profile?.role])
 
+  const role = (profile?.role || "public") as UserRole
+
   // Build links with badge for Approvals
-  let links = []
-  if (profile?.role === "superadmin") {
+  let links: NavLink[] = []
+  if (role === "superadmin") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/superadmin" },
       { name: "Profile", icon: User, path: "/dashboard/superadmin/profile" },
@@ -97,7 +101,7 @@ export function DashboardSidebar() {
       { name: "Advertisements", icon: Monitor, path: "/dashboard/superadmin/advertisements" },
       { name: "System Settings", icon: Settings, path: "/dashboard/superadmin/settings" },
     ]
-  } else if (profile?.role === "admin") {
+  } else if (role === "admin") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/admin" },
       { name: "Articles", icon: FileText, path: "/dashboard/articles" },
@@ -108,13 +112,46 @@ export function DashboardSidebar() {
       { name: "Newsletter", icon: Mail, path: "/dashboard/newsletter" },
       { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
     ]
-  } else {
+  } else if (role === "reporter") {
     links = [
       { name: "My Articles", icon: FileText, path: "/dashboard/reporter" },
       { name: "Create Article", icon: Edit, path: "/dashboard/articles/new" },
       { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts" },
       { name: "Statistics", icon: PieChart, path: "/dashboard/reporter/stats" },
       { name: "Profile", icon: User, path: "/dashboard/reporter/profile" },
+    ]
+  } else if (role === "subscriber") {
+    links = [
+      { name: "Dashboard", icon: Home, path: "/dashboard/subscriber" },
+      { name: "Premium Access", icon: ShieldCheck, path: "/dashboard/subscriber#premium" },
+      { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
+      { name: "Saved Articles", icon: FileText, path: "/dashboard/public#saved" },
+      { name: "Profile", icon: User, path: "/dashboard/public#settings" },
+    ]
+  } else if (role === "advertiser") {
+    links = [
+      { name: "Dashboard", icon: Home, path: "/dashboard/advertiser" },
+      { name: "Campaigns", icon: Monitor, path: "/dashboard/advertiser#campaigns" },
+      { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
+      { name: "Audience", icon: PieChart, path: "/dashboard/advertiser#audience" },
+      { name: "Profile", icon: User, path: "/dashboard/public#settings" },
+    ]
+  } else if (role === "supporter") {
+    links = [
+      { name: "Dashboard", icon: Home, path: "/dashboard/supporter" },
+      { name: "Contributions", icon: CreditCard, path: "/dashboard/supporter#contributions" },
+      { name: "Impact", icon: Activity, path: "/dashboard/supporter#impact" },
+      { name: "Profile", icon: User, path: "/dashboard/public#settings" },
+    ]
+  } else {
+    links = [
+      { name: "Dashboard", icon: Home, path: "/dashboard/public" },
+      { name: "Saved Articles", icon: FileText, path: "/dashboard/public#saved" },
+      { name: "History", icon: Clock, path: "/dashboard/public#history" },
+      { name: "Bookmarks", icon: Tag, path: "/dashboard/public#bookmarks" },
+      { name: "Notifications", icon: Mail, path: "/dashboard/public#notifications" },
+      { name: "Security", icon: ShieldCheck, path: "/dashboard/public#security" },
+      { name: "Newsletter", icon: Mail, path: "/dashboard/public#newsletter" },
     ]
   }
 
@@ -174,7 +211,7 @@ export function DashboardSidebar() {
       <div className="mt-auto pt-6 border-t border-slate-800">
         <div className="mb-4 px-4">
           <p className="text-sm font-medium text-white">{profile?.display_name || "User"}</p>
-          <p className="text-xs text-slate-400 capitalize">{profile?.role || "Reporter"}</p>
+          <p className="text-xs text-slate-400 capitalize">{role}</p>
         </div>
         <Button
           onClick={handleSignOut}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 
 export const runtime = "nodejs"
 
@@ -17,8 +17,7 @@ export async function GET(req: Request) {
     const fromIdx = (page - 1) * pageSize
     const toIdx = fromIdx + pageSize - 1
 
-    const me = await getCurrentUser()
-    if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const me = await requireRole(["reporter", "admin", "superadmin"])
 
     const supabase = await createClient()
     let list = supabase

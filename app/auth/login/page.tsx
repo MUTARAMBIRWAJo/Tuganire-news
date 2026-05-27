@@ -92,7 +92,7 @@ export default function LoginPage() {
           } catch {}
         }
 
-        type UserProfileRow = { is_approved: boolean; role: "public" | "subscriber" | "advertiser" | "supporter" | "reporter" | "admin" | "superadmin" }
+        type UserProfileRow = { is_approved: boolean; role: string }
         const { data: profile, error: rpcError } = (await supabases
           .rpc("get_current_user_profile")
           .single()) as { data: UserProfileRow | null; error: any }

@@ -1,46 +1,76 @@
-import { redirect } from "next/navigation"
-import { getCurrentUser } from "@/lib/auth"
-import { DashboardSidebar } from "@/components/dashboard-sidebar"
+import { DashboardShell } from "@/components/dashboard-shell"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { requireRole } from "@/lib/auth/guards"
 
 export default async function SubscriberDashboardPage() {
-  const user = await getCurrentUser()
-  if (!user) redirect("/auth/login")
-
-  const allowed = ["subscriber", "public", "admin", "superadmin"]
-  if (!user.role || !allowed.includes(user.role)) {
-    redirect("/auth/login")
-  }
+  const user = await requireRole(["subscriber", "admin", "superadmin"])
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <DashboardSidebar />
-      <main className="flex-1 p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Subscriber Dashboard</h1>
-          <p className="text-muted-foreground mt-2">Manage your subscription, invoices, and premium access.</p>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+    <DashboardShell
+      title="Subscriber Dashboard"
+      description="Manage your subscription, invoices, premium articles, and newsletter preferences."
+      userName={user.display_name || "Subscriber"}
+      role={user.role}
+    >
+      <div className="grid gap-6 xl:grid-cols-3">
+        <div className="space-y-6 xl:col-span-2">
+          <Card id="premium" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
             <CardHeader>
-              <CardTitle>Subscription</CardTitle>
+              <CardTitle>Premium Access</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">You have no active subscription.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Your premium stories, deep-dive investigations, and subscriber-only content will appear here.</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="billing" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <CardHeader>
+              <CardTitle>Subscription Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Stripe billing status, renewal reminders, and plan upgrades/cancellations will be managed here.</p>
+            </CardContent>
+          </Card>
+
+          <Card id="history" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <CardHeader>
+              <CardTitle>Reading Analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 dark:text-slate-300">See what you read most, how often you return, and which topics you follow.</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card id="invoices" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
             <CardHeader>
               <CardTitle>Invoices</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">No invoices available.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">No invoices available yet.</p>
+            </CardContent>
+          </Card>
+
+          <Card id="newsletter" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <CardHeader>
+              <CardTitle>Newsletter Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Control topic subscriptions and premium email alerts.</p>
+            </CardContent>
+          </Card>
+
+          <Card id="upgrade" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <CardHeader>
+              <CardTitle>Plan Upgrades</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Upgrade or cancel your subscription safely through Stripe.</p>
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   )
 }

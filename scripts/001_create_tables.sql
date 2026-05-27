@@ -2,14 +2,14 @@
 create extension if not exists "uuid-ossp";
 
 -- Updated to use simpler user_role enum and app_users table
-create type user_role as enum ('public','reporter','admin','superadmin');
+create type user_role as enum ('public','subscriber','advertiser','supporter','reporter','admin','superadmin');
 
 -- Renamed profiles to app_users with simplified structure
 create table if not exists public.app_users (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text,
   avatar_url text,
-  role user_role default 'reporter',
+  role user_role default 'public',
   created_at timestamptz default now()
 );
 

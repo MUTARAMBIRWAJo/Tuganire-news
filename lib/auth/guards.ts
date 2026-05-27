@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
+import type { AppUser } from "@/lib/types"
 import type { UserRole } from "./roles"
 import { ROLE_PERMISSIONS } from "./permissions"
 import type { Permission } from "./permissions"
 
-export async function requireRole(allowed: UserRole | UserRole[]) {
+export async function requireRole(allowed: UserRole | UserRole[]): Promise<AppUser> {
   const user = await getCurrentUser()
   if (!user) redirect("/auth/login")
 
@@ -13,10 +14,10 @@ export async function requireRole(allowed: UserRole | UserRole[]) {
     redirect("/auth/login")
   }
 
-  return user
+  return user as AppUser
 }
 
-export async function requirePermission(permission: Permission) {
+export async function requirePermission(permission: Permission): Promise<AppUser> {
   const user = await getCurrentUser()
   if (!user) redirect("/auth/login")
 
@@ -25,7 +26,7 @@ export async function requirePermission(permission: Permission) {
     redirect("/auth/login")
   }
 
-  return user
+  return user as AppUser
 }
 
 export async function hasPermission(permission: Permission) {

@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 
 export async function GET() {
   try {
-    const user = await getCurrentUser()
-    if (!user || user.role !== "reporter") {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 })
-    }
+    const user = await requireRole(["reporter", "admin", "superadmin"])
 
     const supabase = await createClient()
 

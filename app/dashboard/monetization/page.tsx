@@ -4,7 +4,7 @@ import { ArrowRight, BadgePercent, BarChart3, CreditCard, Megaphone, ShieldCheck
 import { getCurrentUser } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { DashboardSidebar } from "@/components/dashboard-sidebar"
+import { DashboardShell } from "@/components/dashboard-shell"
 import PaymentHistoryTable from "../../../components/payments/PaymentHistoryTable"
 import { getPaymentHistory } from "../../../lib/payment-history"
 
@@ -23,18 +23,20 @@ export default async function MonetizationDashboardPage() {
   const paymentHistory = await getPaymentHistory(10)
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
-      <DashboardSidebar />
-
-      <main className="flex-1 p-6 lg:p-8">
-        <div className="mx-auto max-w-6xl space-y-8">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">Monetization dashboard</p>
-            <h1 className="text-3xl font-semibold tracking-tight">Revenue, promotions, and payout placeholders</h1>
-            <p className="max-w-3xl text-sm text-slate-600 dark:text-slate-300">
-              This placeholder is ready for payment history, campaign analytics, invoice exports, advertiser records, and Stripe webhook status once your live workflow is connected.
-            </p>
-          </div>
+    <DashboardShell
+      title="Monetization Dashboard"
+      description="Revenue, promotions, payment history, invoice exports, advertiser records, and Stripe-safe monetization controls."
+      userName={user.display_name || "User"}
+      role={user.role}
+    >
+      <div className="mx-auto max-w-6xl space-y-8">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">Monetization dashboard</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Revenue, promotions, and payout placeholders</h1>
+          <p className="max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+            This placeholder is ready for payment history, campaign analytics, invoice exports, advertiser records, and Stripe webhook status once your live workflow is connected.
+          </p>
+        </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {[
@@ -78,7 +80,6 @@ export default async function MonetizationDashboardPage() {
 
           <PaymentHistoryTable rows={paymentHistory.rows} enabled={paymentHistory.enabled} />
         </div>
-      </main>
-    </div>
+    </DashboardShell>
   )
 }

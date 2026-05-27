@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 
 export const runtime = "nodejs"
 
@@ -9,8 +9,7 @@ export async function POST(req: Request) {
     const { id } = await req.json()
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 })
 
-    const me = await getCurrentUser()
-    if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const me = await requireRole(["reporter", "admin", "superadmin"])
 
     const supabase = await createClient()
     const { error } = await supabase.from("articles").delete().eq("id", id).eq("author_id", me.id)

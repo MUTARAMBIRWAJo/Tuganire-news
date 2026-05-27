@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireRole } from "@/lib/auth/guards"
+import { getCurrentUser } from "@/lib/auth"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
@@ -9,7 +9,10 @@ export const runtime = "nodejs"
 
 export async function GET() {
   try {
-    await requireRole(["admin", "superadmin"])
+    const user = await getCurrentUser()
+    if (!user || (user.role !== "superadmin" && user.role !== "admin")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     const sb = createServiceClient(supabaseUrl, serviceKey!, {
       auth: { persistSession: false }
@@ -33,7 +36,10 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    await requireRole(["admin", "superadmin"])
+    const user = await getCurrentUser()
+    if (!user || (user.role !== "superadmin" && user.role !== "admin")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     const body = await req.json()
     const {

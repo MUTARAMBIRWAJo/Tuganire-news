@@ -2,11 +2,9 @@ import "server-only"
 
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import type { NextRequest } from "next/server"
-import { requireRole } from "@/lib/auth/guards"
 
 export async function GET(req: NextRequest) {
   try {
-    await requireRole(["admin", "superadmin"])
     const { searchParams } = new URL(req.url)
     const limit = parseInt(searchParams.get("limit") || "12", 10)
 

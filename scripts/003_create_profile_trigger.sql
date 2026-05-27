@@ -11,7 +11,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', null),
-    coalesce((new.raw_user_meta_data->>'role')::user_role, 'Public')
+    coalesce((new.raw_user_meta_data->>'role')::user_role, 'public'::user_role)
   )
   on conflict (id) do nothing;
   

@@ -1,46 +1,58 @@
-import { redirect } from "next/navigation"
-import { getCurrentUser } from "@/lib/auth"
-import { DashboardSidebar } from "@/components/dashboard-sidebar"
+import { DashboardShell } from "@/components/dashboard-shell"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { requireRole } from "@/lib/auth/guards"
 
 export default async function SupporterDashboardPage() {
-  const user = await getCurrentUser()
-  if (!user) redirect("/auth/login")
-
-  const allowed = ["supporter", "public", "admin", "superadmin"]
-  if (!user.role || !allowed.includes(user.role)) {
-    redirect("/auth/login")
-  }
+  const user = await requireRole(["supporter", "admin", "superadmin"])
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <DashboardSidebar />
-      <main className="flex-1 p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Supporter Dashboard</h1>
-          <p className="text-muted-foreground mt-2">Support the newsroom and view your contributions.</p>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+    <DashboardShell
+      title="Supporter Dashboard"
+      description="Track your donations, recurring sponsorships, supporter tiers, and newsroom impact."
+      userName={user.display_name || "Supporter"}
+      role={user.role}
+    >
+      <div className="grid gap-6 xl:grid-cols-3">
+        <div className="space-y-6 xl:col-span-2">
+          <Card id="contributions" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
             <CardHeader>
-              <CardTitle>Your Contributions</CardTitle>
+              <CardTitle>Donation History</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">No contributions yet.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Your one-time and recurring contributions will appear here with Stripe donation management.</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="impact" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
             <CardHeader>
-              <CardTitle>Membership</CardTitle>
+              <CardTitle>Impact Metrics</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Join a supporter tier to unlock perks.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">See how your support contributes to sponsored journalism and newsroom growth.</p>
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+
+        <div className="space-y-6">
+          <Card id="tiers" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <CardHeader>
+              <CardTitle>Supporter Tiers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Choose a tier to unlock supporter badges, recognition, and perks.</p>
+            </CardContent>
+          </Card>
+
+          <Card id="recognition" className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <CardHeader>
+              <CardTitle>Public Recognition</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Control whether your support is shown publicly on the site.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </DashboardShell>
   )
 }

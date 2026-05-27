@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireRole } from "@/lib/auth/guards"
+import { getCurrentUser } from "@/lib/auth"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
@@ -9,7 +9,10 @@ export const runtime = "nodejs"
 
 export async function POST(req: Request) {
   try {
-    await requireRole(["admin", "superadmin"]) // ensure admin access
+    const me = await getCurrentUser()
+    if (!me || (me.role !== "admin" && me.role !== "superadmin")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     const contentType = req.headers.get("content-type") || ""
     let id = ""
