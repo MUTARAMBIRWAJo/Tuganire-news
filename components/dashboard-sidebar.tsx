@@ -56,16 +56,22 @@ export function DashboardSidebar() {
   }, [])
 
 
-  // Pending approvals badge state (fetched from server-side endpoint)
-  const [pendingApprovals, setPendingApprovals] = useState<number>(0)
+  const [sidebarStats, setSidebarStats] = useState({ pendingApprovals: 0, pendingTasks: 0, activeCampaigns: 0, openPayments: 0 })
 
   useEffect(() => {
     if (!profile) return
-    if (profile.role === "superadmin" || profile.role === "admin") {
-      fetch("/api/dashboard/pending-approvals")
+    const profileRole = String(profile.role)
+    if (profileRole === "superadmin" || profileRole === "admin" || profileRole === "reporter" || profileRole === "advertiser") {
+      fetch("/api/dashboard/sidebar-stats")
         .then((r) => r.json())
         .then((data) => {
-          if (data && typeof data.count === "number") setPendingApprovals(data.count)
+          if (!data) return
+          setSidebarStats({
+            pendingApprovals: typeof data.pendingApprovals === "number" ? data.pendingApprovals : 0,
+            pendingTasks: typeof data.pendingTasks === "number" ? data.pendingTasks : 0,
+            activeCampaigns: typeof data.activeCampaigns === "number" ? data.activeCampaigns : 0,
+            openPayments: typeof data.openPayments === "number" ? data.openPayments : 0,
+          })
         })
         .catch(() => {})
     }
@@ -80,13 +86,13 @@ export function DashboardSidebar() {
       { name: "Dashboard", icon: Home, path: "/dashboard/superadmin" },
       { name: "Profile", icon: User, path: "/dashboard/superadmin/profile" },
       { name: "Manage Users", icon: Users, path: "/dashboard/superadmin/users" },
-      { name: "Manage Articles", icon: FileText, path: "/dashboard/superadmin/articles" },
+      { name: "Manage Articles", icon: FileText, path: "/dashboard/superadmin/articles", badge: sidebarStats.pendingTasks },
       { name: "Moderation Queue", icon: CheckCircle, path: "/dashboard/superadmin/moderation" },
       { name: "Comments", icon: MessageSquare, path: "/dashboard/superadmin/comments" },
-      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
+      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: sidebarStats.pendingApprovals },
       { name: "Categories", icon: FolderTree, path: "/dashboard/superadmin/categories" },
       { name: "Tags", icon: Tag, path: "/dashboard/superadmin/tags" },
-      { name: "Analytics", icon: BarChart3, path: "/dashboard/superadmin/analytics" },
+      { name: "Analytics", icon: BarChart3, path: "/dashboard/superadmin/analytics", badge: sidebarStats.openPayments },
       { name: "Visitors", icon: Activity, path: "/dashboard/superadmin/visitors" },
       { name: "Reports", icon: FileBarChart, path: "/dashboard/superadmin/reports" },
       { name: "Monetization", icon: CreditCard, path: "/dashboard/monetization" },
@@ -100,19 +106,19 @@ export function DashboardSidebar() {
   } else if (role === "admin") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/admin" },
-      { name: "Articles", icon: FileText, path: "/dashboard/articles" },
+      { name: "Articles", icon: FileText, path: "/dashboard/articles", badge: sidebarStats.pendingTasks },
       { name: "Reporters", icon: Users, path: "/dashboard/admin/reporters" },
       { name: "Comments", icon: MessageSquare, path: "/dashboard/admin/comments" },
-      { name: "Analytics", icon: BarChart3, path: "/dashboard/admin/analytics" },
+      { name: "Analytics", icon: BarChart3, path: "/dashboard/admin/analytics", badge: sidebarStats.openPayments },
       { name: "Monetization", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Newsletter", icon: Mail, path: "/dashboard/newsletter" },
-      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
+      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: sidebarStats.pendingApprovals },
     ]
   } else if (role === "reporter") {
     links = [
       { name: "My Articles", icon: FileText, path: "/dashboard/reporter" },
       { name: "Create Article", icon: Edit, path: "/dashboard/articles/new" },
-      { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts" },
+      { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts", badge: sidebarStats.pendingTasks },
       { name: "Statistics", icon: PieChart, path: "/dashboard/reporter/stats" },
       { name: "Profile", icon: User, path: "/dashboard/reporter/profile" },
     ]
@@ -120,14 +126,14 @@ export function DashboardSidebar() {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/subscriber" },
       { name: "Premium Access", icon: ShieldCheck, path: "/dashboard/subscriber/premium" },
-      { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
+      { name: "Billing", icon: CreditCard, path: "/dashboard/monetization", badge: sidebarStats.openPayments },
       { name: "Saved Articles", icon: FileText, path: "/dashboard/public/saved" },
       { name: "Profile", icon: User, path: "/dashboard/public/settings" },
     ]
   } else if (role === "advertiser") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/advertiser" },
-      { name: "Campaigns", icon: Monitor, path: "/dashboard/advertiser/campaigns" },
+      { name: "Campaigns", icon: Monitor, path: "/dashboard/advertiser/campaigns", badge: sidebarStats.activeCampaigns },
       { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Audience", icon: PieChart, path: "/dashboard/advertiser/audience" },
       { name: "Profile", icon: User, path: "/dashboard/public/settings" },

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
-import { getStripeWebhookSecret, persistStripePaymentRecord, stripeServer } from "@/lib/stripe-server"
+import { getStripeWebhookSecret, persistStripePaymentRecord, persistStripeSubscriptionRecord, stripeServer } from "@/lib/stripe-server"
 
 export const runtime = "nodejs"
 
@@ -28,6 +28,23 @@ export async function POST(request: Request) {
         const session = event.data.object as Stripe.Checkout.Session
         const metadata = session.metadata || {}
 
+        if (session.mode === "subscription" && session.subscription) {
+          const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription.id
+          const subscription =
+            typeof session.subscription === "string"
+              ? await stripeServer.subscriptions.retrieve(subscriptionId)
+              : (session.subscription as Stripe.Subscription)
+
+          await persistStripeSubscriptionRecord({
+            eventId: event.id,
+            eventType: event.type,
+            rawPayload: event,
+            subscription,
+            customerId: typeof session.customer === "string" ? session.customer : session.customer?.id || null,
+            checkoutSessionId: session.id,
+          })
+        }
+
         await persistStripePaymentRecord({
           eventId: event.id,
           eventType: event.type,
@@ -41,6 +58,19 @@ export async function POST(request: Request) {
           customerName: session.customer_details?.name || null,
           metadata: metadata as Record<string, string>,
           rawPayload: event,
+        })
+        break
+      }
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription
+        await persistStripeSubscriptionRecord({
+          eventId: event.id,
+          eventType: event.type,
+          rawPayload: event,
+          subscription,
+          customerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || null,
         })
         break
       }

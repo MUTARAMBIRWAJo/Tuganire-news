@@ -23,6 +23,7 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  STRIPE_SUBSCRIPTION_PRICE_ID: z.string().min(1).optional(),
 })
 
 type StripeEnv = z.infer<typeof envSchema>
@@ -48,6 +49,10 @@ export function getStripeWebhookSecret() {
 
 export function getSiteUrl() {
   return getEnv().NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "")
+}
+
+export function getSubscriptionPriceId() {
+  return getEnv().STRIPE_SUBSCRIPTION_PRICE_ID || null
 }
 
 function toMetadataString(value: unknown) {
@@ -211,6 +216,55 @@ export async function createArticleBoostSession(input: ArticleBoostInput) {
   })
 }
 
+export interface SubscriptionCheckoutInput {
+  userId: string
+  priceId: string
+  sourcePage: string
+  successPath: string
+  cancelPath: string
+  customerEmail?: string | null
+  customerName?: string | null
+  customerId?: string | null
+  metadata?: Record<string, unknown>
+}
+
+export async function createSubscriptionCheckoutSession(input: SubscriptionCheckoutInput) {
+  const siteUrl = getSiteUrl()
+  const metadata = buildMetadata({
+    payment_kind: "subscription",
+    user_id: input.userId,
+    source_page: input.sourcePage,
+    ...input.metadata,
+  })
+
+  const session = await stripeServer.checkout.sessions.create({
+    mode: "subscription",
+    line_items: [{ price: input.priceId, quantity: 1 }],
+    success_url: `${siteUrl}${input.successPath}?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl}${input.cancelPath}`,
+    customer: input.customerId || undefined,
+    customer_email: input.customerEmail || undefined,
+    metadata,
+    subscription_data: {
+      metadata,
+    },
+  })
+
+  if (!session.url) {
+    throw new Error("Stripe did not return a checkout URL.")
+  }
+
+  return session
+}
+
+export async function createBillingPortalSession(customerId: string, returnPath = "/dashboard/subscriber") {
+  const siteUrl = getSiteUrl()
+  return stripeServer.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: `${siteUrl}${returnPath}`,
+  })
+}
+
 export async function persistStripePaymentRecord(input: PaymentRecordInput) {
   const env = getEnv()
 
@@ -259,6 +313,67 @@ export async function persistStripePaymentRecord(input: PaymentRecordInput) {
   await supabase.from("payment_transactions").upsert(transactionRow, {
     onConflict: "stripe_session_id",
   })
+
+  return { persisted: true }
+}
+
+export async function persistStripeSubscriptionRecord(input: {
+  eventId: string
+  eventType: string
+  rawPayload: unknown
+  subscription: Stripe.Subscription
+  customerId?: string | null
+  checkoutSessionId?: string | null
+}) {
+  const env = getEnv()
+
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { persisted: false }
+  }
+
+  const supabase = createSupabaseClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+
+  const metadata = (input.subscription.metadata || {}) as Record<string, string>
+  const userId = metadata.user_id || metadata.userId || null
+
+  if (userId) {
+    await supabase.from("subscriptions").upsert(
+      {
+        user_id: userId,
+        stripe_subscription_id: input.subscription.id,
+        plan_id: metadata.plan_id || metadata.price_id || null,
+        status: input.subscription.status,
+        started_at: input.subscription.start_date ? new Date(input.subscription.start_date * 1000).toISOString() : null,
+        cancelled_at: input.subscription.canceled_at ? new Date(input.subscription.canceled_at * 1000).toISOString() : null,
+      },
+      { onConflict: "stripe_subscription_id" },
+    )
+  }
+
+  if (userId) {
+    await supabase.from("subscriber_metadata").upsert(
+      {
+        user_id: userId,
+        stripe_customer_id: input.customerId || metadata.customer_id || null,
+        stripe_subscription_id: input.subscription.id,
+        current_tier: metadata.plan_name || metadata.plan_id || input.subscription.status,
+      },
+      { onConflict: "user_id" },
+    )
+  }
+
+  await supabase.from("payment_event_logs").upsert(
+    {
+      stripe_event_id: input.eventId,
+      event_type: input.eventType,
+      raw_payload: input.rawPayload,
+      payment_kind: "subscription",
+      payment_status: input.subscription.status,
+    },
+    { onConflict: "stripe_event_id" },
+  )
 
   return { persisted: true }
 }
