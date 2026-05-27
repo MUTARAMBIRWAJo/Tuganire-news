@@ -14,6 +14,8 @@ interface DashboardShellProps {
 }
 
 export function DashboardShell({ title, description, userName, role, children }: DashboardShellProps) {
+  const securityHref = role ? `/dashboard/${role}/security` : "/dashboard/public/security"
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white md:flex">
       <DashboardSidebar />
@@ -38,7 +40,7 @@ export function DashboardShell({ title, description, userName, role, children }:
                 <Bell className="size-4" />
                 Notifications
               </Button>
-              <Link href="/dashboard/public/security" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <Link href={securityHref} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <UserCircle2 className="size-4 text-brand-600 dark:text-brand-400" />
                 <span className="max-w-[160px] truncate">{userName || "User"}</span>
                 {role ? <Badge variant="secondary" className="capitalize">{role}</Badge> : null}

@@ -85,6 +85,7 @@ export function DashboardSidebar() {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/superadmin" },
       { name: "Profile", icon: User, path: "/dashboard/superadmin/profile" },
+      { name: "Security", icon: ShieldCheck, path: "/dashboard/superadmin/security" },
       { name: "Manage Users", icon: Users, path: "/dashboard/superadmin/users" },
       { name: "Manage Articles", icon: FileText, path: "/dashboard/superadmin/articles", badge: sidebarStats.pendingTasks },
       { name: "Moderation Queue", icon: CheckCircle, path: "/dashboard/superadmin/moderation" },
@@ -106,6 +107,7 @@ export function DashboardSidebar() {
   } else if (role === "admin") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/admin" },
+      { name: "Security", icon: ShieldCheck, path: "/dashboard/admin/security" },
       { name: "Articles", icon: FileText, path: "/dashboard/articles", badge: sidebarStats.pendingTasks },
       { name: "Reporters", icon: Users, path: "/dashboard/admin/reporters" },
       { name: "Comments", icon: MessageSquare, path: "/dashboard/admin/comments" },
@@ -120,7 +122,7 @@ export function DashboardSidebar() {
       { name: "Create Article", icon: Edit, path: "/dashboard/articles/new" },
       { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts", badge: sidebarStats.pendingTasks },
       { name: "Statistics", icon: PieChart, path: "/dashboard/reporter/stats" },
-      { name: "Profile", icon: User, path: "/dashboard/reporter/profile" },
+      { name: "Security", icon: ShieldCheck, path: "/dashboard/reporter/security" },
     ]
   } else if (role === "subscriber") {
     links = [
@@ -128,7 +130,7 @@ export function DashboardSidebar() {
       { name: "Premium Access", icon: ShieldCheck, path: "/dashboard/subscriber/premium" },
       { name: "Billing", icon: CreditCard, path: "/dashboard/monetization", badge: sidebarStats.openPayments },
       { name: "Saved Articles", icon: FileText, path: "/dashboard/public/saved" },
-      { name: "Profile", icon: User, path: "/dashboard/public/settings" },
+      { name: "Security", icon: ShieldCheck, path: "/dashboard/subscriber/security" },
     ]
   } else if (role === "advertiser") {
     links = [
@@ -136,14 +138,14 @@ export function DashboardSidebar() {
       { name: "Campaigns", icon: Monitor, path: "/dashboard/advertiser/campaigns", badge: sidebarStats.activeCampaigns },
       { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Audience", icon: PieChart, path: "/dashboard/advertiser/audience" },
-      { name: "Profile", icon: User, path: "/dashboard/public/settings" },
+      { name: "Security", icon: ShieldCheck, path: "/dashboard/advertiser/security" },
     ]
   } else if (role === "supporter") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/supporter" },
       { name: "Contributions", icon: CreditCard, path: "/dashboard/supporter/contributions" },
       { name: "Impact", icon: Activity, path: "/dashboard/supporter/impact" },
-      { name: "Profile", icon: User, path: "/dashboard/public/settings" },
+      { name: "Security", icon: ShieldCheck, path: "/dashboard/supporter/security" },
     ]
   } else {
     links = [
