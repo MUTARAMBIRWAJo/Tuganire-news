@@ -56,23 +56,25 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
   const linkClass = (href: string) => {
     const active = pathname === href
     return [
-      "text-sm font-medium transition-colors",
+      "nav-link inline-flex items-center rounded-full px-2.5 py-1.5 text-sm transition-colors duration-200",
       active
-        ? "text-brand-700 dark:text-brand-300"
-        : "text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400",
+        ? "bg-brand-50 text-brand-800 dark:bg-brand-900/30 dark:text-brand-100"
+        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-950 dark:hover:bg-slate-800 dark:hover:text-white",
     ].join(" ")
   }
 
+  const primaryNav = nav
+
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl transition-colors dark:border-slate-800 dark:bg-slate-950/90">
+    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-xl transition-colors dark:border-slate-800/80 dark:bg-slate-950/88">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {breakingItems.length > 0 && (
-          <div className="border-b border-slate-200/80 dark:border-slate-800">
+          <div className="border-b border-slate-200/70 dark:border-slate-800/80">
             <BreakingNewsBar items={breakingItems} className="bg-transparent shadow-none" />
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4 py-3">
+        <div className="flex items-center justify-between gap-3 py-3.5 lg:gap-6">
           <Link href="/" className="flex items-center gap-3">
             <Image
               src="/placeholder-logo.png"
@@ -83,15 +85,15 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
               priority
             />
             <div className="hidden sm:block">
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">
+              <div className="category-badge text-brand-600 dark:text-brand-400">
                 International newsroom
               </div>
-              <div className="text-lg font-bold text-slate-950 dark:text-white">Tuganire News</div>
+              <div className="font-serif text-lg font-bold tracking-tight text-slate-950 dark:text-white">Tuganire News</div>
             </div>
           </Link>
 
-          <nav className="hidden flex-1 items-center justify-center gap-5 overflow-x-auto lg:flex">
-            {nav.slice(0, 7).map((n) => (
+          <nav className="hidden flex-1 items-center justify-center gap-1 overflow-x-auto lg:flex">
+            {primaryNav.map((n) => (
               <Link key={n.href} href={n.href} className={linkClass(n.href)}>
                 {n.label}
               </Link>
@@ -137,18 +139,8 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
           </div>
         </div>
 
-        <div className="hidden border-t border-slate-200/80 py-2 lg:flex dark:border-slate-800">
-          <nav className="flex w-full items-center gap-4 overflow-x-auto text-sm">
-            {nav.slice(1).map((n) => (
-              <Link key={n.href} href={n.href} className={linkClass(n.href)}>
-                {n.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
         {mobileMenuOpen && (
-          <div className="border-t border-slate-200 py-4 dark:border-slate-800 lg:hidden">
+          <div className="border-t border-slate-200/70 py-4 dark:border-slate-800 lg:hidden">
             <div className="mb-4 flex items-center justify-between">
               <LocaleSwitcher />
               <Button variant="ghost" size="sm" asChild>
@@ -159,7 +151,7 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
               </Button>
             </div>
             <nav className="grid gap-2 sm:grid-cols-2">
-              {nav.map((n) => (
+              {primaryNav.map((n) => (
                 <Link
                   key={n.href}
                   href={n.href}
