@@ -35,6 +35,7 @@ import { useSupabaseAuth } from "@/hooks/use-supabase-auth"
 import { useRouter } from "next/navigation"
 import { brandFromHost } from "@/lib/host"
 import { useEffect, useState } from "react"
+import { createBrowserClient } from "@supabase/ssr"
 import type { UserRole } from "@/lib/auth/roles"
 
 interface NavLink {
@@ -56,24 +57,21 @@ export function DashboardSidebar() {
   }, [])
 
 
-  const [sidebarStats, setSidebarStats] = useState({ pendingApprovals: 0, pendingTasks: 0, activeCampaigns: 0, openPayments: 0 })
+  // Pending approvals badge state
+  const [pendingApprovals, setPendingApprovals] = useState<number>(0)
 
   useEffect(() => {
-    if (!profile) return
-    const profileRole = String(profile.role)
-    if (profileRole === "superadmin" || profileRole === "admin" || profileRole === "reporter" || profileRole === "advertiser") {
-      fetch("/api/dashboard/sidebar-stats")
-        .then((r) => r.json())
-        .then((data) => {
-          if (!data) return
-          setSidebarStats({
-            pendingApprovals: typeof data.pendingApprovals === "number" ? data.pendingApprovals : 0,
-            pendingTasks: typeof data.pendingTasks === "number" ? data.pendingTasks : 0,
-            activeCampaigns: typeof data.activeCampaigns === "number" ? data.activeCampaigns : 0,
-            openPayments: typeof data.openPayments === "number" ? data.openPayments : 0,
-          })
-        })
-        .catch(() => {})
+    // Only fetch for superadmin/admin
+    if (profile?.role === "superadmin" || profile?.role === "admin") {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      supabase
+        .from("app_users")
+        .select("id", { count: "exact", head: true })
+        .eq("is_approved", false)
+        .then(({ count }) => setPendingApprovals(count || 0))
     }
   }, [profile?.role])
 
@@ -85,15 +83,14 @@ export function DashboardSidebar() {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/superadmin" },
       { name: "Profile", icon: User, path: "/dashboard/superadmin/profile" },
-      { name: "Security", icon: ShieldCheck, path: "/dashboard/superadmin/security" },
       { name: "Manage Users", icon: Users, path: "/dashboard/superadmin/users" },
-      { name: "Manage Articles", icon: FileText, path: "/dashboard/superadmin/articles", badge: sidebarStats.pendingTasks },
+      { name: "Manage Articles", icon: FileText, path: "/dashboard/superadmin/articles" },
       { name: "Moderation Queue", icon: CheckCircle, path: "/dashboard/superadmin/moderation" },
       { name: "Comments", icon: MessageSquare, path: "/dashboard/superadmin/comments" },
-      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: sidebarStats.pendingApprovals },
+      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
       { name: "Categories", icon: FolderTree, path: "/dashboard/superadmin/categories" },
       { name: "Tags", icon: Tag, path: "/dashboard/superadmin/tags" },
-      { name: "Analytics", icon: BarChart3, path: "/dashboard/superadmin/analytics", badge: sidebarStats.openPayments },
+      { name: "Analytics", icon: BarChart3, path: "/dashboard/superadmin/analytics" },
       { name: "Visitors", icon: Activity, path: "/dashboard/superadmin/visitors" },
       { name: "Reports", icon: FileBarChart, path: "/dashboard/superadmin/reports" },
       { name: "Monetization", icon: CreditCard, path: "/dashboard/monetization" },
@@ -107,45 +104,44 @@ export function DashboardSidebar() {
   } else if (role === "admin") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/admin" },
-      { name: "Security", icon: ShieldCheck, path: "/dashboard/admin/security" },
-      { name: "Articles", icon: FileText, path: "/dashboard/articles", badge: sidebarStats.pendingTasks },
+      { name: "Articles", icon: FileText, path: "/dashboard/articles" },
       { name: "Reporters", icon: Users, path: "/dashboard/admin/reporters" },
       { name: "Comments", icon: MessageSquare, path: "/dashboard/admin/comments" },
-      { name: "Analytics", icon: BarChart3, path: "/dashboard/admin/analytics", badge: sidebarStats.openPayments },
+      { name: "Analytics", icon: BarChart3, path: "/dashboard/admin/analytics" },
       { name: "Monetization", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Newsletter", icon: Mail, path: "/dashboard/newsletter" },
-      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: sidebarStats.pendingApprovals },
+      { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
     ]
   } else if (role === "reporter") {
     links = [
       { name: "My Articles", icon: FileText, path: "/dashboard/reporter" },
       { name: "Create Article", icon: Edit, path: "/dashboard/articles/new" },
-      { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts", badge: sidebarStats.pendingTasks },
+      { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts" },
       { name: "Statistics", icon: PieChart, path: "/dashboard/reporter/stats" },
-      { name: "Security", icon: ShieldCheck, path: "/dashboard/reporter/security" },
+      { name: "Profile", icon: User, path: "/dashboard/reporter/profile" },
     ]
   } else if (role === "subscriber") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/subscriber" },
       { name: "Premium Access", icon: ShieldCheck, path: "/dashboard/subscriber/premium" },
-      { name: "Billing", icon: CreditCard, path: "/dashboard/monetization", badge: sidebarStats.openPayments },
+      { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Saved Articles", icon: FileText, path: "/dashboard/public/saved" },
-      { name: "Security", icon: ShieldCheck, path: "/dashboard/subscriber/security" },
+      { name: "Profile", icon: User, path: "/dashboard/public/settings" },
     ]
   } else if (role === "advertiser") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/advertiser" },
-      { name: "Campaigns", icon: Monitor, path: "/dashboard/advertiser/campaigns", badge: sidebarStats.activeCampaigns },
+      { name: "Campaigns", icon: Monitor, path: "/dashboard/advertiser/campaigns" },
       { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Audience", icon: PieChart, path: "/dashboard/advertiser/audience" },
-      { name: "Security", icon: ShieldCheck, path: "/dashboard/advertiser/security" },
+      { name: "Profile", icon: User, path: "/dashboard/public/settings" },
     ]
   } else if (role === "supporter") {
     links = [
       { name: "Dashboard", icon: Home, path: "/dashboard/supporter" },
       { name: "Contributions", icon: CreditCard, path: "/dashboard/supporter/contributions" },
       { name: "Impact", icon: Activity, path: "/dashboard/supporter/impact" },
-      { name: "Security", icon: ShieldCheck, path: "/dashboard/supporter/security" },
+      { name: "Profile", icon: User, path: "/dashboard/public/settings" },
     ]
   } else {
     links = [

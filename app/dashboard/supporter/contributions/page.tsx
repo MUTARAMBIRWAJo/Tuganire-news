@@ -1,25 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardShell } from "@/components/dashboard-shell"
 import { requireRole } from "@/lib/auth/guards"
 
-export default async function SupporterContributionsPage() {
-  const user = await requireRole(["supporter", "admin", "superadmin"])
+export default async function Page() {
+  const user = await requireRole(["supporter"]) 
 
   return (
-    <DashboardShell
-      title="Contributions"
-      description="View your contributions and receipts."
-      userName={user.display_name || "Supporter"}
-      role={user.role}
-    >
-      <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-        <CardHeader>
-          <CardTitle>Contributions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-slate-600 dark:text-slate-300">You have not made any contributions yet.</p>
-        </CardContent>
-      </Card>
+    <DashboardShell title="Contributions" description="Your contributions and receipts" userName={user.display_name || "Supporter"} role={user.role}>
+      <div className="space-y-4">
+        <p className="text-sm text-slate-600 dark:text-slate-300">No contributions yet.</p>
+      </div>
     </DashboardShell>
   )
 }
+

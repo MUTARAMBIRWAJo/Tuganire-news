@@ -1,37 +1,7 @@
-import { DashboardShell } from "@/components/dashboard-shell"
-import { getCurrentUser } from "@/lib/auth"
-import { redirect } from "next/navigation"
-import { getSecurityOverview, ensureTwoFactorSetup } from "@/lib/security"
-import { hashCode } from "@/lib/security"
-import { createClient } from "@/lib/supabase/server"
-import { SecurityCenter } from "@/components/security-center"
+import { ReactNode } from "react"
 
-export default async function PublicSecurityPage({ searchParams }: { searchParams?: { security?: string } }) {
-  const user = await getCurrentUser()
-  if (!user) redirect("/auth/login")
+export const dynamic = "force-dynamic"
 
-  const supabase = await createClient()
-  const { data: session } = await supabase.auth.getSession()
-  const overview = await getSecurityOverview(user.id)
-  const setup = overview.twoFactor?.enabled ? null : await ensureTwoFactorSetup(user.id, user.email || null)
-  const currentSessionToken = hashCode(session.session?.access_token || "")
-
-  return (
-    <DashboardShell
-      title="Account Security"
-      description="Manage passwords, 2FA, sessions, login history, and notification preferences."
-      userName={user.display_name || "User"}
-      role={user.role}
-    >
-      <SecurityCenter
-        userName={user.display_name || "User"}
-        role={user.role}
-        securityPath="/dashboard/public/security"
-        overview={overview}
-        twoFactorSetup={setup ? { qrCodeDataUrl: setup.qrCodeDataUrl, backupCodes: setup.isFreshSetup ? setup.backupCodes : [], enabled: setup.enabled } : null}
-        flash={searchParams?.security || null}
-        currentSessionToken={currentSessionToken}
-      />
-    </DashboardShell>
-  )
+export default function Page(): ReactNode {
+  return <div />
 }

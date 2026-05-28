@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { requireRole } from "@/lib/auth/guards"
+import { getCurrentUser } from "@/lib/auth"
 import { validateArticleForPublishing } from "@/lib/editorialValidation"
 import { calculateSeoScore } from "@/lib/seoScore"
 import { checkAdsenseReadiness } from "@/lib/adsenseCheck"
@@ -20,7 +20,12 @@ export async function POST(req: Request) {
   try {
     const { id } = await req.json()
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 })
-    const me = (await requireRole(["reporter", "admin", "superadmin"]))!
+
+    const me = await getCurrentUser()
+    if (!me) return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+    if (!["reporter", "admin", "superadmin"].includes(String(me.role || ""))) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
 
     const supabase = await createClient()
     const { data: rows, error: selErr } = await supabase

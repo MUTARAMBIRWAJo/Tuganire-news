@@ -1,58 +1,18 @@
-import { redirect, notFound } from "next/navigation"
 import { DashboardShell } from "@/components/dashboard-shell"
-import { SecurityCenter } from "@/components/security-center"
-import { getCurrentUser } from "@/lib/auth"
-import { getSecurityOverview, ensureTwoFactorSetup, hashCode } from "@/lib/security"
-import { createClient } from "@/lib/supabase/server"
-import type { UserRole } from "@/lib/auth/roles"
+import { requireRole } from "@/lib/auth/guards"
 
-const OWN_ROLE_MAP: Record<string, UserRole> = {
-  subscriber: "subscriber",
-  advertiser: "advertiser",
-  supporter: "supporter",
-  sponsor: "supporter",
-  reporter: "reporter",
-  admin: "admin",
-  superadmin: "superadmin",
+interface Props {
+  params: { role: string }
 }
 
-export default async function RoleSecurityPage({ params, searchParams }: { params: { role: string }; searchParams?: { security?: string } }) {
-  const user = await getCurrentUser()
-  if (!user) redirect("/auth/login")
-
-  const roleKey = params.role.toLowerCase()
-  if (!(roleKey in OWN_ROLE_MAP)) notFound()
-
-  const allowedRole = OWN_ROLE_MAP[roleKey]
-  const actualRole = String(user.role || "public").toLowerCase() as UserRole
-  const canAccess = actualRole === allowedRole || actualRole === "admin" || actualRole === "superadmin"
-  if (!canAccess) {
-    const target = actualRole === "public" ? "/dashboard/public/security" : `/dashboard/${actualRole}/security`
-    redirect(target)
-  }
-
-  const supabase = await createClient()
-  const { data: session } = await supabase.auth.getSession()
-  const overview = await getSecurityOverview(user.id)
-  const setup = overview.twoFactor?.enabled ? null : await ensureTwoFactorSetup(user.id, user.email || null)
-  const currentSessionToken = hashCode(session.session?.access_token || "")
+export default async function RoleSecurityPage({ params }: Props) {
+  const user = await requireRole(["public", "subscriber", "advertiser", "supporter", "reporter", "admin", "superadmin"])
 
   return (
-    <DashboardShell
-      title="Account Security"
-      description="Manage passwords, 2FA, sessions, login history, and notification preferences."
-      userName={user.display_name || "User"}
-      role={user.role}
-    >
-      <SecurityCenter
-        userName={user.display_name || "User"}
-        role={user.role}
-        securityPath={`/dashboard/${actualRole}/security`}
-        overview={overview}
-        twoFactorSetup={setup ? { qrCodeDataUrl: setup.qrCodeDataUrl, backupCodes: setup.isFreshSetup ? setup.backupCodes : [], enabled: setup.enabled } : null}
-        flash={searchParams?.security || null}
-        currentSessionToken={currentSessionToken}
-      />
+    <DashboardShell title="Account Security" description="Manage passwords, sessions, and two-factor authentication." userName={user.display_name || "User"} role={user.role}>
+      <div className="space-y-4">
+        <p className="text-sm text-slate-600 dark:text-slate-300">Security settings for <strong>{params.role}</strong> accounts. This is a generic fallback — create a role-specific security page at <code>app/dashboard/{`[role]`}/security/page.tsx</code> to customize.</p>
+      </div>
     </DashboardShell>
   )
 }
