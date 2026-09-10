@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { normalizeLanguage } from "@/lib/articleQueries"
 
 export const runtime = "nodejs"
 
@@ -39,6 +40,7 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url)
   const limit = Math.min(20, Math.max(1, parseInt(url.searchParams.get("limit") || "10", 10) || 10))
+  const language = normalizeLanguage(url.searchParams.get("language"))
 
   try {
     // Fetch recent published articles (last 7 days) sorted by views for efficiency
@@ -46,11 +48,12 @@ export async function GET(req: Request) {
     const { data, error } = await sb
       .from("articles")
       .select(
-        `id, slug, title, excerpt, featured_image, published_at,
+        `id, slug, title, excerpt, featured_image, published_at, language,
          views_count, likes_count,
          category:categories(name, slug),
          author:app_users(display_name, avatar_url)`,
       )
+      .eq("language", language)
       .eq("status", "published")
       .not("slug", "is", null)
       .not("published_at", "is", null)

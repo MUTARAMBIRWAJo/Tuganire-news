@@ -2,11 +2,13 @@
 
 import { useState } from "react"
 import useSWR from "swr"
+import { usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
 import { ArticleCard } from "./article-card"
 import { TrendingUp } from "lucide-react"
+import { getLocaleFromPath } from "@/lib/i18n"
 
-const fetcher = async () => {
+const fetcher = async (language: "en" | "rw") => {
   const { data, error } = await supabase
     .from("articles")
     .select(`
@@ -20,6 +22,7 @@ const fetcher = async () => {
       category:categories(id, name, slug),
       author:app_users(id, display_name, avatar_url)
     `)
+    .eq("language", language)
     .eq("status", "published")
     .not("published_at", "is", null)
     .lte("published_at", new Date().toISOString())
@@ -31,7 +34,8 @@ const fetcher = async () => {
 }
 
 export function TrendingSection() {
-  const { data: trendingArticles, error } = useSWR("trending-articles", fetcher, {
+  const language = getLocaleFromPath(usePathname())
+  const { data: trendingArticles, error } = useSWR(["trending-articles", language], ([, currentLanguage]) => fetcher(currentLanguage), {
     refreshInterval: 30000, // Refresh every 30 seconds
   })
 

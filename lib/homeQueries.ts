@@ -139,8 +139,16 @@ export async function getTrending(limit = 10, language: string = 'en') {
   if (!sb) return []
 
   let { data, error } = await sb
-    .from('v_trending')
-    .select('*')
+    .from('articles')
+    .select(`id, slug, title, excerpt, featured_image, published_at, views_count,
+      category:category_id ( name, slug )`)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
+    .eq('status', 'published')
+    .not('published_at', 'is', null)
+    .lte('published_at', new Date().toISOString())
+    .neq('article_type', 'video')
+    .order('views_count', { ascending: false, nullsFirst: false })
+    .order('published_at', { ascending: false })
     .limit(limit);
   if (error) {
     console.error('getTrending error', error)
@@ -172,19 +180,18 @@ export async function getTrending(limit = 10, language: string = 'en') {
       author_avatar_url: null as string | null,
     }));
   } else {
-    // normalize v_trending rows into unified shape expected by UI
-    data = (data || []).map((t: any) => ({
-      id: t.id ?? t.article_id ?? t.slug ?? Math.random().toString(36).slice(2),
-      slug: t.slug ?? t.article_slug ?? t.slug_text ?? '',
-      title: t.title ?? t.headline ?? '',
-      excerpt: t.excerpt ?? t.summary ?? t.subtitle ?? '',
-      featured_image: t.featured_image || t.image_url || t.cover_image || t.image || null,
-      published_at: t.published_at ?? t.created_at ?? null,
-      views_count: t.views_count ?? t.view_count ?? t.views ?? null,
-      category_name: t.category_name ?? t.category?.name ?? null,
-      category_slug: t.category_slug ?? t.category?.slug ?? null,
-      author_display_name: t.author_display_name ?? t.author?.display_name ?? t.author_name ?? null,
-      author_avatar_url: t.author_avatar_url ?? t.author?.avatar_url ?? null,
+    data = (data || []).map((article: any) => ({
+      id: article.id,
+      slug: article.slug,
+      title: article.title,
+      excerpt: article.excerpt ?? '',
+      featured_image: article.featured_image ?? null,
+      published_at: article.published_at ?? null,
+      views_count: article.views_count ?? null,
+      category_name: Array.isArray(article.category) ? article.category[0]?.name : article.category?.name,
+      category_slug: Array.isArray(article.category) ? article.category[0]?.slug : article.category?.slug,
+      author_display_name: null as string | null,
+      author_avatar_url: null as string | null,
     }));
   }
   // Attach approved comments_count per item

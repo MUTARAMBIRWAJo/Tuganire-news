@@ -55,9 +55,9 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
   const localize = (href: string) => `/${locale}${href === "/" ? "" : href}`
 
   const linkClass = (href: string) => {
-    const active = pathname === href
+    const active = pathname === href || (href !== localize("/") && pathname.startsWith(`${href}/`))
     return [
-      "nav-link inline-flex items-center rounded-full px-2.75 py-1.5 text-[11.5px] font-bold tracking-[0.02em] transition-all duration-200 ease-out",
+      "nav-link inline-flex items-center rounded-full px-3 py-2 text-sm font-semibold tracking-[0.01em] transition-all duration-200 ease-out",
       active
         ? "bg-slate-950 text-white shadow-[0_8px_18px_-12px_rgba(15,23,42,0.7)] dark:bg-brand-500 dark:text-slate-950"
         : "text-slate-700 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-950 hover:shadow-[0_8px_18px_-14px_rgba(15,23,42,0.18)] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white",
@@ -76,10 +76,15 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
         )}
 
         <div className="flex items-center justify-between gap-3 py-2.75 lg:gap-5">
-          <Link href={localize("/")} className="flex items-center gap-3 rounded-full pr-1 transition-transform duration-200 hover:-translate-y-0.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-[10px] font-black tracking-[0.18em] text-white shadow-[0_10px_20px_-14px_rgba(15,23,42,0.8)] dark:bg-brand-500 dark:text-slate-950">
-              TNT
-            </div>
+          <Link href={localize("/")} className="flex shrink-0 items-center gap-3 rounded-full pr-1 transition-transform duration-200 hover:-translate-y-0.5">
+            <Image
+              src="/placeholder-logo.png"
+              alt="Tuganire"
+              width={56}
+              height={56}
+              priority
+              className="h-12 w-12 object-contain sm:h-14 sm:w-14"
+            />
             <div className="hidden min-w-0 sm:block">
               <div className="category-badge text-[9px] font-bold tracking-[0.2em] text-brand-600 dark:text-brand-400">
                 {t("coverage", locale)}
@@ -90,7 +95,7 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
             </div>
           </Link>
 
-          <nav className="hidden flex-1 items-center justify-center gap-1 overflow-x-auto lg:flex lg:py-1">
+          <nav aria-label="Primary navigation" className="hidden flex-1 items-center justify-center gap-1 overflow-x-auto lg:flex lg:py-1">
             {primaryNav.map((n) => (
               <Link key={n.href} href={n.href} className={linkClass(n.href)}>
                 {n.label}
@@ -148,7 +153,7 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
                 </Link>
               </Button>
             </div>
-            <nav className="grid gap-2 sm:grid-cols-2">
+            <nav aria-label="Mobile primary navigation" className="grid gap-2 sm:grid-cols-2">
               {primaryNav.map((n) => (
                 <Link
                   key={n.href}
