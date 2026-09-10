@@ -1,6 +1,7 @@
 import { ArticleCard } from "./article-card"
 import { Link2 } from "lucide-react"
 import Link from "next/link"
+import { t, type Locale } from "@/lib/i18n"
 
 interface RelatedArticle {
   id: string
@@ -18,9 +19,10 @@ interface RelatedArticle {
 interface RelatedArticlesProps {
   articles: RelatedArticle[]
   currentSlug?: string
+  locale?: Locale
 }
 
-export default function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps) {
+export default function RelatedArticles({ articles, currentSlug, locale = "en" }: RelatedArticlesProps) {
   // Filter out current article if provided
   const filteredArticles = currentSlug 
     ? articles.filter(article => article.slug !== currentSlug)
@@ -32,7 +34,7 @@ export default function RelatedArticles({ articles, currentSlug }: RelatedArticl
     <section className="mx-auto max-w-7xl px-4 py-8 border-t border-slate-200 dark:border-slate-700 mt-12">
       <div className="mb-6 flex items-center gap-3">
         <Link2 className="h-5 w-5 text-blue-600" />
-        <h2 className="text-2xl font-bold">Related Articles</h2>
+        <h2 className="text-2xl font-bold">{t("relatedArticles", locale)}</h2>
       </div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredArticles.slice(0, 6).map((article) => (
@@ -51,6 +53,7 @@ export default function RelatedArticles({ articles, currentSlug }: RelatedArticl
               author: (article.author as any) || undefined,
             } as any}
             compact
+            locale={locale}
           />
         ))}
       </div>

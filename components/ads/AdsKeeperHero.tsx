@@ -20,8 +20,13 @@ export default function AdsKeeperHero({ widgetId = DEFAULT_WIDGET, className = "
 
   return (
     <div className={`w-full ${className}`}>
-      <div className="text-center text-xs text-gray-500 mb-2">Advertisement</div>
-      <div style={{ minHeight: `${minHeightPx}px` }}>
+      <div className="mb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+        Advertisement
+      </div>
+      <div
+        className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_18px_32px_-26px_rgba(15,23,42,0.36)] ring-1 ring-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:ring-slate-800"
+        style={{ minHeight: `${minHeightPx}px` }}
+      >
         <div data-type="_mgwidget" data-widget-id={widgetId}></div>
       </div>
     </div>

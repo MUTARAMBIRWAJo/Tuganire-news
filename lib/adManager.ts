@@ -59,12 +59,21 @@ export function getAdRouteState(pathname?: string | null): AdRouteState {
   const publicContent = isPublicContentPath(normalized)
   const adsenseGloballyEnabled = !isExplicitlyDisabled(process.env.NEXT_PUBLIC_ENABLE_ADSENSE)
   const adskeeperGloballyEnabled = !isExplicitlyDisabled(process.env.NEXT_PUBLIC_ENABLE_ADSKEEPER)
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().toLowerCase()
+  const isLocalEnvironment =
+    process.env.NODE_ENV !== "production" ||
+    siteUrl.includes("localhost") ||
+    siteUrl.includes("127.0.0.1") ||
+    siteUrl.includes("0.0.0.0")
+
+  const hasAdsenseConfig = !!(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NEXT_PUBLIC_ENABLE_ADSENSE)
+  const hasAdskeeperConfig = !!(process.env.NEXT_PUBLIC_ADSKEEPER_SITE_ID || process.env.NEXT_PUBLIC_ENABLE_ADSKEEPER)
 
   return {
     pathname: normalized,
     publicContent,
-    adsenseEnabled: publicContent && adsenseGloballyEnabled,
-    adskeeperEnabled: publicContent && adskeeperGloballyEnabled,
+    adsenseEnabled: publicContent && adsenseGloballyEnabled && !isLocalEnvironment && hasAdsenseConfig,
+    adskeeperEnabled: publicContent && adskeeperGloballyEnabled && !isLocalEnvironment && hasAdskeeperConfig,
   }
 }
 

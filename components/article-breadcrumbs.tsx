@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { categoryHref } from "@/lib/category-utils"
+import { categoryLabel, t, type Locale } from "@/lib/i18n"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,25 +14,27 @@ interface ArticleBreadcrumbsProps {
   categoryName?: string | null
   categorySlug?: string | null
   articleTitle: string
+  locale?: Locale
 }
 
 export default function ArticleBreadcrumbs({
   categoryName,
   categorySlug,
   articleTitle,
+  locale = "en",
 }: ArticleBreadcrumbsProps) {
   return (
     <Breadcrumb className="mb-6">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link href="/">Home</Link>
+            <Link href={`/${locale}`}>{t("home", locale)}</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link href="/articles">Articles</Link>
+            <Link href={`/${locale}/articles`}>{t("articles", locale)}</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {categoryName && categorySlug && (
@@ -38,7 +42,7 @@ export default function ArticleBreadcrumbs({
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href={`/category/${categorySlug}`}>{categoryName}</Link>
+                <Link href={`/${locale}${categoryHref(categorySlug || categoryName)}`}>{categoryLabel({ name: categoryName, slug: categorySlug }, locale)}</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
           </>

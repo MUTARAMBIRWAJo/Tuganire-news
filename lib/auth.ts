@@ -4,9 +4,14 @@ import type { AppUser } from "@/lib/types"
 export async function getCurrentUser() {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user
+  try {
+    const result = await supabase.auth.getUser()
+    user = result.data.user
+  } catch (error) {
+    console.error("[auth:ssr] Supabase Auth request failed", error instanceof Error ? error.message : error)
+    return null
+  }
 
   if (!user) {
     console.debug("[auth:ssr] getUser returned null")

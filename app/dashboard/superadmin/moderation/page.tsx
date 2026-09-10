@@ -32,7 +32,7 @@ export default async function SuperAdminModerationPage({
   let query = supabase
     .from("articles")
     .select(
-      `id, title, created_at, status, author:app_users(id, display_name), category:categories(id, name)`,
+      `id, title, created_at, status, language, author:app_users(id, display_name), category:categories(id, name)`,
       { count: "exact" }
     )
     .eq("status", "submitted")

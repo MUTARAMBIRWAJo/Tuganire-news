@@ -56,6 +56,11 @@ export function ReporterArticlesList(props: ReporterArticlesListProps) {
 
   const items = data?.items || []
   const total = data?.count || 0
+  const normalizedLanguage = (value?: string | null) => (String(value || "").toLowerCase() === "rw" ? "rw" : "en")
+  const groupedItems = {
+    en: items.filter((article) => normalizedLanguage((article as any).language) === "en"),
+    rw: items.filter((article) => normalizedLanguage((article as any).language) === "rw"),
+  }
 
   async function advanceStatus(id: string) {
     // optimistic: move status forward locally
@@ -106,116 +111,149 @@ export function ReporterArticlesList(props: ReporterArticlesListProps) {
           </Button>
         </div>
       ) : (
-        <div className="space-y-4">
-          {items.map((article) => {
-            const cat = Array.isArray(article.category) ? article.category?.[0] : article.category
-            const articleType = String(article.article_type || "text").toLowerCase() === "video" ? "video" : "text"
-            return (
-              <div key={article.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-slate-50 transition-colors">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-lg">{article.title}</h3>
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs font-medium ${
-                        articleType === "video"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      {articleType === "video" ? "Video" : "Text"}
-                    </span>
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs font-medium ${
-                        article.status === "Published"
-                          ? "bg-green-100 text-green-700"
-                          : article.status === "InReview"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : article.status === "Draft"
-                          ? "bg-gray-100 text-gray-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {article.status}
-                    </span>
-                    {article.is_featured && (
-                      <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Featured</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{article.excerpt || "No excerpt available"}</p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{cat?.name || "Uncategorized"}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      {article.views_count} views
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setNavigatingId(article.id)
-                      router.push(`/dashboard/reporter/articles/${article.id}/edit`)
-                    }}
-                    disabled={navigatingId === article.id}
-                  >
-                    {navigatingId === article.id ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {editLabel}
-                      </>
-                    ) : (
-                      <>
-                        <Edit className="mr-2 h-4 w-4" />
-                        {editLabel}
-                      </>
-                    )}
-                  </Button>
-                  {String(article.status).toLowerCase() !== "published" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setNavigatingId(article.id)
-                        router.push(`/dashboard/reporter/articles/${article.id}/edit`)
-                      }}
-                      disabled={navigatingId === article.id}
-                    >
-                      {navigatingId === article.id ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Modify
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Modify
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => advanceStatus(article.id)}
-                    disabled={String(article.status).toLowerCase() === "published"}
-                  >
-                    Advance Status
-                  </Button>
-                  <ConfirmButton
-                    type="button"
-                    confirmMessage="Delete this article?"
-                    className="px-2 py-1 rounded border text-red-600 hover:text-red-700 bg-transparent"
-                    onClick={() => deleteArticle(article.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </ConfirmButton>
-                </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {[
+            { key: "en", title: "English Articles", items: groupedItems.en },
+            { key: "rw", title: "Kinyarwanda Articles", items: groupedItems.rw },
+          ].map((section) => (
+            <div key={section.key} className="rounded-xl border bg-slate-50 p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-800">{section.title}</h2>
+                <span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700">
+                  {section.items.length} {section.items.length === 1 ? "article" : "articles"}
+                </span>
               </div>
-            )
-          })}
+
+              <div className="space-y-4">
+                {section.items.length > 0 ? (
+                  section.items.map((article) => {
+                    const cat = Array.isArray(article.category) ? article.category?.[0] : article.category
+                    const articleType = String(article.article_type || "text").toLowerCase() === "video" ? "video" : "text"
+                    const language = normalizedLanguage((article as any).language)
+
+                    return (
+                      <div key={article.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-slate-50 transition-colors bg-white">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <h3 className="font-semibold text-lg">{article.title}</h3>
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs font-medium ${
+                                articleType === "video"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-slate-100 text-slate-700"
+                              }`}
+                            >
+                              {articleType === "video" ? "Video" : "Text"}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs font-medium ${
+                                language === "rw"
+                                  ? "bg-violet-100 text-violet-700"
+                                  : "bg-blue-100 text-blue-700"
+                              }`}
+                            >
+                              {language === "rw" ? "Kinyarwanda" : "English"}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs font-medium ${
+                                article.status === "Published"
+                                  ? "bg-green-100 text-green-700"
+                                  : article.status === "InReview"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : article.status === "Draft"
+                                  ? "bg-gray-100 text-gray-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {article.status}
+                            </span>
+                            {article.is_featured && (
+                              <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Featured</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{article.excerpt || "No excerpt available"}</p>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{cat?.name || "Uncategorized"}</span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              {article.views_count} views
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setNavigatingId(article.id)
+                              router.push(`/dashboard/reporter/articles/${article.id}/edit`)
+                            }}
+                            disabled={navigatingId === article.id}
+                          >
+                            {navigatingId === article.id ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                {editLabel}
+                              </>
+                            ) : (
+                              <>
+                                <Edit className="mr-2 h-4 w-4" />
+                                {editLabel}
+                              </>
+                            )}
+                          </Button>
+                          {String(article.status).toLowerCase() !== "published" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setNavigatingId(article.id)
+                                router.push(`/dashboard/reporter/articles/${article.id}/edit`)
+                              }}
+                              disabled={navigatingId === article.id}
+                            >
+                              {navigatingId === article.id ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Modify
+                                </>
+                              ) : (
+                                <>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Modify
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => advanceStatus(article.id)}
+                            disabled={String(article.status).toLowerCase() === "published"}
+                          >
+                            Advance Status
+                          </Button>
+                          <ConfirmButton
+                            type="button"
+                            confirmMessage="Delete this article?"
+                            className="px-2 py-1 rounded border text-red-600 hover:text-red-700 bg-transparent"
+                            onClick={() => deleteArticle(article.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </ConfirmButton>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+                    No {section.title.toLowerCase()} found.
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

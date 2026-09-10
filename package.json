@@ -6,6 +6,7 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
+    "check-translations": "node scripts/check-translations.js",
     "start": "next start",
     "test": "vitest run"
   },

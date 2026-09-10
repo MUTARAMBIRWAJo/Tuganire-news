@@ -1,6 +1,7 @@
 import { ArticleCard } from "./article-card"
 import { TrendingUp } from "lucide-react"
 import Link from "next/link"
+import { t, type Locale } from "@/lib/i18n"
 
 interface MostPopularSectionProps {
   items: Array<{
@@ -18,24 +19,24 @@ interface MostPopularSectionProps {
   period?: "day" | "week" | "month"
 }
 
-export default function MostPopularSection({ items, period = "week" }: MostPopularSectionProps) {
+export default function MostPopularSection({ items, period = "week", locale = "en" }: MostPopularSectionProps & { locale?: Locale }) {
   if (!items || items.length === 0) return null
 
   const periodLabels = {
-    day: "Today",
-    week: "This Week",
-    month: "This Month"
+    day: locale === "rw" ? "Uyu munsi" : "Today",
+    week: locale === "rw" ? "Muri iki cyumweru" : "This Week",
+    month: locale === "rw" ? "Muri uku kwezi" : "This Month"
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-xl border border-orange-200 dark:border-slate-700 shadow-sm">
-      <div className="mb-6 flex items-center justify-between">
+    <section className="mx-auto max-w-7xl px-4 py-10 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-xl border border-orange-200 dark:border-slate-700 shadow-sm">
+      <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-orange-500 rounded-lg">
             <TrendingUp className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Most Popular</h2>
+            <h2 className="text-[1.6rem] font-bold tracking-[-0.03em] text-gray-900 dark:text-white">{t("popular", locale)}</h2>
             <p className="text-sm text-orange-700 dark:text-orange-300 font-medium">{periodLabels[period]}</p>
           </div>
         </div>
@@ -43,7 +44,7 @@ export default function MostPopularSection({ items, period = "week" }: MostPopul
           href="/articles?sort=views_desc" 
           className="text-sm text-orange-600 dark:text-orange-400 hover:underline font-medium"
         >
-          View All
+          {t("allArticles", locale)}
         </Link>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -83,6 +84,7 @@ export default function MostPopularSection({ items, period = "week" }: MostPopul
                     author: (article.author as any) || undefined,
                   } as any}
                   compact
+                  locale={locale}
                 />
               </div>
             </div>

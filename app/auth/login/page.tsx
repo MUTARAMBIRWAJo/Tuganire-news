@@ -14,6 +14,9 @@ import Image from "next/image"
 import { AlertCircle } from "lucide-react"
 import { roleFromHost } from "@/lib/host"
 import { getRedirectTarget } from "@/lib/auth-redirect"
+import { getLocaleFromPath, t } from "@/lib/i18n"
+import { usePathname } from "next/navigation"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -24,6 +27,7 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = getRedirectTarget(searchParams.get("redirectTo"))
+  const locale = getLocaleFromPath(usePathname())
 
   // If already authenticated, route away from login immediately
   useEffect(() => {
@@ -124,7 +128,7 @@ export default function LoginPage() {
         if (!profile.is_approved) {
           await supabases.auth.signOut()
           setIsPendingApproval(true)
-          setError("Your account is pending approval. Please wait or contact the SuperAdmin.")
+          setError(locale === "rw" ? "Konti yawe itegereje kwemezwa. Tegereza cyangwa utwandikire." : "Your account is pending approval. Please wait or contact the administrator.")
           return
         }
 
@@ -162,7 +166,7 @@ export default function LoginPage() {
         }
       }, 150)
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(locale === "rw" ? "Kwinjira byanze. Ongera ugerageze." : "Login failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -172,27 +176,28 @@ export default function LoginPage() {
     <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
+          <div className="mb-3 flex justify-center"><LocaleSwitcher /></div>
           <Image
             src="/placeholder-logo.png"
-            alt="Tuganire News logo"
+            alt={t("brand", locale)}
             width={48}
             height={48}
             className="mx-auto h-12 w-12 mb-2"
             priority
           />
           <h1 className="text-3xl font-bold text-slate-900">Tuganire TNT</h1>
-          <p className="text-slate-600 mt-2">News & Newsletter Platform</p>
+          <p className="text-slate-600 mt-2">{t("platformDescription", locale)}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Login</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardTitle className="text-2xl">{t("login", locale)}</CardTitle>
+            <CardDescription>{t("enterCredentials", locale)}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("email", locale)}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -203,7 +208,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{locale === "rw" ? "Ijambobanga" : "Password"}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -220,7 +225,7 @@ export default function LoginPage() {
                       />
                       <div>
                         <p className={`text-sm font-medium ${isPendingApproval ? "text-amber-900" : "text-red-900"}`}>
-                          {isPendingApproval ? "Account Pending Approval" : "Login Failed"}
+                          {isPendingApproval ? t("pendingApproval", locale) : t("loginFailed", locale)}
                         </p>
                         <p className={`text-sm mt-1 ${isPendingApproval ? "text-amber-700" : "text-red-600"}`}>
                           {error}
@@ -230,13 +235,13 @@ export default function LoginPage() {
                   </div>
                 )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading ? t("loggingIn", locale) : t("login", locale)}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">
-                Don&apos;t have an account?{" "}
+                {t("noAccount", locale)}{" "}
                 <Link href={`/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`} className="font-medium text-primary underline-offset-4 hover:underline">
-                  Sign up
+                  {t("signUp", locale)}
                 </Link>
               </div>
             </form>

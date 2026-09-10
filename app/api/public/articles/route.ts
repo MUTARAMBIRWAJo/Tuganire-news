@@ -15,6 +15,8 @@ export async function GET(request: Request) {
   const author = searchParams.get('author');
   const q = searchParams.get('q');
   const sort = searchParams.get('sort') || 'published_at_desc';
+  const languageParam = (searchParams.get('lang') || 'en').toLowerCase();
+  const language = languageParam === 'rw' ? 'rw' : 'en';
 
   // If Supabase is not configured, return a safe empty response so pages can render
   if (!supabaseUrl || !serviceKey || supabaseUrl.includes('invalid.supabase')) {
@@ -30,6 +32,7 @@ export async function GET(request: Request) {
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `, { count: 'exact' })
+    .eq('language', language)
     .eq('status', 'published')
     .neq('article_type', 'video')
     .lte('published_at', new Date().toISOString())

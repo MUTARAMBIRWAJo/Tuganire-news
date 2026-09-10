@@ -12,6 +12,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import Image from "next/image"
 import { getRedirectTarget } from "@/lib/auth-redirect"
+import { getLocaleFromPath, t } from "@/lib/i18n"
+import { usePathname } from "next/navigation"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
@@ -23,6 +26,7 @@ export default function SignUpPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = getRedirectTarget(searchParams.get("redirectTo"))
+  const locale = getLocaleFromPath(usePathname())
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,13 +35,13 @@ export default function SignUpPage() {
     setError(null)
 
     if (password !== repeatPassword) {
-      setError("Passwords do not match")
+      setError(t("passwordsMismatch", locale))
       setIsLoading(false)
       return
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters")
+      setError(t("passwordMin", locale))
       setIsLoading(false)
       return
     }
@@ -70,7 +74,7 @@ export default function SignUpPage() {
 
       router.push("/auth/sign-up-success")
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(locale === "rw" ? "Konti ntiyashoboye gukorwa. Ongera ugerageze." : "Account creation failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -80,27 +84,28 @@ export default function SignUpPage() {
     <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
+          <div className="mb-3 flex justify-center"><LocaleSwitcher /></div>
           <Image
             src="/placeholder-logo.png"
-            alt="Tuganire News logo"
+            alt={t("brand", locale)}
             width={48}
             height={48}
             className="mx-auto h-12 w-12 mb-2"
             priority
           />
           <h1 className="text-3xl font-bold text-slate-900">Tuganire TNT</h1>
-          <p className="text-slate-600 mt-2">News & Newsletter Platform</p>
+          <p className="text-slate-600 mt-2">{t("platformDescription", locale)}</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Create Account</CardTitle>
-            <CardDescription>Sign up to start reading and commenting</CardDescription>
+            <CardTitle className="text-2xl">{t("createAccount", locale)}</CardTitle>
+            <CardDescription>{t("signUpDescription", locale)}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">{t("fullName", locale)}</Label>
                   <Input
                     id="fullName"
                     type="text"
@@ -111,7 +116,7 @@ export default function SignUpPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("email", locale)}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -122,7 +127,7 @@ export default function SignUpPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{locale === "rw" ? "Ijambobanga" : "Password"}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -132,7 +137,7 @@ export default function SignUpPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="repeat-password">Confirm Password</Label>
+                  <Label htmlFor="repeat-password">{t("confirmPassword", locale)}</Label>
                   <Input
                     id="repeat-password"
                     type="password"
@@ -147,13 +152,13 @@ export default function SignUpPage() {
                   </div>
                 )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Creating account..." : "Sign up"}
+                  {isLoading ? t("creatingAccount", locale) : t("signUp", locale)}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
+                {t("alreadyAccount", locale)}{" "}
                 <Link href={`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`} className="font-medium text-primary underline-offset-4 hover:underline">
-                  Login
+                  {t("login", locale)}
                 </Link>
               </div>
             </form>

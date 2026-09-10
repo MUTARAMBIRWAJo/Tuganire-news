@@ -9,6 +9,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import BreakingNewsBar from "@/components/BreakingNewsBar"
 import { nav } from '@/components/nav'
+import { getLocaleFromPath, t } from '@/lib/i18n'
 
 interface BreakingNewsItem {
   slug: string
@@ -50,23 +51,23 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
 
   const router = useRouter()
   const pathname = usePathname()
-
-  // use centralized nav from components/nav
+  const locale = getLocaleFromPath(pathname)
+  const localize = (href: string) => `/${locale}${href === "/" ? "" : href}`
 
   const linkClass = (href: string) => {
     const active = pathname === href
     return [
-      "nav-link inline-flex items-center rounded-full px-2.5 py-1.5 text-sm transition-colors duration-200",
+      "nav-link inline-flex items-center rounded-full px-2.75 py-1.5 text-[11.5px] font-bold tracking-[0.02em] transition-all duration-200 ease-out",
       active
-        ? "bg-brand-50 text-brand-800 dark:bg-brand-900/30 dark:text-brand-100"
-        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-950 dark:hover:bg-slate-800 dark:hover:text-white",
+        ? "bg-slate-950 text-white shadow-[0_8px_18px_-12px_rgba(15,23,42,0.7)] dark:bg-brand-500 dark:text-slate-950"
+        : "text-slate-700 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-950 hover:shadow-[0_8px_18px_-14px_rgba(15,23,42,0.18)] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white",
     ].join(" ")
   }
 
-  const primaryNav = nav
+  const primaryNav = nav.map((item) => ({ ...item, href: localize(item.href), label: t(item.key as Parameters<typeof t>[0], locale) }))
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-xl transition-colors dark:border-slate-800/80 dark:bg-slate-950/88">
+    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 shadow-[0_1px_0_rgba(15,23,42,0.04),0_12px_30px_-20px_rgba(15,23,42,0.18)] backdrop-blur-xl transition-colors dark:border-slate-800/80 dark:bg-slate-950/90">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {breakingItems.length > 0 && (
           <div className="border-b border-slate-200/70 dark:border-slate-800/80">
@@ -74,25 +75,22 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-3 py-3.5 lg:gap-6">
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/placeholder-logo.png"
-              alt="Tuganire News logo"
-              width={40}
-              height={40}
-              className="h-9 w-9 rounded-full"
-              priority
-            />
-            <div className="hidden sm:block">
-              <div className="category-badge text-brand-600 dark:text-brand-400">
-                International newsroom
+        <div className="flex items-center justify-between gap-3 py-2.75 lg:gap-5">
+          <Link href={localize("/")} className="flex items-center gap-3 rounded-full pr-1 transition-transform duration-200 hover:-translate-y-0.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-[10px] font-black tracking-[0.18em] text-white shadow-[0_10px_20px_-14px_rgba(15,23,42,0.8)] dark:bg-brand-500 dark:text-slate-950">
+              TNT
+            </div>
+            <div className="hidden min-w-0 sm:block">
+              <div className="category-badge text-[9px] font-bold tracking-[0.2em] text-brand-600 dark:text-brand-400">
+                {t("coverage", locale)}
               </div>
-              <div className="font-serif text-lg font-bold tracking-tight text-slate-950 dark:text-white">Tuganire News</div>
+              <div className="font-serif text-base font-black tracking-[-0.03em] text-slate-950 dark:text-white sm:text-[1.08rem]">
+                Tuganire News
+              </div>
             </div>
           </Link>
 
-          <nav className="hidden flex-1 items-center justify-center gap-1 overflow-x-auto lg:flex">
+          <nav className="hidden flex-1 items-center justify-center gap-1 overflow-x-auto lg:flex lg:py-1">
             {primaryNav.map((n) => (
               <Link key={n.href} href={n.href} className={linkClass(n.href)}>
                 {n.label}
@@ -107,14 +105,14 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => router.push("/search")}
-              className="hidden sm:flex"
-              aria-label="Search"
+              onClick={() => router.push(localize("/search"))}
+              className="hidden rounded-full sm:flex"
+                aria-label={t("search", locale)}
             >
               <Search className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" asChild className="hidden sm:flex">
-              <Link href="/auth/login" aria-label="Login">
+            <Button variant="ghost" size="icon" asChild className="hidden rounded-full sm:flex">
+              <Link href={localize("/auth/login")} aria-label={t("login", locale)}>
                 <User className="h-5 w-5" />
               </Link>
             </Button>
@@ -122,17 +120,17 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              aria-label="Toggle dark mode"
-              className="transition-transform hover:scale-110"
+              aria-label={t("toggleDarkMode", locale)}
+              className="rounded-full transition-transform hover:scale-110"
             >
               {darkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5" />}
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="rounded-full lg:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
+              aria-label={mobileMenuOpen ? t("closeMenu", locale) : t("openMenu", locale)}
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -141,12 +139,12 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
 
         {mobileMenuOpen && (
           <div className="border-t border-slate-200/70 py-4 dark:border-slate-800 lg:hidden">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between gap-3">
               <LocaleSwitcher />
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="ghost" size="sm" asChild className="rounded-full">
+                <Link href={localize("/search")} onClick={() => setMobileMenuOpen(false)}>
                   <Search className="mr-2 h-4 w-4" />
-                  Search
+                  {t("search", locale)}
                 </Link>
               </Button>
             </div>
@@ -162,11 +160,11 @@ export function SiteHeader({ breakingItems = [] }: SiteHeaderProps) {
                 </Link>
               ))}
               <Link
-                href="/auth/login"
+                href={localize("/auth/login")}
                 className="rounded-lg border border-slate-200 px-3 py-2 font-medium text-slate-700 dark:border-slate-800 dark:text-slate-200"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Login
+                {t("login", locale)}
               </Link>
             </nav>
           </div>

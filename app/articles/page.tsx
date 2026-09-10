@@ -6,11 +6,13 @@ import { SiteFooter } from '@/components/site-footer';
 import ArticleCardSkeleton from '@/components/ArticleCardSkeleton';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import AdsKeeperFluid from '@/components/AdsKeeperFluid';
+import { getLocaleFromPath, t } from '@/lib/i18n';
 
 export default function ArticlesPage() {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
+  const locale = getLocaleFromPath(pathname);
 
   // UI state hydrated from URL
   const [q, setQ] = useState<string>(search.get('q') ?? '');
@@ -23,14 +25,14 @@ export default function ArticlesPage() {
 
   // populate categories
   useEffect(() => {
-    fetch('/api/public/categories')
+    fetch(`/api/public/categories?lang=${locale}`)
       .then((r) => r.json())
       .then((json) => {
         const list = (json.categories || []).map((c: any) => ({ slug: c.slug, name: c.name }));
         setCategories(list);
       })
       .catch(() => {});
-  }, []);
+  }, [locale]);
 
   // persist to URL
   useEffect(() => {
@@ -48,28 +50,28 @@ export default function ArticlesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, category, sort, page, pageSize, infinite]);
 
-  const filters = useMemo(() => ({ q, category, sort, page: infinite ? undefined : page, pageSize: infinite ? undefined : pageSize }), [q, category, sort, page, pageSize, infinite]);
+  const filters = useMemo(() => ({ q, category, sort, lang: locale, page: infinite ? undefined : page, pageSize: infinite ? undefined : pageSize }), [q, category, sort, locale, page, pageSize, infinite]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
       <SiteHeader />
       <main className="space-y-6 md:space-y-8 pb-16 max-w-6xl xl:max-w-7xl mx-auto sm:p-6 md:p-8">
         <div className="px-0">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">All Articles</h1>
+          <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">{t("allArticles", locale)}</h1>
           <div className="flex flex-wrap items-center gap-3">
             <input
               value={q}
               onChange={(e) => { setQ(e.target.value); setPage(0); }}
-              placeholder="Search articles…"
+              placeholder={t("searchPlaceholder", locale)}
               className="w-full max-w-xs rounded border px-3 py-2"
             />
             <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(0); }} className="rounded border px-3 py-2">
-              <option value="published_at_desc">Newest</option>
-              <option value="published_at_asc">Oldest</option>
-              <option value="views_desc">Most viewed</option>
+              <option value="published_at_desc">{locale === "rw" ? "Bishya" : "Newest"}</option>
+              <option value="published_at_asc">{locale === "rw" ? "Ibya kera" : "Oldest"}</option>
+              <option value="views_desc">{locale === "rw" ? "Byarebwe cyane" : "Most viewed"}</option>
             </select>
             <select value={category ?? ''} onChange={(e) => { setCategory(e.target.value || undefined); setPage(0); }} className="rounded border px-3 py-2">
-              <option value="">All categories</option>
+              <option value="">{t("categories", locale)}</option>
               {categories.map((c) => (
                 <option key={c.slug} value={c.slug}>{c.name}</option>
               ))}
@@ -81,7 +83,7 @@ export default function ArticlesPage() {
             </select>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={infinite} onChange={(e) => setInfinite(e.target.checked)} />
-              Infinite scroll
+              {locale === "rw" ? "Kuzamura izindi" : "Infinite scroll"}
             </label>
           </div>
         </div>
@@ -108,14 +110,14 @@ export default function ArticlesPage() {
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
           >
-            Previous
+            {t("previous", locale)}
           </button>
-          <span className="text-sm text-gray-600 dark:text-gray-400">Page {page + 1}</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{locale === "rw" ? "Urupapuro" : "Page"} {page + 1}</span>
           <button
             className="px-3 py-2 rounded border"
             onClick={() => setPage((p) => p + 1)}
           >
-            Next
+            {t("next", locale)}
           </button>
         </div>
         )}

@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const page = Math.max(0, Number.isFinite(Number(searchParams.get('page'))) ? parseInt(searchParams.get('page') as string, 10) : 0)
   const pageSizeRaw = Number.isFinite(Number(searchParams.get('pageSize'))) ? parseInt(searchParams.get('pageSize') as string, 10) : 12
   const pageSize = Math.min(Math.max(1, pageSizeRaw), 50)
+  const language = (searchParams.get('lang') || 'en').toLowerCase() === 'rw' ? 'rw' : 'en'
 
   if (!q) {
     return NextResponse.json({ items: [], total: 0 }, { status: 200 })
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `, { count: 'exact' })
+    .eq('language', language)
     .eq('status', 'published')
     .lte('published_at', new Date().toISOString())
     .not('published_at', 'is', null)

@@ -1,6 +1,12 @@
+"use client"
+
+import { getLocaleFromPath, t } from "@/lib/i18n"
+
 export default function Loading() {
+  const locale = getLocaleFromPath(typeof window === "undefined" ? undefined : window.location.pathname)
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
+      <span className="sr-only">{t("loading", locale)}</span>
       {/* Breaking bar skeleton */}
       <div className="w-full bg-brand-700 text-white">
         <div className="mx-auto max-w-7xl px-4 py-2">

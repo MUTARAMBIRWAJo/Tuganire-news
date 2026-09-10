@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, User } from 'lucide-react'
+import { categoryHref } from '@/lib/category-utils'
 
 interface Article {
   id: string
@@ -77,7 +78,7 @@ export default function LatestArticlesSection({ items, title = "Latest Articles"
               {/* Category Badge */}
               {article.category?.name && (
                 <Link
-                  href={`/category/${article.category.slug}`}
+                  href={categoryHref(article.category.slug || article.category.name)}
                   className="absolute top-3 left-3 px-2 py-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm rounded-full text-xs font-semibold text-slate-900 dark:text-white hover:bg-white transition-colors"
                 >
                   {article.category.name}

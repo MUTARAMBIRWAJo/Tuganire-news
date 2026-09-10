@@ -34,7 +34,7 @@ export default async function TagPage({ params }: { params: { slug: string } }) 
       <div className="mx-auto max-w-7xl px-4">
         <h1 className="text-2xl font-bold">Tag: {params.slug}</h1>
       </div>
-      <ArticlesList initialFilters={{ tag: params.slug }} />
+      <ArticlesList initialFilters={{ tag: params.slug, lang: 'en' }} />
     </main>
   );
 }

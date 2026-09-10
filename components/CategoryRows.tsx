@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArticleCard } from '@/components/article-card';
+import { categoryHref } from '@/lib/category-utils';
 
 type Row = {
   id: string;
@@ -37,7 +38,7 @@ export default function CategoryRows({ rows, categoryOrder }: { rows: Row[]; cat
             <div key={slug}>
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-xl font-bold">{categoryName}</h2>
-                <Link href={`/category/${slug}`} className="text-sm text-blue-600 hover:underline">
+                <Link href={categoryHref(slug)} className="text-sm text-blue-600 hover:underline">
                   Read more
                 </Link>
               </div>

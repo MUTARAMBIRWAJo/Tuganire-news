@@ -1,10 +1,15 @@
 import type React from "react"
 import type { Metadata } from "next"
+import dynamic from "next/dynamic"
 import { Inter, Merriweather, Space_Grotesk } from "next/font/google"
 import "./globals.css"
-import ChatWidget from "@/components/ai/ChatWidget"
-import AdNetworkManager from "@/components/ads/AdNetworkManager"
-import { AutoRefresh } from "@/components/auto-refresh"
+import { LocaleDocument } from "@/components/locale-document"
+
+const AdNetworkManager = dynamic(() => import("@/components/ads/AdNetworkManager"))
+
+const AutoRefresh = dynamic(() => import("@/components/auto-refresh").then((mod) => mod.AutoRefresh))
+
+const ChatWidget = dynamic(() => import("@/components/ai/ChatWidget"))
 
 const inter = Inter({
   subsets: ["latin"],
@@ -69,6 +74,7 @@ export default function RootLayout({
         <meta name="yandex-verification" content="a0e9f1b474420893" />
       </head>
       <body className={`${inter.variable} ${merriweather.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
+        <LocaleDocument />
         <AdNetworkManager />
         {children}
         <AutoRefresh intervalMs={60000} />

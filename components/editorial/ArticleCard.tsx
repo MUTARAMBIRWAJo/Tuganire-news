@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Calendar, Eye, User, MessageCircle, Heart } from "lucide-react"
 import { ShareButton } from "@/components/ShareButton"
 import type { Article } from "@/lib/types"
+import { categoryLabel, type Locale } from "@/lib/i18n"
 
 function badgeClassesForCategory(input?: { name?: string; slug?: string } | null) {
   const key = (input?.slug || input?.name || "").toString().toLowerCase()
@@ -19,24 +20,27 @@ interface ArticleCardProps {
   variant?: 'featured' | 'compact' | 'grid'
   showExcerpt?: boolean
   className?: string
+  locale?: Locale
 }
 
 export function ArticleCard({ 
   article, 
   variant = 'grid', 
   showExcerpt = true,
-  className = ""
+  className = "",
+  locale = "en"
 }: ArticleCardProps) {
   const category = article.category
   const author = article.author
   const authorName = (author as any)?.display_name ?? (author as any)?.full_name ?? (author as any)?.name
-  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/articles/${article.slug}`
+  const articlePath = `/${locale}/articles/${article.slug}`
+  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}${articlePath}`
 
   // Compact variant for side lists
   if (variant === 'compact') {
     return (
       <Link
-        href={`/articles/${article.slug}`}
+        href={articlePath}
         className={`group flex gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:shadow-sm transition-all duration-200 h-full ${className}`}
       >
         {/* Fixed aspect ratio image container - 4:3 */}
@@ -62,7 +66,7 @@ export function ArticleCard({
           <div className="space-y-1 flex-1">
             {category && (
               <span className={`inline-block px-2 py-0.5 ${badgeClassesForCategory(category)} category-badge rounded w-fit`}>
-                {category.name}
+                {categoryLabel(category, locale)}
               </span>
             )}
             <h3 className="text-title leading-tight line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -120,7 +124,7 @@ export function ArticleCard({
   if (variant === 'featured') {
     return (
       <article className={`group bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all duration-300 h-full flex flex-col ${className}`}>
-        <Link href={`/articles/${article.slug}`} className="flex flex-col h-full">
+        <Link href={articlePath} className="flex flex-col h-full">
           {/* 16:9 aspect ratio container - object-contain for full image visibility */}
           <div className="relative aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-900 flex-shrink-0">
             {article.featured_image ? (
@@ -143,7 +147,7 @@ export function ArticleCard({
           <div className="p-5 flex flex-col flex-1">
             {category && (
               <span className={`inline-block px-3 py-1 ${badgeClassesForCategory(category)} category-badge rounded-full`}>
-                {category.name}
+                {categoryLabel(category, locale)}
               </span>
             )}
             <h3 className="text-subheadline leading-tight line-clamp-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1">
@@ -202,7 +206,7 @@ export function ArticleCard({
   // Default grid variant - completely layout stable
   return (
     <article className={`group bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all duration-300 h-full flex flex-col ${className}`}>
-      <Link href={`/articles/${article.slug}`} className="flex flex-col h-full">
+      <Link href={articlePath} className="flex flex-col h-full">
         {/* 16:9 aspect ratio container - object-cover for consistent image display */}
         <div className="relative aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-900 flex-shrink-0">
           {article.featured_image ? (
@@ -225,7 +229,7 @@ export function ArticleCard({
         <div className="p-4 flex flex-col flex-1">
           {category && (
             <span className={`inline-block px-2 py-1 ${badgeClassesForCategory(category)} text-xs font-semibold rounded mb-2 w-fit tracking-wide uppercase`}>
-              {category.name}
+              {categoryLabel(category, locale)}
             </span>
           )}
           <h3 className="font-semibold text-gray-900 dark:text-white text-base leading-tight line-clamp-2 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1">

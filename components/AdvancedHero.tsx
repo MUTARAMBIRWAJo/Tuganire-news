@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, User, MessageCircle, ArrowRight } from 'lucide-react'
+import { categoryHref } from '@/lib/category-utils'
 
 interface AdvancedHeroProps {
   item?: {
@@ -51,7 +52,7 @@ export default function AdvancedHero({ item }: AdvancedHeroProps) {
           {/* Category Badge (moved outside absolute overlay since image is no longer positioned) */}
           {item.categories?.name && (
             <Link
-              href={`/category/${item.categories.slug}`}
+              href={categoryHref(item.categories.slug || item.categories.name)}
               className="absolute top-4 left-4 px-3 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-full text-sm font-semibold text-slate-900 dark:text-white hover:bg-white transition-colors"
             >
               {item.categories.name}

@@ -1,16 +1,18 @@
 import { ArticleCard } from '@/components/article-card';
+import { categoryHref } from '@/lib/category-utils';
+import { categoryLabel, t, type Locale } from '@/lib/i18n';
 
-export default function TrendingRail({ items }: { items: Array<{ id: string; slug: string; title: string; featured_image: string | null; category_slug: string; category_name: string; views_count?: number | null; author?: { display_name?: string; avatar_url?: string } | null; author_display_name?: string | null; author_avatar_url?: string | null; published_at?: string | null }> }) {
+export default function TrendingRail({ items, locale = "en" }: { items: Array<{ id: string; slug: string; title: string; featured_image: string | null; category_slug: string; category_name: string; views_count?: number | null; author?: { display_name?: string; avatar_url?: string } | null; author_display_name?: string | null; author_avatar_url?: string | null; published_at?: string | null }>; locale?: Locale }) {
   if (!items?.length) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-      <div className="mb-4 flex items-end justify-between gap-4">
+    <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">Trending stories</div>
-          <h2 className="text-2xl font-bold text-slate-950 dark:text-white">What readers are following right now</h2>
+          <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400">{t("trending", locale)}</div>
+          <h2 className="mt-1 text-[1.6rem] font-bold tracking-[-0.03em] text-slate-950 dark:text-white sm:text-[1.8rem]">{locale === "rw" ? "Ibyo abasomyi bakurikira ubu" : "What readers are following right now"}</h2>
         </div>
-        <a href="/articles?sort=views_desc" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">View all</a>
+        <a href={`/${locale}/articles?sort=views_desc`} className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">{t("allArticles", locale)}</a>
       </div>
       <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
         {items.map((a) => {
@@ -33,8 +35,9 @@ export default function TrendingRail({ items }: { items: Array<{ id: string; slu
                 published_at: (a as any).published_at ?? null,
                 views_count: a.views_count ?? 0,
                 author: (a as any).author ?? ((a as any).author_display_name ? { display_name: (a as any).author_display_name, avatar_url: (a as any).author_avatar_url } : undefined),
-                category: { name: a.category_name, slug: a.category_slug } as any,
+                category: { name: categoryLabel({ name: a.category_name, slug: a.category_slug }, locale), slug: a.category_slug } as any,
               } as any}
+              locale={locale}
             />
           </div>
           )

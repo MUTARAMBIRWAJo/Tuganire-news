@@ -5,6 +5,8 @@ import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { ArticleCard } from '@/components/editorial/ArticleCard'
 import ArticleCardSkeleton from '@/components/ArticleCardSkeleton'
+import { usePathname } from 'next/navigation'
+import { categoryLabel, getLocaleFromPath, t } from '@/lib/i18n'
 
 type CatRes = { categories: Array<{ id: string; name: string; slug: string; articles: any[] }> }
 
@@ -12,6 +14,7 @@ export default function CategoriesPage() {
   const [data, setData] = useState<CatRes | null>(null)
   const [loading, setLoading] = useState(true)
   const isMountedRef = useRef(true)
+  const locale = getLocaleFromPath(usePathname())
 
   useEffect(() => {
     async function run() {
@@ -20,7 +23,7 @@ export default function CategoriesPage() {
         const base = process.env.NODE_ENV === 'development' 
           ? 'http://localhost:3000' 
           : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
-        const res = await fetch(`${base}/api/public/categories`)
+        const res = await fetch(`${base}/api/public/categories?lang=${locale}`)
         if (res.ok && isMountedRef.current) {
           const json = (await res.json()) as CatRes
           setData(json)
@@ -41,7 +44,7 @@ export default function CategoriesPage() {
     return () => {
       isMountedRef.current = false
     }
-  }, [])
+  }, [locale])
 
   const categories = data?.categories || []
 
@@ -50,7 +53,7 @@ export default function CategoriesPage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="max-w-6xl xl:max-w-7xl mx-auto sm:p-6 md:p-8">
-          <h1 className="text-headline leading-tight mb-6">Categories</h1>
+          <h1 className="text-headline leading-tight mb-6">{t("categories", locale)}</h1>
 
           <div className="space-y-12">
             {loading && (
@@ -74,8 +77,8 @@ export default function CategoriesPage() {
             {!loading && categories.map((cat) => (
               <section key={cat.id}>
                 <div className="flex items-baseline justify-between mb-4">
-                  <h2 className="text-subheadline leading-tight">{cat.name}</h2>
-                  <Link href={`/category/${cat.slug}`} className="text-sm text-brand-600 hover:underline">Read more</Link>
+                  <h2 className="text-subheadline leading-tight">{categoryLabel(cat, locale)}</h2>
+                  <Link href={`/${locale}/category/${cat.slug}`} className="text-sm text-brand-600 hover:underline">{t("readMore", locale)}</Link>
                 </div>
                 {cat.articles.length > 0 ? (
                   <div className="grid gap-6 md:grid-cols-4">
@@ -84,13 +87,14 @@ export default function CategoriesPage() {
                         key={article.id} 
                         article={article} 
                         variant="compact"
+                        locale={locale}
                         className="h-full"
                       />
                     ))}
                   </div>
                 ) : (
                   <div className="rounded border border-slate-200 dark:border-slate-800 p-6 text-slate-600 dark:text-slate-300">
-                    No articles yet in this category.
+                    {t("noArticles", locale)}
                   </div>
                 )}
               </section>

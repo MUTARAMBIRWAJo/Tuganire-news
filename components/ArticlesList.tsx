@@ -15,6 +15,7 @@ type Filters = {
   sort?: string;
   page?: number;
   pageSize?: number;
+  lang?: string;
 };
 
 function buildQuery(filters: Filters) {
@@ -26,6 +27,7 @@ function buildQuery(filters: Filters) {
   if (filters.author) params.set('author', filters.author);
   if (filters.q) params.set('q', filters.q);
   if (filters.sort) params.set('sort', filters.sort);
+  if (filters.lang) params.set('lang', filters.lang);
   return params.toString();
 }
 
@@ -105,6 +107,7 @@ export default function ArticlesList({ initialFilters, pageSize = 12, infinite =
                   updated_at: a?.updated_at,
                   article_type: a?.article_type,
                   youtube_link: a?.youtube_link,
+                  language: a?.language === 'rw' ? 'rw' : 'en',
                 } as any}
                 compact={true}
               />

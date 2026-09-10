@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site-footer"
 import SponsoredPostPayment from "@/components/payments/SponsoredPostPayment"
 import PromoteArticleButton from "@/components/payments/PromoteArticleButton"
 import { buildAuthLoginHref, buildAuthSignUpHref } from "@/lib/auth-redirect"
+import { t } from "@/lib/i18n"
 
 export const metadata: Metadata = {
   title: "Promote",
@@ -23,6 +24,7 @@ interface PromotePageProps {
 }
 
 export default function PromotePage({ searchParams }: PromotePageProps) {
+  const locale = "en" as const
   const articleId = searchParams?.articleId || ""
   const articleTitle = searchParams?.articleTitle || ""
   const loginHref = buildAuthLoginHref("/dashboard")
@@ -37,7 +39,7 @@ export default function PromotePage({ searchParams }: PromotePageProps) {
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-brand-700 shadow-sm dark:border-brand-900 dark:bg-slate-900 dark:text-brand-300">
               <Rocket className="size-4" />
-              Sponsored publishing
+              {t("promote", locale)}
             </div>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Boost an article or sponsor a story without turning the site into a storefront.</h1>
             <p className="max-w-2xl text-lg text-slate-600 dark:text-slate-300">
@@ -51,10 +53,10 @@ export default function PromotePage({ searchParams }: PromotePageProps) {
                 </a>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link href={loginHref}>Open dashboard</Link>
+                <Link href={loginHref}>{t("openDashboard", locale)}</Link>
               </Button>
               <Button variant="ghost" size="lg" asChild>
-                <Link href={signUpHref}>Create account</Link>
+                <Link href={signUpHref}>{t("createAccount", locale)}</Link>
               </Button>
             </div>
           </div>

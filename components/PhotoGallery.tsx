@@ -27,11 +27,11 @@ export default function PhotoGallery({ items, title = "Photo Gallery" }: PhotoGa
   if (itemsWithImages.length === 0) return null
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+    <section className="mx-auto max-w-7xl px-4 py-10">
+      <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Camera className="h-6 w-6 text-purple-500" />
-          <h2 className="text-2xl font-bold">{title}</h2>
+          <Camera className="h-5 w-5 text-purple-500" />
+          <h2 className="text-[1.6rem] font-bold tracking-[-0.03em] text-slate-950 dark:text-white">{title}</h2>
         </div>
         <Link 
           href="/articles?sort=published_at_desc" 

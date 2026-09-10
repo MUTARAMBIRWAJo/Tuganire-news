@@ -11,7 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link"
 import Image from "next/image"
 import { Mail, CheckCircle } from "lucide-react"
-import { t } from "@/lib/i18n"
+import { getLocaleFromPath, t } from "@/lib/i18n"
+import { usePathname } from "next/navigation"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState("")
@@ -19,6 +21,7 @@ export default function NewsletterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const locale = getLocaleFromPath(usePathname())
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +38,7 @@ export default function NewsletterPage() {
 
       if (error) {
         if (error.code === "23505") {
-          throw new Error("This email is already subscribed")
+          throw new Error(t("alreadySubscribed", locale))
         }
         throw error
       }
@@ -44,7 +47,7 @@ export default function NewsletterPage() {
       setEmail("")
       setFullName("")
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : t("somethingWentWrong", locale))
     } finally {
       setIsLoading(false)
     }
@@ -59,7 +62,7 @@ export default function NewsletterPage() {
             <Link href="/" className="flex items-center gap-2">
               <Image
                 src="/placeholder-logo.png"
-                alt="Tuganire News logo"
+                alt={t("brand", locale)}
                 width={40}
                 height={40}
                 className="h-8 w-8 md:h-10 md:w-10"
@@ -68,11 +71,12 @@ export default function NewsletterPage() {
               <span className="text-xl md:text-2xl font-bold text-slate-900">{t("brand")}</span>
             </Link>
             <div className="flex items-center gap-3">
+              <LocaleSwitcher />
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/">Back to Home</Link>
+                <Link href={`/${locale}`}>{t("backHome", locale)}</Link>
               </Button>
               <Link href="/careers" className="text-sm text-slate-600 hover:text-slate-900">
-                {t("careers")}
+                {t("careers", locale)}
               </Link>
             </div>
           </div>
@@ -87,15 +91,15 @@ export default function NewsletterPage() {
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
-                <CardTitle className="text-2xl">Successfully Subscribed!</CardTitle>
-                <CardDescription>Thank you for subscribing to our newsletter</CardDescription>
+                <CardTitle className="text-2xl">{t("subscribedTitle", locale)}</CardTitle>
+                <CardDescription>{t("subscribedDescription", locale)}</CardDescription>
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-sm text-muted-foreground mb-6">
-                  You&apos;ll receive the latest news and updates directly in your inbox.
+                  {t("subscribedDetails", locale)}
                 </p>
                 <Button asChild className="w-full">
-                  <Link href="/">Back to Home</Link>
+                  <Link href={`/${locale}`}>{t("backHome", locale)}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -105,13 +109,13 @@ export default function NewsletterPage() {
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <Mail className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-2xl">Subscribe to Our Newsletter</CardTitle>
-                <CardDescription>Get the latest news and updates delivered to your inbox</CardDescription>
+                <CardTitle className="text-2xl">{t("newsletterTitle", locale)}</CardTitle>
+                <CardDescription>{t("newsletterDescription", locale)}</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubscribe} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name (Optional)</Label>
+                    <Label htmlFor="fullName">{t("fullNameOptional", locale)}</Label>
                     <Input
                       id="fullName"
                       type="text"
@@ -121,7 +125,7 @@ export default function NewsletterPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor="email">{t("emailAddress", locale)}</Label>
                     <Input
                       id="email"
                       type="email"
@@ -137,10 +141,10 @@ export default function NewsletterPage() {
                     </div>
                   )}
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Subscribing..." : "Subscribe"}
+                    {isLoading ? t("subscribing", locale) : t("subscribe", locale)}
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
-                    By subscribing, you agree to receive emails from Tuganire TNT. You can unsubscribe at any time.
+                    {t("privacyConsent", locale)}
                   </p>
                 </form>
               </CardContent>

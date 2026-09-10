@@ -41,7 +41,14 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params?: Promise<{ lang?: string }>
+} = {}) {
+  const resolved = await params
+  const language = resolved?.lang === "rw" ? "rw" : "en"
+
   let breaking: any[] = []
   let hero: any = null
   let trending: any[] = []
@@ -53,14 +60,14 @@ export default async function HomePage() {
 
   try {
     ;[breaking, hero, trending, rows, editorsPicks, mostPopular, photoGallery, latestArticles] = await Promise.all([
-      getBreaking(10),
-      getFeaturedHero(),
-      getTrending(10),
-      getLatestByCategoryRows(),
-      getEditorsPicks(6),
-      getMostPopular(6, 7),
-      getPhotoGallery(8),
-      getLatestArticles(5),
+      getBreaking(10, language),
+      getFeaturedHero(language),
+      getTrending(10, language),
+      getLatestByCategoryRows(language),
+      getEditorsPicks(6, language),
+      getMostPopular(6, 7, language),
+      getPhotoGallery(8, language),
+      getLatestArticles(5, language),
     ])
   } catch (error) {
     console.error("Homepage data unavailable:", error)
@@ -112,13 +119,13 @@ export default async function HomePage() {
         }))}
       />
 
-      <main className="space-y-8 pb-16">
+      <main className="space-y-10 pb-20">
         <ErrorBoundary>
-          <HeroSection item={hero as any} sideStories={sideStories.slice(0, 4) as any} />
+          <HeroSection item={hero as any} sideStories={sideStories.slice(0, 4) as any} locale={language} />
         </ErrorBoundary>
 
         <ErrorBoundary>
-          <TrendingRail items={trending as any} />
+          <TrendingRail items={trending as any} locale={language} />
         </ErrorBoundary>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -130,23 +137,24 @@ export default async function HomePage() {
                     title={section.title}
                     categorySlug={section.categorySlug}
                     articles={section.articles}
+                    locale={language}
                   />
                 </ErrorBoundary>
               ))}
 
               <ErrorBoundary>
-                <EditorsPicksSection items={editorsPicks as any} />
+                <EditorsPicksSection items={editorsPicks as any} locale={language} />
               </ErrorBoundary>
               <ErrorBoundary>
                 <ArticleAdsenseSlot />
               </ErrorBoundary>
               <ErrorBoundary>
-                <MostPopularSection items={mostPopular as any} period="week" />
+                <MostPopularSection items={mostPopular as any} period="week" locale={language} />
               </ErrorBoundary>
               <ErrorBoundary>
                 <PhotoGallery items={photoGallery as any} title="Video / Photo Gallery" />
               </ErrorBoundary>
-              <NewsroomIdentitySection />
+              <NewsroomIdentitySection locale={language} />
             </div>
 
             <div className="lg:sticky lg:top-24">

@@ -24,6 +24,7 @@ import AuthorProfileCard from "@/components/articles/AuthorProfileCard"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 import { enableGoogleAdsenseArticleSlot } from "@/lib/feature-flags"
 import { getSponsoredLabel, getFactCheckLabel, socialLinksFromAuthor } from "@/lib/editorialTrust"
+import { t } from "@/lib/i18n"
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
@@ -134,7 +135,7 @@ function buildArticleContentBlocks(html: string, insertAfterParagraph: number): 
 }
 
 interface ArticlePageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string; lang?: string }>
 }
 
 export async function generateStaticParams() {
@@ -160,15 +161,31 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
-  const { slug } = await params
-  const canonicalUrl = `${siteUrl}/articles/${slug}`
-  const res = await fetch(`${siteUrl}/api/public/articles/${slug}`, { next: { revalidate } })
+  const { slug, lang } = await params
+  const language = lang === 'rw' ? 'rw' : 'en'
+  const canonicalUrl = `${siteUrl}/${language}/articles/${slug}`
+  const res = await fetch(`${siteUrl}/api/public/articles/${slug}?lang=${language}`, { next: { revalidate } })
   if (!res.ok) {
     return {
       title: "Article Not Found",
     }
   }
   const { article } = await res.json()
+
+  const alternateLanguages: Record<string, string> = {}
+  if (article?.story_group_id) {
+    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const { data: translations } = await sb
+      .from("articles")
+      .select("slug, language")
+      .eq("story_group_id", article.story_group_id)
+      .eq("status", "published")
+    for (const translation of translations || []) {
+      if (translation.language === "en" || translation.language === "rw") {
+        alternateLanguages[translation.language] = `${siteUrl}/${translation.language}/articles/${translation.slug}`
+      }
+    }
+  }
 
   const author = Array.isArray(article.author) ? article.author[0] : article.author
   const category = Array.isArray(article.category) ? article.category[0] : article.category
@@ -178,7 +195,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     title: (article as any)?.seo_title || article.title,
     description: article.excerpt || undefined,
     alternates: {
-      canonical: `/articles/${slug}`,
+      canonical: `/${language}/articles/${slug}`,
+      languages: alternateLanguages,
     },
     openGraph: {
       title: (article as any)?.seo_title || article.title,
@@ -200,7 +218,9 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const { slug } = await params
+  const { slug, lang } = await params
+  const language = lang === 'rw' ? 'rw' : 'en'
+  const ui = language as "en" | "rw"
   const articleAds = [
     { widgetId: "1992246", adHeightPx: 300 },
     { widgetId: "1992253", adHeightPx: 300 },
@@ -208,7 +228,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     { widgetId: "1998800", adHeightPx: 300 },
   ]
 
-  const res = await fetch(`${siteUrl}/api/public/articles/${slug}`, { next: { revalidate } })
+  const res = await fetch(`${siteUrl}/api/public/articles/${slug}?lang=${language}`, { next: { revalidate } })
   if (res.status === 404) return notFound()
   if (!res.ok) return notFound()
   const { article, media: mediaItems, related: finalRelated } = await res.json()
@@ -248,7 +268,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   // Generate JSON-LD structured data
-  const canonicalUrl = `${siteUrl}/articles/${slug}`
+  const canonicalUrl = `${siteUrl}/${language}/articles/${slug}`
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -266,6 +286,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         "@type": "Article",
         "@id": `${canonicalUrl}#article`,
         headline: article.title,
+        inLanguage: language,
         description: article.excerpt || undefined,
         image: article.featured_image ? [article.featured_image] : undefined,
         datePublished: article.published_at || undefined,
@@ -294,6 +315,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         "@type": "NewsArticle",
         "@id": `${canonicalUrl}#newsarticle`,
         headline: article.title,
+        inLanguage: language,
         description: article.excerpt || undefined,
         image: article.featured_image ? [article.featured_image] : undefined,
         datePublished: article.published_at || undefined,
@@ -358,127 +380,68 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               categoryName={category?.name}
               categorySlug={category?.slug}
               articleTitle={article.title}
+              locale={ui}
             />
 
-            {/* Article Header */}
-            <header className="mb-8">
+            <header className="mb-10 rounded-[28px] border border-slate-200 bg-slate-50 p-5 shadow-[0_18px_38px_-28px_rgba(15,23,42,0.35)] dark:border-slate-800 dark:bg-slate-900/80 sm:p-7">
               {category && (
                 <Link
-                  href={`/category/${category.slug}`}
-                  className="inline-block text-sm font-semibold text-brand-600 dark:text-brand-400 hover:underline mb-4"
+                  href={`/${language}/category/${category.slug}`}
+                  className="mb-4 inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-700 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-300"
                 >
                   {category.name}
                 </Link>
               )}
-              <h1 className="text-2xl sm:text-3xl md:text-headline leading-tight text-balance text-gray-900 dark:text-white">
+              <h1 className="max-w-[15ch] text-balance text-[clamp(1rem,2.1vw,2.3rem)] font-black leading-[1.04] tracking-[-0.04em] text-slate-950 dark:text-white sm:leading-[1.08] lg:max-w-[18ch]">
                 {article.title}
               </h1>
               {article.excerpt && (
-                <p className="text-sm sm:text-base md:text-body leading-relaxed text-gray-700 dark:text-gray-300 mb-6 text-pretty">{article.excerpt}</p>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:mt-5 sm:text-lg sm:leading-8">{article.excerpt}</p>
               )}
-              <div className="flex items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex-wrap">
+
+              <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2.5 text-[11px] text-slate-500 dark:text-slate-400 sm:gap-x-4 sm:text-sm">
                 {author && (
-                  <span className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-2.5 py-1.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
                     {author.avatar_url ? (
-                      <Image
-                        src={author.avatar_url}
-                        alt={author.display_name || "Author"}
-                        width={20}
-                        height={20}
-                        className="rounded-full"
-                      />
+                      <Image src={author.avatar_url} alt={author.display_name || "Author"} width={20} height={20} className="rounded-full" />
                     ) : (
                       <User className="h-4 w-4" />
                     )}
-                    {author.display_name || "Anonymous"}
+                    {author.display_name || t("author", ui)}
                   </span>
                 )}
                 {article.published_at && (
-                  <span className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(article.published_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
+                  <span className="inline-flex items-center gap-2"><Calendar className="h-4 w-4" />{new Date(article.published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
                 )}
-                {article.published_at && (
-                  <span className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(article.published_at).toLocaleString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      weekday: "long",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false
-                    })}
-                  </span>
-                )}
-                <span className="flex items-center gap-2">
-                  <Clock3 className="h-4 w-4" />
-                  {readingTimeLabel}
-                </span>
-                <span className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  {(article as any).comments_count || 0} comments
-                </span>
-                <span className="flex items-center gap-2">
-                  <LikeButton slug={slug} initialCount={(article as any).likes_count || 0} />
-                </span>
+                <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4" />{readingTimeLabel}</span>
+                <span className="inline-flex items-center gap-2"><MessageCircle className="h-4 w-4" />{(article as any).comments_count || 0} {t("comments", ui)}</span>
+                <span className="inline-flex items-center gap-2"><LikeButton slug={slug} initialCount={(article as any).likes_count || 0} /></span>
               </div>
 
               {isVideo && (
-                <div className="mt-4 flex items-center gap-3">
-                  <a
-                    href="#player"
-                    className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
-                  >
-                    Watch here
-                  </a>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <a href="#player" className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-600 dark:bg-brand-500 dark:text-slate-950 dark:hover:bg-brand-400">{t("readArticle", ui)}</a>
                   {(article as any)?.youtube_link && (
-                    <a
-                      href={String((article as any).youtube_link)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800"
-                    >
-                      Watch on YouTube
-                    </a>
+                    <a href={String((article as any).youtube_link)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">Watch on YouTube</a>
                   )}
                 </div>
               )}
             </header>
 
-            {/* Video or Featured Image */}
             {isVideo ? (
-              <div id="player" className="mb-8 aspect-video rounded-lg overflow-hidden bg-black">
-                <iframe
-                  className="w-full h-full"
-                  src={toEmbedUrl(String((article as any).youtube_link))}
-                  title={article.title}
-                  frameBorder={0}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
+              <div id="player" className="mb-8 overflow-hidden rounded-[24px] border border-slate-200 bg-black shadow-[0_18px_40px_-28px_rgba(15,23,42,0.8)] dark:border-slate-700">
+                <div className="aspect-video w-full">
+                  <iframe className="h-full w-full" src={toEmbedUrl(String((article as any).youtube_link))} title={article.title} frameBorder={0} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+                </div>
               </div>
             ) : article.featured_image && (
-              <div className="mb-8 mx-auto flex justify-center items-center w-full max-w-full md:max-w-3xl lg:max-w-4xl p-2 sm:p-4 bg-gray-50 dark:bg-slate-800 rounded-lg sm:rounded-xl">
-                <Image
-                  src={article.featured_image}
-                  alt={article.title}
-                  width={1200}
-                  height={800}
-                  loading="lazy"
-                  className="w-full h-auto object-contain rounded-lg sm:rounded-xl"
-                  sizes="(max-width: 640px) calc(100vw - 16px), (max-width: 1024px) calc(100vw - 32px), 896px"
-                />
+              <div className="mb-8 overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50 p-2 shadow-[0_18px_38px_-32px_rgba(15,23,42,0.45)] dark:border-slate-800 dark:bg-slate-900 sm:p-3">
+                <div className="relative overflow-hidden rounded-[20px]">
+                  <Image src={article.featured_image} alt={article.title} width={1200} height={800} loading="lazy" className="h-auto w-full object-cover" sizes="(max-width: 640px) calc(100vw - 20px), (max-width: 1024px) calc(100vw - 52px), 880px" />
+                </div>
               </div>
             )}
 
-            {/* Article Content */}
             {article.content && (
               <>
                 <div className="mb-8 lg:hidden">
@@ -486,10 +449,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </div>
 
                 <ErrorBoundary>
-                  <ArticleTableOfContents headings={articleTocHeadings} />
+                  <div className="mt-8 lg:mt-10">
+                    <ArticleTableOfContents headings={articleTocHeadings} />
+                  </div>
                 </ErrorBoundary>
 
-                <Prose className="mb-10 prose-lg max-w-none">
+                <Prose className="prose prose-slate prose-lg mx-auto mb-12 max-w-3xl prose-img:rounded-2xl prose-a:text-brand-700 prose-a:no-underline hover:prose-a:underline dark:prose-invert dark:prose-a:text-brand-400 md:mb-14">
                   {articleContentBlocks.map((block) =>
                     block.type === "slot" ? (
                       <ArticleAdsenseSlot key={block.key} />
@@ -505,12 +470,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <section className="mb-12 rounded-[24px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900/40">
                 <div className="mb-4 flex items-end justify-between gap-4">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">More from the newsroom</div>
-                    <h2 className="text-2xl font-bold text-slate-950 dark:text-white">Related stories</h2>
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">{t("newsroom", ui)}</div>
+                    <h2 className="text-2xl font-bold text-slate-950 dark:text-white">{t("relatedArticles", ui)}</h2>
                   </div>
                 </div>
                 <ErrorBoundary>
-                  <RelatedArticles articles={finalRelated} currentSlug={slug} />
+                  <RelatedArticles articles={finalRelated} currentSlug={slug} locale={ui} />
                 </ErrorBoundary>
               </section>
             )}
@@ -518,7 +483,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {/* Tags */}
             {tags.length > 0 && (
               <div className="mb-8 flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Tags:</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{t("tags", ui)}:</span>
                 {tags.map((tag: any) => (
                   <Link
                     key={tag.id}
@@ -533,7 +498,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             {/* Share Buttons */}
             <div className="border-t border-b border-gray-200 dark:border-slate-800 py-6 mb-12 flex items-center justify-between flex-wrap gap-4">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Share this article</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("share", ui)} {t("articles", ui).toLowerCase()}</span>
               <ShareButton articleId={article.id} url={shareUrl} title={shareText} size="md" />
             </div>
 
@@ -557,9 +522,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     )}
                     <div>
                       <h3 className="font-semibold text-lg mb-1 text-gray-900 dark:text-white">
-                        {author.display_name || "Anonymous"}
+                        {author.display_name || t("author", ui)}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Article Author</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t("author", ui)}</p>
                     </div>
                   </div>
                 </CardContent>

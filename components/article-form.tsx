@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Save, Send, Star, Sparkles } from "lucide-react"
+import { Loader2, Save, Send, Star, Sparkles, Languages, ArrowRightLeft } from "lucide-react"
 import { RichTextEditor } from "./rich-text-editor"
 import { ArticleQualityPanel } from "./ArticleQualityPanel"
 import { InternalLinkSuggestions } from "./InternalLinkSuggestions"
@@ -22,6 +22,8 @@ import type { MediaItem } from "@/lib/types"
 import { validateArticleForPublishing } from "@/lib/editorialValidation"
 import { calculateSeoScore } from "@/lib/seoScore"
 import { checkAdsenseReadiness } from "@/lib/adsenseCheck"
+import { SUPPORTED_LANGUAGES, getLanguageLabel, isSupportedLanguage } from "@/lib/languages"
+import { buildArticlePayload, generateStoryGroupId, getTargetLanguage, ensureMultilingualSchema, isMultilingualSchemaError, normalizeArticleLanguage } from "@/lib/articleTranslations"
 
 interface ArticleFormProps {
   userId: string
@@ -40,7 +42,11 @@ interface ArticleFormProps {
     status: string
     category_id: string | null
     featured_image: string | null
+    language?: string | null
+    story_group_id?: string | null
+    created_at?: string | null
     published_at?: string | null
+    updated_at?: string | null
     media: MediaItem[]
     article_type?: "text" | "video"
     youtube_link?: string | null
@@ -60,6 +66,7 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([])
   const [tags, setTags] = useState<Array<{ id: number; name: string }>>([])
   const [selectedTags, setSelectedTags] = useState<number[]>(initialTagIds || [])
+  const [translations, setTranslations] = useState<Array<{ id: string; title: string; language: string; status: string; slug: string }>>([])
 
   type ArticleRow = {
     id?: string
@@ -75,6 +82,8 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
     status: article?.status || "draft",
     category_id: article?.category_id || "",
     featured_image: article?.featured_image || "",
+    language: isSupportedLanguage(article?.language) ? article.language! : "en",
+    story_group_id: article?.story_group_id || null,
     media: article?.media || ([] as MediaItem[]),
     video_url: article?.video_url || null,
     videos: article?.videos || [],
@@ -87,6 +96,31 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
 
   const supabases = supabase
   const isVideoArticle = formData.article_type === "video"
+
+  const refreshTranslations = async (storyGroupId?: string | null) => {
+    if (!storyGroupId) {
+      setTranslations([])
+      return
+    }
+
+    const { data, error } = await supabases
+      .from("articles")
+      .select("id, title, slug, status, language, story_group_id")
+      .eq("story_group_id", storyGroupId)
+      .order("created_at", { ascending: true })
+
+    if (!error && data) {
+      setTranslations(
+        data.map((row: any) => ({
+          id: row.id,
+          title: row.title || "Untitled",
+          language: normalizeArticleLanguage(row.language),
+          status: row.status || "draft",
+          slug: row.slug || "",
+        }))
+      )
+    }
+  }
 
   // Fetch categories and tags
   useEffect(() => {
@@ -102,6 +136,14 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
 
     fetchData()
   }, [])
+
+  useEffect(() => {
+    if (article?.story_group_id || formData.story_group_id) {
+      refreshTranslations(article?.story_group_id || formData.story_group_id)
+    } else {
+      setTranslations([])
+    }
+  }, [article?.story_group_id, formData.story_group_id])
 
   // Keep selectedTags in sync if initialTagIds changes (e.g., on server fetch)
   useEffect(() => {
@@ -194,6 +236,55 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
     })
   }
 
+  const handleCreateTranslation = async () => {
+    if (!article?.id) {
+      setError("Save this article first so it has a story group before creating a translation.")
+      return
+    }
+
+    const sourceLanguage = normalizeArticleLanguage(formData.language || article?.language)
+    const targetLanguage = getTargetLanguage(sourceLanguage)
+
+    if (!targetLanguage) {
+      setError("This article language is not supported for translation.")
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const res = await fetch("/api/articles/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceArticleId: article.id,
+          targetLanguage,
+        }),
+      })
+
+      const payload = await res.json()
+      if (!res.ok) {
+        throw new Error(payload?.error || "Failed to create translation")
+      }
+
+      const translationId = payload?.article?.id || payload?.articleId
+      if (translationId) {
+        router.push(`/dashboard/articles/${translationId}/edit`)
+        router.refresh()
+      }
+
+      toast({
+        title: "Translation ready",
+        description: payload?.existing ? "An existing translation was opened for editing." : "A new draft translation was created.",
+      })
+    } catch (err: any) {
+      setError(err?.message || "Failed to create translation")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleSaveDraft = async () => {
     const youtubeLink = (formData.youtube_link || "").trim()
     if (!formData.title) return
@@ -212,53 +303,61 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
         return
       }
 
+      // Ensure multilingual schema is available before proceeding
+      await ensureMultilingualSchema(supabases)
+
       // Derive featured image if absent
       const firstMediaImage = (formData.media || []).find((m) => (m as any)?.type === 'image')?.url || null
       const firstImgMatch = (formData.content || '').match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i)
       const firstImgInContent = firstImgMatch ? firstImgMatch[1] : null
       const derivedFeatured = formData.featured_image || firstMediaImage || firstImgInContent || null
 
-      const articleData: any = {
-        title: formData.title,
-        slug: formData.slug || generateSlug(formData.title),
-        excerpt: formData.excerpt || null,
-        content: formData.content || "",
-        status: article ? article.status : "draft",
-        category_id: formData.category_id ? Number(formData.category_id) : null,
-        featured_image: derivedFeatured,
-        video_url: formData.video_url || null,
-        videos: formData.videos || [],
-        article_type: formData.article_type || 'text',
-        youtube_link: isVideoArticle ? youtubeLink : null,
-        seo_title: formData.seo_title || null,
-        seo_description: formData.seo_description || null,
-        seo_keywords: (formData.seo_keywords || []).length ? formData.seo_keywords : null,
-        updated_at: new Date().toISOString(),
-      }
+      const storyGroupId = formData.story_group_id || article?.story_group_id || generateStoryGroupId()
+      const articleData: any = buildArticlePayload(
+        {
+          title: formData.title,
+          slug: formData.slug || generateSlug(formData.title),
+          excerpt: formData.excerpt || null,
+          content: formData.content || "",
+          status: article ? article.status : "draft",
+          category_id: formData.category_id ? Number(formData.category_id) : null,
+          featured_image: derivedFeatured,
+          video_url: formData.video_url || null,
+          videos: formData.videos || [],
+          article_type: formData.article_type || 'text',
+          youtube_link: isVideoArticle ? youtubeLink : null,
+          seo_title: formData.seo_title || null,
+          seo_description: formData.seo_description || null,
+          seo_keywords: (formData.seo_keywords || []).length ? formData.seo_keywords : null,
+          updated_at: new Date().toISOString(),
+        },
+        formData.language,
+        storyGroupId
+      )
 
       if (article) {
-        const result = await supabases
-          .from("articles")
-          .update(articleData)
-          .eq("id", article.id)
-          .select("id, status, featured_image")
-          .single()
-        
-        const { data: updatedRow, error } = result as { data: ArticleRow | null; error: any }
-
-        if (error) {
-          console.error("Auto-save failed (update):", { 
-            message: error.message, 
-            details: (error as any).details, 
-            hint: (error as any).hint 
-          })
-          throw error
-        }
+        const response = await fetch(`/api/articles/${article.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(articleData),
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(payload?.error || "Auto-save failed")
+        const updatedRow = payload?.article as ArticleRow | null
         
         // Update the form data with any server-returned values
         const row = (updatedRow ?? null) as ArticleRow | null
 
         if (row) {
+          const immutableChanged =
+            (article.created_at ?? null) !== ((row as any).created_at ?? null) ||
+            (article.published_at ?? null) !== ((row as any).published_at ?? null) ||
+            normalizeArticleLanguage(article.language) !== normalizeArticleLanguage((row as any).language) ||
+            (article.story_group_id ?? null) !== ((row as any).story_group_id ?? null)
+          if (immutableChanged) {
+            console.error("Auto-save refused: immutable article metadata changed")
+            return
+          }
           setFormData(prev => ({
             ...prev,
             status: row.status || prev.status,
@@ -325,6 +424,11 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       setIsLoading(false)
       return
     }
+    if (!formData.language || !isSupportedLanguage(formData.language)) {
+      setError("Article language is required. Please select English or Kinyarwanda.")
+      setIsLoading(false)
+      return
+    }
     const youtubeLink = (formData.youtube_link || "").trim()
 
     if (isVideoArticle && !youtubeLink) {
@@ -338,15 +442,23 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       return
     }
 
-    // Category is required for non-draft submissions
-    if (submitStatus !== "draft" && !formData.category_id) {
+    // Derive the article image before checking whether the submission can still be saved as a draft.
+    const firstMediaImage2 = (formData.media || []).find((m) => (m as any)?.type === 'image')?.url || null
+    const firstImgMatch2 = (formData.content || '').match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i)
+    const firstImgInContent2 = firstImgMatch2 ? firstImgMatch2[1] : null
+    const derivedFeatured2 = formData.featured_image || firstMediaImage2 || firstImgInContent2 || null
+
+    // Drafts are allowed to save without full editorial metadata; anything else falls back to draft.
+    const hasRequiredEditorialMeta = Boolean(formData.category_id) && Boolean(derivedFeatured2)
+    const shouldSaveAsDraft = submitStatus === "draft" || !hasRequiredEditorialMeta
+
+    if (!shouldSaveAsDraft && !formData.category_id) {
       setError("Please select a category")
       setIsLoading(false)
       return
     }
 
-    // Featured image is required for non-draft submissions
-    if (submitStatus !== "draft" && !formData.featured_image) {
+    if (!shouldSaveAsDraft && !derivedFeatured2) {
       setError("Please upload and select a featured image")
       setIsLoading(false)
       return
@@ -370,17 +482,14 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
           ? existingStatus
           : forceDraft
           ? "draft"
+          : shouldSaveAsDraft
+          ? "draft"
           : submitStatus === "pending"
           ? "pending"
           : submitStatus
 
       // Prepare article data - derive featured image from media or content
       // Note: media is stored in formData but not saved to articles table (no media column exists)
-      const firstMediaImage2 = (formData.media || []).find((m) => (m as any)?.type === 'image')?.url || null
-      const firstImgMatch2 = (formData.content || '').match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i)
-      const firstImgInContent2 = firstImgMatch2 ? firstImgMatch2[1] : null
-      const derivedFeatured2 = formData.featured_image || firstMediaImage2 || firstImgInContent2 || null
-
       if (effectiveStatus === "published") {
         const editorial = validateArticleForPublishing({
           title: formData.seo_title || formData.title,
@@ -421,23 +530,33 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
         }
       }
 
-      const articleData: any = {
-        title: formData.title,
-        slug: formData.slug || generateSlug(formData.title),
-        excerpt: formData.excerpt || null,
-        content: formData.content || "",
-        status: effectiveStatus,
-        category_id: formData.category_id ? Number(formData.category_id) : null,
-        featured_image: derivedFeatured2,
-        video_url: formData.video_url || null,
-        videos: formData.videos || [],
-        article_type: formData.article_type || 'text',
-        youtube_link: isVideoArticle ? youtubeLink : null,
-        seo_title: formData.seo_title || null,
-        seo_description: formData.seo_description || null,
-        seo_keywords: (formData.seo_keywords || []).length ? formData.seo_keywords : null,
-        updated_at: new Date().toISOString(),
+      const storyGroupId = article
+        ? article.story_group_id || formData.story_group_id
+        : formData.story_group_id || generateStoryGroupId()
+      if (!storyGroupId) {
+        throw new Error("Article story group is missing. Reload the article and try again.")
       }
+      const articleData: any = buildArticlePayload(
+        {
+          title: formData.title,
+          slug: formData.slug || generateSlug(formData.title),
+          excerpt: formData.excerpt || null,
+          content: formData.content || "",
+          status: effectiveStatus,
+          category_id: formData.category_id ? Number(formData.category_id) : null,
+          featured_image: derivedFeatured2,
+          video_url: formData.video_url || null,
+          videos: formData.videos || [],
+          article_type: formData.article_type || 'text',
+          youtube_link: isVideoArticle ? youtubeLink : null,
+          seo_title: formData.seo_title || null,
+          seo_description: formData.seo_description || null,
+          seo_keywords: (formData.seo_keywords || []).length ? formData.seo_keywords : null,
+          updated_at: new Date().toISOString(),
+        },
+        formData.language,
+        storyGroupId
+      )
 
       // Only set published_at when publishing for the first time — never overwrite on edits
       if (effectiveStatus === "published" && !article?.published_at) {
@@ -447,28 +566,14 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
       let articleId: string
 
       if (article) {
-        const result = await supabases
-          .from("articles")
-          .update(articleData)
-          .eq("id", article.id)
-          .select("id")
-          .single()
-        
-        const { data, error } = result as { data: { id: string } | null; error: any }
-
-        if (error) {
-          console.error("Update error:", error)
-          // Handle different error formats
-          const errorMessage = error?.message 
-            || error?.error 
-            || (typeof error === 'string' ? error : JSON.stringify(error))
-            || "Failed to update article"
-          throw new Error(errorMessage)
-        }
-
-        if (!data) {
-          throw new Error("Failed to update article: no data returned")
-        }
+        const response = await fetch(`/api/articles/${article.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(articleData),
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(payload?.error || "Failed to update article")
+        if (!payload?.article?.id) throw new Error("Failed to update article: no data returned")
 
         articleId = article.id
       } else {
@@ -482,7 +587,10 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
 
         if (error) {
           console.error("Insert error:", error)
-          // Handle different error formats
+          if (isMultilingualSchemaError(error)) {
+            throw new Error("The Supabase multilingual migration is not applied yet. Run the SQL migration for the articles table, then retry saving.")
+          }
+
           const errorMessage = error?.message 
             || error?.error 
             || (typeof error === 'string' ? error : JSON.stringify(error))
@@ -499,14 +607,19 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
 
       // Update tags: always delete existing, then insert selected (if any)
       if (articleId) {
-        await supabases.from("article_tags").delete().eq("article_id", articleId)
-        if (selectedTags.length > 0) {
-          const { error: tagError } = await supabases
-            .from("article_tags")
-            .insert(selectedTags.map((tagId) => ({ article_id: articleId, tag_id: tagId })))
-          if (tagError) {
-            console.error("Tag error:", tagError)
+        try {
+          await supabases.from("article_tags").delete().eq("article_id", articleId)
+          if (selectedTags.length > 0) {
+            const { error: tagError } = await supabases
+              .from("article_tags")
+              .insert(selectedTags.map((tagId) => ({ article_id: articleId, tag_id: tagId })))
+
+            if (tagError) {
+              console.warn("Tag sync skipped for article save:", tagError.message || tagError)
+            }
           }
+        } catch (tagSyncError) {
+          console.warn("Tag sync skipped for article save:", tagSyncError)
         }
       }
 
@@ -555,6 +668,67 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="language">Article Language</Label>
+                <Select
+                  value={formData.language}
+                    onValueChange={(value) => setFormData({ ...formData, language: value as "en" | "rw" })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">
+                  You can change this article's language while editing. The story group stays linked so translation drafts remain in sync.
+                </p>
+              </div>
+            </div>
+
+            {article && (
+              <div className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm text-violet-900">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div className="font-semibold">Translations</div>
+                  <Button type="button" variant="outline" size="sm" onClick={handleCreateTranslation} disabled={isLoading}>
+                    {normalizeArticleLanguage(formData.language) === "en" ? "Create Kinyarwanda Version" : "Create English Version"}
+                  </Button>
+                </div>
+
+                {translations.length === 0 ? (
+                  <p className="text-xs text-violet-700">
+                    No linked translations yet. Create the first translation for this story group when ready.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {translations.map((translation) => {
+                      const isCurrent = translation.id === article.id
+                      return (
+                        <div key={translation.id} className="flex items-center justify-between gap-3 rounded-md border border-violet-200 bg-white px-2 py-2 text-xs">
+                          <div>
+                            <div className="font-medium">{translation.language === "en" ? "English" : "Kinyarwanda"}</div>
+                            <div className="text-slate-500">{translation.title}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-slate-100 px-2 py-1 capitalize text-slate-700">{translation.status}</span>
+                            {!isCurrent && (
+                              <Button type="button" variant="ghost" size="sm" onClick={() => router.push(`/dashboard/articles/${translation.id}/edit`)}>
+                                Open
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {isVideoArticle && (
                 <div className="space-y-2">
                   <Label htmlFor="youtube_link">YouTube Link *</Label>
@@ -567,6 +741,20 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
                 </div>
               )}
             </div>
+
+            <div className="rounded-lg border border-blue-200 bg-blue-50/70 p-3 text-sm text-blue-800">
+              <div className="mb-2 flex items-center gap-2 font-semibold">
+                <Languages className="h-4 w-4" />
+                Translation workflow for editorial teams
+              </div>
+              <ol className="ml-5 list-decimal space-y-1 text-xs text-blue-700">
+                <li>Write the original story in the selected language.</li>
+                <li>Save as draft and review copy, SEO, and media.</li>
+                <li>Translate to the other supported language as a separate draft only after review.</li>
+                <li>Approve the translation, then publish the public version.</li>
+              </ol>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="title">Title *</Label>
               <Input
@@ -666,12 +854,20 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
             </div>
 
             {!isVideoArticle ? (
-              <RichTextEditor
-                label="Content *"
-                value={formData.content}
-                onChange={(content) => setFormData({ ...formData, content })}
-                placeholder="Write your article content here..."
-              />
+              <>
+                <div className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  <div className="flex items-center gap-2">
+                    <ArrowRightLeft className="h-4 w-4 text-slate-500" />
+                    <span>Tip: publish each language version as its own article record, then link them as the same story group for public switching.</span>
+                  </div>
+                </div>
+                <RichTextEditor
+                  label="Content *"
+                  value={formData.content}
+                  onChange={(content) => setFormData({ ...formData, content })}
+                  placeholder="Write your article content here..."
+                />
+              </>
             ) : (
               <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
                 Video articles use the YouTube link as primary content.
@@ -725,12 +921,16 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
             )}
 
             {(() => {
-              const canSubmitForReview = Boolean(formData.category_id) && Boolean(formData.featured_image)
+              const derivedFeaturedPreview =
+                formData.featured_image ||
+                (formData.media || []).find((m) => (m as any)?.type === 'image')?.url ||
+                ((formData.content || '').match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i)?.[1] ?? null)
+              const canSubmitForReview = Boolean(formData.category_id) && Boolean(derivedFeaturedPreview)
               return (
                 <div className="flex flex-wrap gap-3 pt-4">
               <Button type="button" variant="outline" onClick={(e) => handleSubmit(e, "draft")} disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                {article && forceDraft ? "Update Article" : "Save Draft"}
+                {article && forceDraft ? "Update Article" : `Save ${getLanguageLabel(formData.language)} Draft`}
               </Button>
               {!forceDraft && (
                 <>
@@ -741,7 +941,7 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                    Submit for Review
+                    Submit {getLanguageLabel(formData.language)} for Review
                   </Button>
                   <Button
                     type="button"
@@ -750,9 +950,15 @@ export function ArticleForm({ userId, article, forceDraft, afterSaveHref, initia
                     className="bg-green-600 hover:bg-green-700"
                   >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Publish Now
+                    Publish {getLanguageLabel(formData.language)} Now
                   </Button>
                 </>
+              )}
+              {!forceDraft && (
+                <Button type="button" variant="secondary" disabled={isLoading} className="border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100">
+                  <ArrowRightLeft className="mr-2 h-4 w-4" />
+                  Translate to {formData.language === "en" ? "Kinyarwanda" : "English"} (draft review)
+                </Button>
               )}
               <Button type="button" variant="ghost" onClick={() => router.back()} disabled={isLoading}>
                 Cancel

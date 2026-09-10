@@ -4,6 +4,8 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Mail, Phone, Clock, CheckCircle } from "lucide-react"
 import { useState } from "react"
+import { getLocaleFromPath, t } from "@/lib/i18n"
+import { usePathname } from "next/navigation"
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ export default function ContactPage() {
   })
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState("")
+  const locale = getLocaleFromPath(usePathname())
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -25,7 +28,7 @@ export default function ContactPage() {
     
     // Basic validation
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-      setError("Please fill in all required fields.")
+      setError(t("requiredFields", locale))
       return
     }
 
@@ -39,7 +42,7 @@ export default function ContactPage() {
       // Reset success message after 5 seconds
       setTimeout(() => setSubmitted(false), 5000)
     } catch (err) {
-      setError("Something went wrong. Please try again.")
+      setError(t("somethingWentWrong", locale))
     }
   }
 
@@ -52,10 +55,10 @@ export default function ContactPage() {
         <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-black dark:via-slate-900 dark:to-black text-white py-16 md:py-20">
           <div className="container mx-auto px-4 max-w-4xl text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-              Get in Touch With Tuganire News
+              {t("contactHero", locale)}
             </h1>
             <p className="text-lg md:text-xl text-slate-200">
-              Whether you have a story tip, partnership idea, or advertising inquiry, we're ready to listen.
+              {t("contactDescription", locale)}
             </p>
           </div>
         </section>
@@ -64,15 +67,15 @@ export default function ContactPage() {
         <div className="container mx-auto px-4 max-w-5xl py-12 md:py-16">
           {/* Contact Form Section */}
           <section className="mb-16 md:mb-20">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900 dark:text-white">Send us a Message</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900 dark:text-white">{t("sendMessage", locale)}</h2>
             
             {submitted && (
               <div className="mb-8 p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-4">
                 <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-bold text-green-900 dark:text-green-100 mb-1">Thank you!</h3>
+                  <h3 className="font-bold text-green-900 dark:text-green-100 mb-1">{t("thankYou", locale)}</h3>
                   <p className="text-green-800 dark:text-green-200">
-                    Your message has been sent successfully. We'll be in touch within 24 hours.
+                    {t("messageSent", locale)}
                   </p>
                 </div>
               </div>
@@ -89,7 +92,7 @@ export default function ContactPage() {
                 {/* Full Name */}
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                    Full Name *
+                    {t("fullName", locale)} *
                   </label>
                   <input
                     id="name"
@@ -106,7 +109,7 @@ export default function ContactPage() {
                 {/* Email */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                    Email Address *
+                    {t("emailAddress", locale)} *
                   </label>
                   <input
                     id="email"
@@ -124,7 +127,7 @@ export default function ContactPage() {
               {/* Message Purpose */}
               <div className="mb-6">
                 <label htmlFor="purpose" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                  Message Purpose *
+                  {t("messagePurpose", locale)} *
                 </label>
                 <select
                   id="purpose"
@@ -133,17 +136,17 @@ export default function ContactPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 >
-                  <option value="Editorial Tip">Editorial Tip</option>
-                  <option value="Advertising Inquiry">Advertising Inquiry</option>
-                  <option value="Partnership Proposal">Partnership Proposal</option>
-                  <option value="General Support">General Support</option>
+                  <option value="Editorial Tip">{t("editorialTip", locale)}</option>
+                  <option value="Advertising Inquiry">{t("advertisingInquiry", locale)}</option>
+                  <option value="Partnership Proposal">{t("partnershipProposal", locale)}</option>
+                  <option value="General Support">{t("generalSupport", locale)}</option>
                 </select>
               </div>
 
               {/* Message */}
               <div className="mb-8">
                 <label htmlFor="message" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                  Message *
+                  {t("message", locale)} *
                 </label>
                 <textarea
                   id="message"
@@ -153,7 +156,7 @@ export default function ContactPage() {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                  placeholder="Tell us what's on your mind..."
+                  placeholder={t("messagePlaceholder", locale)}
                 />
               </div>
 
@@ -163,14 +166,14 @@ export default function ContactPage() {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2"
               >
                 <CheckCircle className="h-5 w-5" />
-                Send Message
+                {t("sendMessage", locale)}
               </button>
             </form>
           </section>
 
           {/* Direct Communication Channels */}
           <section className="mb-16 md:mb-20">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900 dark:text-white">Other Ways to Reach Us</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900 dark:text-white">{t("otherWays", locale)}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Email */}
               <a
@@ -179,12 +182,12 @@ export default function ContactPage() {
               >
                 <Mail className="h-10 w-10 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-1" />
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Email Us</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("emailUs", locale)}</h3>
                   <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">
                     tuganire.tntorg@gmail.com
                   </p>
                   <p className="text-sm text-slate-700 dark:text-slate-400">
-                    For faster response on business inquiries
+                    {t("responseBusiness", locale)}
                   </p>
                 </div>
               </a>
@@ -196,12 +199,12 @@ export default function ContactPage() {
               >
                 <Phone className="h-10 w-10 text-green-600 dark:text-green-400 flex-shrink-0 mt-1" />
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Call or WhatsApp</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("callWhatsApp", locale)}</h3>
                   <p className="text-green-600 dark:text-green-400 font-medium mb-1">
                     +250 780 126 094
                   </p>
                   <p className="text-sm text-slate-700 dark:text-slate-400">
-                    Available for urgent inquiries
+                    {t("responseUrgent", locale)}
                   </p>
                 </div>
               </a>
@@ -213,9 +216,9 @@ export default function ContactPage() {
             <div className="flex items-start gap-4">
               <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Our Response Guarantee</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t("responseGuarantee", locale)}</h3>
                 <p className="text-slate-700 dark:text-slate-300">
-                  We typically respond to business and editorial inquiries within <span className="font-semibold">24 hours</span>. Your message matters to us.
+                  {t("responseText", locale)}
                 </p>
               </div>
             </div>
@@ -223,7 +226,7 @@ export default function ContactPage() {
 
           {/* Social Proof */}
           <section className="text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-8 text-slate-900 dark:text-white">Trusted by Industry Leaders</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-8 text-slate-900 dark:text-white">{t("trustedByLeaders", locale)}</h2>
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-8">
               <div className="mb-6">
                 <div className="flex justify-center gap-1">
@@ -236,7 +239,7 @@ export default function ContactPage() {
                 "Tuganire News represents the future of responsible digital journalism in Rwanda. Their professionalism and commitment to truth set them apart."
               </p>
               <p className="font-semibold text-slate-900 dark:text-white">
-                Partner & Media Collaborator
+                {t("partnerCollaborator", locale)}
               </p>
             </div>
           </section>

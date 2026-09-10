@@ -44,7 +44,12 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
       youtube_link,
       video_url,
       videos,
-      author_id
+      author_id,
+      language,
+      story_group_id
+      ,created_at
+      ,updated_at
+      ,published_at
     `)
     .eq("id", id)
     .single()
@@ -121,6 +126,11 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
               media: media,
               video_url: article.video_url || null,
               videos: article.videos || [],
+              language: article.language || "en",
+              story_group_id: article.story_group_id || null,
+              created_at: article.created_at || null,
+              updated_at: article.updated_at || null,
+              published_at: article.published_at || null,
             }}
             initialTagIds={(articleTags || []).map((t: any) => Number(t.tag_id)).filter((n: any) => Number.isFinite(n))}
             forceDraft={isReporter}

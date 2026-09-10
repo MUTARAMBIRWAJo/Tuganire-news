@@ -31,13 +31,17 @@ export default async function proxy(req: NextRequest) {
   )
 
   // Refresh the session so server components can read cookies consistently
-  const { error } = await supabase.auth.getSession()
-  if (error) {
-    const msg = (error.message || "").toLowerCase()
-    if (msg.includes("invalid refresh token") || msg.includes("refresh token") || msg.includes("already used")) {
-      // Clear invalid cookies to break redirect loops
-      await supabase.auth.signOut()
+  try {
+    const { error } = await supabase.auth.getSession()
+    if (error) {
+      const msg = (error.message || "").toLowerCase()
+      if (msg.includes("invalid refresh token") || msg.includes("refresh token") || msg.includes("already used")) {
+        // Clear invalid cookies to break redirect loops
+        await supabase.auth.signOut()
+      }
     }
+  } catch (error) {
+    console.error("[auth:proxy] Supabase session refresh failed", error instanceof Error ? error.message : error)
   }
 
   return res

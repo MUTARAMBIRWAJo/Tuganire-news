@@ -157,13 +157,29 @@ html, body {
     max-width: 45rem; /* 720px */
     font-family: var(--font-sans);
     font-size: clamp(1rem, 2.5vw, 1.125rem); /* 16px - 18px */
-    line-height: var(--leading-relaxed);
+    line-height: 1.8;
     letter-spacing: var(--tracking-normal);
   }
   
+  .prose > :first-child {
+    margin-top: 0;
+  }
+
+  .prose > :last-child {
+    margin-bottom: 0;
+  }
+
   .prose p {
-    margin-bottom: 1.2em;
+    margin-top: 0;
+    margin-bottom: 1.35em;
     text-align: left;
+  }
+
+  .prose h2,
+  .prose h3,
+  .prose h4 {
+    margin-top: 2.25em;
+    margin-bottom: 0.8em;
   }
   
   /* Editorial Blockquotes */
@@ -345,7 +361,7 @@ html, body {
   }
 
   .ticker-track {
-    animation: marquee 42s linear infinite;
+    animation: marquee 60s linear infinite;
   }
 
   .ticker-track:hover {
@@ -488,10 +504,33 @@ html, body {
   }
   body {
     @apply bg-background text-foreground;
+    background:
+      radial-gradient(circle at top, rgba(37, 99, 235, 0.08), transparent 24%),
+      linear-gradient(180deg, #f8fafc 0%, #f4f7fb 100%);
+  }
+  .dark body {
+    background:
+      radial-gradient(circle at top, rgba(96, 165, 250, 0.08), transparent 24%),
+      linear-gradient(180deg, #020817 0%, #0f172a 100%);
   }
   /* Add smooth transitions for dark mode */
   html {
     @apply transition-colors duration-300 motion-reduce:transition-none;
+  }
+  .news-shell {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .news-card {
+    @apply rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_35px_-28px_rgba(15,23,42,0.3)] dark:border-slate-800 dark:bg-slate-950;
+  }
+  .news-section-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400;
+  }
+  .news-section-title {
+    @apply text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl;
+  }
+  .news-divider {
+    @apply border-slate-200 dark:border-slate-800;
   }
   /* Reader mode */
   .reader-mode {

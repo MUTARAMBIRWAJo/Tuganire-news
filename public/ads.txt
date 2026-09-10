@@ -18,3 +18,5 @@ sharethrough.com, a6a34444, RESELLER, d53b998a7bd4ecd2
 videoheroes.tv, 212716, RESELLER, 064bc410192443d8
 eskim.com, 2020000802, RESELLER
 e-planning.net, 1c65d16a00e52342, RESELLER, c1ba615865ed87b2
+themediagrid.com, YZ2I83, DIRECT, 35d5010d7789b49d
+gamoshi.io, 267-b6491, DIRECT, 20e30b2ae1f670f2

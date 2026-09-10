@@ -4,12 +4,15 @@ import { useState } from "react"
 import { Mail, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { getLocaleFromPath, t } from "@/lib/i18n"
+import { usePathname } from "next/navigation"
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const locale = getLocaleFromPath(usePathname())
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,14 +31,14 @@ export default function NewsletterSignup() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to subscribe")
+        throw new Error(data.error || t("failedToLoad", locale))
       }
 
       setSuccess(true)
       setEmail("")
       setTimeout(() => setSuccess(false), 5000)
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.")
+      setError(err.message || t("somethingWentWrong", locale))
     } finally {
       setLoading(false)
     }
@@ -50,9 +53,9 @@ export default function NewsletterSignup() {
               <Mail className="h-6 w-6 text-blue-200" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-lg mb-1">Stay Updated</h3>
+              <h3 className="font-semibold text-lg mb-1">{t("subscribeToUpdates", locale)}</h3>
               <p className="text-blue-100 text-sm hidden sm:block">
-                Get the latest news delivered to your inbox
+                {t("newsletterDescription", locale)}
               </p>
             </div>
           </div>
@@ -61,13 +64,13 @@ export default function NewsletterSignup() {
             {success ? (
               <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 flex items-center justify-center gap-2">
                 <Check className="h-4 w-4" />
-                <p className="text-sm font-medium">Subscribed!</p>
+                <p className="text-sm font-medium">{t("newsletterSuccess", locale)}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex gap-2">
                 <Input
                   type="email"
-                  placeholder="Your email"
+                  placeholder={t("emailAddress", locale)}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -79,7 +82,7 @@ export default function NewsletterSignup() {
                   disabled={loading}
                   className="bg-white text-blue-600 hover:bg-blue-50 font-medium px-4 h-10 text-sm whitespace-nowrap"
                 >
-                  {loading ? "..." : "Subscribe"}
+                  {loading ? t("subscribing", locale) : t("subscribe", locale)}
                 </Button>
               </form>
             )}

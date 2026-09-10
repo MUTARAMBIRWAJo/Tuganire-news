@@ -10,7 +10,7 @@ if (supabaseUrl && anonKey) {
   console.warn('Supabase not configured — homeQueries returning safe fallbacks')
 }
 
-export async function getBreaking(limit = 10) {
+export async function getBreaking(limit = 10, language: string = 'en') {
   if (!sb) return []
 
   let { data, error } = await sb
@@ -28,6 +28,7 @@ export async function getBreaking(limit = 10) {
       .from('articles')
       .select(`id, slug, title, excerpt, featured_image, published_at,
         category:category_id ( name, slug )`)
+      .eq('language', language === 'rw' ? 'rw' : 'en')
       .eq('status', 'published')
       .neq('article_type', 'video')
       .lte('published_at', new Date().toISOString())
@@ -66,29 +67,30 @@ export async function getBreaking(limit = 10) {
   return withCounts ?? [];
 }
 
-export async function getFeaturedHero() {
+export async function getFeaturedHero(language: string = 'en') {
   if (!sb) return null
 
-  const { data: initialArticle, error } = await sb
+  const { data: initialArticles, error } = await sb
     .from('articles')
     .select('id, slug, title, excerpt, featured_image, published_at, is_featured, is_editor_pick, author_id, category_id')
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .lte('published_at', new Date().toISOString())
     .or('is_editor_pick.eq.true,is_featured.eq.true')
     .order('published_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
   if (error) {
     console.error('getFeaturedHero query error', error)
     return null
   }
-  let article = initialArticle as any | null;
+  let article = (initialArticles?.[0] as any) || null;
   if (!article) {
     // fallback to most recent published
     const { data: fallback } = await sb
       .from('articles')
       .select('id, slug, title, excerpt, featured_image, published_at, author_id, category_id')
+      .eq('language', language === 'rw' ? 'rw' : 'en')
       .eq('status', 'published')
       .neq('article_type', 'video')
       .lte('published_at', new Date().toISOString())
@@ -133,7 +135,7 @@ export async function getFeaturedHero() {
   } as any;
 }
 
-export async function getTrending(limit = 10) {
+export async function getTrending(limit = 10, language: string = 'en') {
   if (!sb) return []
 
   let { data, error } = await sb
@@ -150,6 +152,7 @@ export async function getTrending(limit = 10) {
       .from('articles')
       .select(`id, slug, title, excerpt, featured_image, published_at,
         category:category_id ( name, slug )`)
+      .eq('language', language === 'rw' ? 'rw' : 'en')
       .eq('status', 'published')
       .neq('article_type', 'video')
       .lte('published_at', new Date().toISOString())
@@ -203,7 +206,7 @@ export async function getTrending(limit = 10) {
   return withCounts ?? [];
 }
 
-export async function getLatestByCategoryRows() {
+export async function getLatestByCategoryRows(language: string = 'en') {
   if (!sb) return []
 
   // Get all categories
@@ -223,6 +226,7 @@ export async function getLatestByCategoryRows() {
       const { data: articles, error: artError } = await sb
         .from('articles')
         .select('id, slug, title, excerpt, featured_image, published_at, views_count, author:app_users(display_name, avatar_url)')
+        .eq('language', language === 'rw' ? 'rw' : 'en')
         .eq('status', 'published')
         .not('published_at', 'is', null)
         .lte('published_at', new Date().toISOString())
@@ -267,7 +271,7 @@ export async function getLatestByCategoryRows() {
   return categoryRows ?? [];
 }
 
-export async function getPhotoGallery(limit = 8) {
+export async function getPhotoGallery(limit = 8, language: string = 'en') {
   if (!sb) return []
 
   const { data, error } = await sb
@@ -276,6 +280,7 @@ export async function getPhotoGallery(limit = 8) {
       id, slug, title, featured_image, published_at, views_count,
       category:category_id ( id, name, slug )
     `)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .not('featured_image', 'is', null)
@@ -332,7 +337,7 @@ export async function getHomepageCategories(limit = 8) {
   return data ?? [];
 }
 
-export async function getEditorsPicks(limit = 6) {
+export async function getEditorsPicks(limit = 6, language: string = 'en') {
   if (!sb) return []
 
   const { data, error } = await sb
@@ -342,6 +347,7 @@ export async function getEditorsPicks(limit = 6) {
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .eq('is_editor_pick', true)
@@ -385,7 +391,7 @@ export async function getEditorsPicks(limit = 6) {
   return withCounts ?? [];
 }
 
-export async function getMostPopular(limit = 6, days = 7) {
+export async function getMostPopular(limit = 6, days = 7, language: string = 'en') {
   if (!sb) return []
 
   const dateThreshold = new Date();
@@ -398,6 +404,7 @@ export async function getMostPopular(limit = 6, days = 7) {
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .not('published_at', 'is', null)
@@ -442,7 +449,7 @@ export async function getMostPopular(limit = 6, days = 7) {
   return withCounts ?? [];
 }
 
-export async function getMostLiked(limit = 6) {
+export async function getMostLiked(limit = 6, language: string = 'en') {
   if (!sb) return []
 
   const { data, error } = await sb
@@ -452,6 +459,7 @@ export async function getMostLiked(limit = 6) {
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .not('published_at', 'is', null)
@@ -496,7 +504,7 @@ export async function getMostLiked(limit = 6) {
   return withCounts ?? []
 }
 
-export async function getMostCommented(limit = 6, days = 30) {
+export async function getMostCommented(limit = 6, days = 30, language: string = 'en') {
   if (!sb) return []
 
   const dateThreshold = new Date()
@@ -509,6 +517,7 @@ export async function getMostCommented(limit = 6, days = 30) {
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .not('published_at', 'is', null)
@@ -567,12 +576,13 @@ export async function getMostCommented(limit = 6, days = 30) {
   return sorted.slice(0, limit)
 }
 
-export async function getLatestVideos(limit = 6) {
+export async function getLatestVideos(limit = 6, language: string = 'en') {
   if (!sb) return []
 
   const { data, error } = await sb
     .from('articles')
-    .select('id, slug, title, excerpt, featured_image, youtube_link, article_type, published_at')
+    .select('id, slug, title, excerpt, featured_image, youtube_link, article_type, published_at, language')
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .eq('article_type', 'video')
     .not('published_at', 'is', null)
@@ -587,7 +597,7 @@ export async function getLatestVideos(limit = 6) {
   return data ?? []
 }
 
-export async function getLatestArticles(limit = 6) {
+export async function getLatestArticles(limit = 6, language: string = 'en') {
   if (!sb) return []
 
   const { data, error } = await sb
@@ -597,6 +607,7 @@ export async function getLatestArticles(limit = 6) {
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .not('published_at', 'is', null)
@@ -640,7 +651,7 @@ export async function getLatestArticles(limit = 6) {
 }
 
 
-export async function getLatestArticlesOffset(offset = 6, limit = 6) {
+export async function getLatestArticlesOffset(offset = 6, limit = 6, language: string = 'en') {
   if (!sb) return []
 
   const { data, error } = await sb
@@ -650,6 +661,7 @@ export async function getLatestArticlesOffset(offset = 6, limit = 6) {
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .not('published_at', 'is', null)

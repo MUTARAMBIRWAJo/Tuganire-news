@@ -1,0 +1,48 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Validate translations",
+			"type": "shell",
+			"command": "pnpm",
+			"args": [
+				"run",
+				"check-translations"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate TypeScript",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["exec", "tsc", "--noEmit"],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate lint",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["run", "lint"],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate build",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["run", "build"],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate tests",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["run", "test"],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

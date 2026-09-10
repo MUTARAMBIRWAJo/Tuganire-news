@@ -1,52 +1,84 @@
-type Locale = "en" | "fr" | "rw"
+export const SUPPORTED_LOCALES = ["en", "rw"] as const
+export type Locale = (typeof SUPPORTED_LOCALES)[number]
 
-const dictionaries: Record<Locale, Record<string, string>> = {
-  en: {
-    brand: "Tuganire News",
-    home: "Home",
-    articles: "Articles",
-    categories: "Categories",
-    careers: "Careers",
-    subscribe: "Subscribe Now",
-  },
-  fr: {
-    brand: "Tuganire Actualités",
-    home: "Accueil",
-    articles: "Articles",
-    categories: "Catégories",
-    careers: "Carrières",
-    subscribe: "S'abonner",
-  },
+const common = {
+  brand: "Tuganire News", coverage: "Rwanda & Africa", home: "Home", latestNews: "Latest News", breakingNews: "Breaking News", featured: "Featured", trending: "Trending", popular: "Popular", categories: "Categories", politics: "Politics", business: "Business", sports: "Sports", technology: "Technology", entertainment: "Entertainment", world: "World", about: "About", contact: "Contact", careers: "Careers", articles: "Articles", search: "Search", searchPlaceholder: "Search by keyword, topic, or reporter", login: "Login", register: "Register", logout: "Log out", language: "Language", english: "English", kinyarwanda: "Kinyarwanda", readMore: "Read more", readArticle: "Read article", share: "Share", comments: "Comments", noComments: "No comments yet.", relatedArticles: "Related articles", noRelatedArticles: "No related articles available.", published: "Published", updated: "Updated", author: "Author", category: "Category", tags: "Tags", readingTime: "Reading time", minutesRead: "min read", back: "Back", next: "Next", previous: "Previous", loadMore: "Load more", subscribe: "Subscribe", newsletter: "Newsletter", subscribeToUpdates: "Subscribe to updates", email: "Email", fullName: "Full name", submit: "Submit", cancel: "Cancel", close: "Close", save: "Save", edit: "Edit", delete: "Delete", confirm: "Confirm", loading: "Loading", success: "Success", error: "Error", noArticles: "No articles found.", noResults: "No search results found.", articleNotFound: "Article not found.", pageNotFound: "Page not found", pageNotFoundDescription: "The page you are looking for does not exist or may have moved.", somethingWentWrong: "Something went wrong.", tryAgain: "Try again", goHome: "Go to homepage", browseArticles: "Browse articles", contactUs: "Contact us", allRightsReserved: "All rights reserved.", independentReporting: "Independent reporting for Rwanda, Africa and the world.", newsroom: "Tuganire newsroom", trustAndCompany: "Trust & company", editorialPolicy: "Editorial policy", advertise: "Advertise", donate: "Donate", promote: "Promote", supportJournalism: "Support journalism", businessAdvertising: "Business advertising", professionalAdvertising: "Professional advertising that fits a modern news experience.", advertiseWithUs: "Advertise with us", legal: "Legal", privacyPolicy: "Privacy policy", terms: "Terms", cookiePolicy: "Cookie policy", navigate: "Navigate", allArticles: "All articles", rssFeed: "RSS feed", follow: "Follow", globalCoverage: "Rwanda and global coverage", toggleDarkMode: "Toggle dark mode", openMenu: "Open menu", closeMenu: "Close menu", switchLanguage: "Switch language", translationUnavailable: "This version is not available.", breaking: "Breaking", section: "Section", discoverStories: "Discover stories", showingArticles: "Showing {count} of {total} articles", articleSaved: "Article saved successfully.", articlePublished: "Article published successfully.", translationCreated: "Translation created successfully.", failedToSave: "Failed to save article.", failedToLoad: "Failed to load content.", emailRequired: "Email is required.", invalidEmail: "Please enter a valid email address.", alreadySubscribed: "This email is already subscribed.", newsletterSuccess: "Successfully subscribed!", newsletterThanks: "Thank you for subscribing to our newsletter.", pendingApproval: "Pending approval", dismiss: "Dismiss", namePlaceholder: "Your name *", emailOptional: "Email (optional)", writeComment: "Write your comment...", submitting: "Submitting...", postComment: "Post comment", failedToPostComment: "Failed to post comment"
+} as const
+
+const secondaryEn = {
+  platformDescription: "News and newsletter platform", enterCredentials: "Enter your credentials to access your account", pendingApproval: "Account pending approval", loginFailed: "Login failed", loggingIn: "Logging in...", noAccount: "Don't have an account?", signUp: "Sign up", createAccount: "Create account", signUpDescription: "Sign up to start reading and commenting", fullName: "Full name", confirmPassword: "Confirm password", passwordsMismatch: "Passwords do not match", passwordMin: "Password must be at least 6 characters", creatingAccount: "Creating account...", alreadyAccount: "Already have an account?", checkEmail: "Check your email", confirmationSent: "We've sent you a confirmation link", confirmationDetails: "Please check your email and click the confirmation link to activate your account. Once confirmed, you can sign in and start using Tuganire TNT.", backToLogin: "Back to login", authenticationError: "Authentication error", unexpectedAuthError: "An unexpected error occurred during authentication.", newsletterTitle: "Subscribe to our newsletter", newsletterDescription: "Get the latest news and updates delivered to your inbox", fullNameOptional: "Full name (optional)", emailAddress: "Email address", subscribing: "Subscribing...", privacyConsent: "By subscribing, you agree to receive emails from Tuganire TNT. You can unsubscribe at any time.", subscribedTitle: "Successfully subscribed!", subscribedDescription: "Thank you for subscribing to our newsletter", subscribedDetails: "You'll receive the latest news and updates directly in your inbox.", backHome: "Back to home", contactHero: "Get in touch with Tuganire News", contactDescription: "Whether you have a story tip, partnership idea, or advertising inquiry, we're ready to listen.", sendMessage: "Send us a message", thankYou: "Thank you!", messageSent: "Your message has been sent successfully. We'll be in touch within 24 hours.", requiredFields: "Please fill in all required fields.", messagePurpose: "Message purpose", editorialTip: "Editorial tip", advertisingInquiry: "Advertising inquiry", partnershipProposal: "Partnership proposal", generalSupport: "General support", message: "Message", messagePlaceholder: "Tell us what's on your mind...", otherWays: "Other ways to reach us", emailUs: "Email us", callWhatsApp: "Call or WhatsApp", responseBusiness: "For faster response on business inquiries", responseUrgent: "Available for urgent inquiries", responseGuarantee: "Our response guarantee", responseText: "We typically respond to business and editorial inquiries within 24 hours. Your message matters to us.", trustedByLeaders: "Trusted by industry leaders", partnerCollaborator: "Partner and media collaborator"
+} as const
+
+const secondaryRw = {
+  ...secondaryEn,
+  platformDescription: "Urubuga rw'amakuru n'akanyamakuru", enterCredentials: "Andika amakuru yawe kugira ngo ugere kuri konti yawe", loginFailed: "Kwinjira byanze", loggingIn: "Birimo kwinjizwa...", noAccount: "Ntabwo ufite konti?", signUp: "Iyandikishe", createAccount: "Fungura konti", signUpDescription: "Iyandikishe utangire gusoma no gutanga ibitekerezo", fullName: "Amazina yose", confirmPassword: "Emeza ijambobanga", passwordsMismatch: "Amagambo y'ibanga ntahura", passwordMin: "Ijambobanga rigomba kuba rifite nibura inyuguti 6", creatingAccount: "Konti irimo gukorwa...", alreadyAccount: "Usanzwe ufite konti?", checkEmail: "Reba imeyili yawe", confirmationSent: "Twohereje umurongo wo kwemeza", confirmationDetails: "Reba imeyili yawe ukande ku murongo wo kwemeza konti. Umaze kwemeza, ushobora kwinjira ugakoresha Tuganire TNT.", backToLogin: "Subira ku kwinjira", authenticationError: "Ikibazo cyo kwinjira", unexpectedAuthError: "Habaye ikibazo kitateganyijwe mu kwinjira.", newsletterTitle: "Iyandikishe ku kanyamakuru kacu", newsletterDescription: "Akira amakuru mashya n'ibindi bisobanuro kuri imeyili yawe", fullNameOptional: "Amazina yose (si ngombwa)", emailAddress: "Aderesi ya imeyili", subscribing: "Birimo kwiyandikisha...", privacyConsent: "Kwiyandikisha bisobanuye ko wemeye kwakira imeyili za Tuganire TNT. Ushobora kwikuramo igihe icyo ari cyo cyose.", subscribedTitle: "Kwiyandikisha byagenze neza!", subscribedDescription: "Murakoze kwiyandikisha ku kanyamakuru kacu", subscribedDetails: "Muzajya mubona amakuru mashya n'ibindi bisobanuro kuri imeyili yanyu.", backHome: "Subira ahabanza", contactHero: "Twandikire Tuganire Amakuru", contactDescription: "Niba ufite amakuru ushaka gutanga, igitekerezo cy'ubufatanye cyangwa ikibazo cy'iyamamaza, twiteguye kukumva.", sendMessage: "Twoherereze ubutumwa", thankYou: "Murakoze!", messageSent: "Ubutumwa bwanyu bwoherejwe neza. Turabasubiza mu masaha 24.", requiredFields: "Uzuza ahantu hose hasabwa.", messagePurpose: "Impamvu y'ubutumwa", editorialTip: "Amakuru y'ubwanditsi", advertisingInquiry: "Ikibazo cy'iyamamaza", partnershipProposal: "Igitekerezo cy'ubufatanye", generalSupport: "Ubufasha rusange", message: "Ubutumwa", messagePlaceholder: "Tubwire icyo wifuza...", otherWays: "Ubundi buryo bwo kutugeraho", emailUs: "Twoherereze imeyili", callWhatsApp: "Hamagara cyangwa ukoreshe WhatsApp", responseBusiness: "Kugira ngo usubizwe vuba ku bibazo by'ubucuruzi", responseUrgent: "Bihari ku bibazo byihutirwa", responseGuarantee: "Icyizere cyo kugusubiza", responseText: "Akenshi dusubiza ibibazo by'ubucuruzi n'ubwanditsi mu masaha 24. Ubutumwa bwawe ni ingenzi kuri twe.", trustedByLeaders: "Twizerwa n'abayobozi b'inganda", partnerCollaborator: "Umufatanyabikorwa mu itangazamakuru"
+} as const
+
+const languageTransferEn = {
+  openDashboard: "Open dashboard",
+  changeLanguage: "Change Language",
+  currentLanguage: "Current language",
+  targetLanguage: "Target language",
+  changingLanguage: "Changing...",
+  changingArticleLanguage: "Changing article language from {current} to {target}",
+  movingArticleTo: "Moving article to {language} Articles",
+  updatingArticleList: "Updating management lists",
+  languageChangedSuccessfully: "Article language changed successfully.",
+  languageChangeFailed: "Unable to change article language.",
+  languageChangeDescription: "This corrects the article's language classification. It will not translate, duplicate, or recreate the article.",
+  articleWasNotMoved: "The article was not moved.",
+  articleRemainsInClass: "The article remains in its current language class.",
+  translationConflict: "A version already exists for this article group in the target language.",
+  viewExistingVersion: "View existing version",
+  changeToLanguage: "Change to {language}",
+} as const
+
+const languageTransferRw = {
+  openDashboard: "Fungura aho ucungira",
+  changeLanguage: "Hindura ururimi",
+  currentLanguage: "Ururimi ruriho",
+  targetLanguage: "Ururimi rushya",
+  changingLanguage: "Birimo guhinduka...",
+  changingArticleLanguage: "Birimo guhindura ururimi rw'inkuru kuva kuri {current} kujya kuri {target}",
+  movingArticleTo: "Birimo kwimurira inkuru mu nkuru za {language}",
+  updatingArticleList: "Birimo kuvugurura amatsinda y'inkuru",
+  languageChangedSuccessfully: "Ururimi rw'inkuru rwahinduwe neza.",
+  languageChangeFailed: "Ntibyashobotse guhindura ururimi rw'inkuru.",
+  languageChangeDescription: "Ibi bihindura gusa ibyiciro by'ururimi rw'inkuru. Ntibisobanura, ntibikoporora kandi ntibisubiramo inkuru.",
+  articleWasNotMoved: "Inkuru ntiyimuwe.",
+  articleRemainsInClass: "Inkuru yagumye mu cyiciro cy'ururimi yari irimo.",
+  translationConflict: "Hari indi verisiyo isanzwe iri muri uru rurimi muri iri tsinda ry'inkuru.",
+  viewExistingVersion: "Reba verisiyo isanzwe",
+  changeToLanguage: "Hindura ibe {language}",
+} as const
+
+export const translations = {
+  en: { ...common, ...secondaryEn, ...languageTransferEn },
   rw: {
-    brand: "Tuganire Amakuru",
-    home: "Ahabanza",
-    articles: "Inkuru",
-    categories: "Ibyiciro",
-    careers: "Akazi",
-    subscribe: "Iyandikishe",
-  },
-}
-
-export function getLocaleFromEnv(): Locale {
-  if (typeof window !== "undefined") {
-    const saved = (window.localStorage.getItem("locale") || "").toLowerCase()
-    if (saved === "en" || saved === "fr" || saved === "rw") return saved as Locale
+    ...common,
+    ...secondaryRw,
+    ...languageTransferRw,
+    brand: "Tuganire Amakuru", coverage: "u Rwanda na Afurika", home: "Ahabanza", latestNews: "Amakuru aheruka", breakingNews: "Amakuru yihutirwa", featured: "Byatoranyijwe", trending: "Ibikunzwe", popular: "Ibikunzwe cyane", categories: "Ibyiciro", politics: "Politiki", business: "Ubucuruzi", sports: "Imikino", technology: "Ikoranabuhanga", entertainment: "Imyidagaduro", world: "Isi", about: "Twebwe", contact: "Twandikire", careers: "Akazi", articles: "Inkuru", search: "Shakisha", searchPlaceholder: "Shakisha ijambo, ingingo cyangwa umunyamakuru", login: "Injira", register: "Iyandikishe", logout: "Sohoka", language: "Ururimi", english: "Icyongereza", kinyarwanda: "Kinyarwanda", readMore: "Soma byinshi", readArticle: "Soma inkuru", share: "Sangiza", comments: "Ibitekerezo", noComments: "Nta bitekerezo biratangwa.", relatedArticles: "Izindi nkuru zijyanye n'iyi", noRelatedArticles: "Nta zindi nkuru zijyanye n'iyi zihari.", published: "Byashyizwe ahagaragara", updated: "Byavuguruwe", author: "Umwanditsi", category: "Icyiciro", tags: "Utumenyetso", readingTime: "Igihe cyo gusoma", minutesRead: "iminota yo gusoma", back: "Subira inyuma", next: "Ibikurikira", previous: "Ibyabanje", loadMore: "Erekana izindi", subscribe: "Iyandikishe", newsletter: "Akanyamakuru", subscribeToUpdates: "Iyandikishe ku makuru mashya", email: "Imeyili", submit: "Ohereza", cancel: "Hagarika", close: "Funga", save: "Bika", edit: "Hindura", delete: "Siba", confirm: "Emeza", loading: "Biratunganywa", success: "Byagenze neza", error: "Ikibazo", noArticles: "Nta nkuru zabonetse.", noResults: "Nta bisubizo bibonetse.", articleNotFound: "Inkuru ntiyabonetse.", pageNotFound: "Urupapuro ntiyabonetse", pageNotFoundDescription: "Urupapuro ushaka ntirubaho cyangwa rwimuwe.", somethingWentWrong: "Hari ikibazo cyabaye.", tryAgain: "Ongera ugerageze", goHome: "Jya ahabanza", browseArticles: "Reba inkuru", contactUs: "Twandikire", allRightsReserved: "Uburenganzira bwose burabitswe.", independentReporting: "Amakuru yigenga yerekeye u Rwanda, Afurika n'isi.", newsroom: "Ibiro by'amakuru bya Tuganire", trustAndCompany: "Ibyerekeye ikigo", editorialPolicy: "Amabwiriza y'itangazamakuru", advertiseWithUs: "Kwamamaza natwe", legal: "Amategeko", privacyPolicy: "Politiki y'ibanga", terms: "Amabwiriza", cookiePolicy: "Politiki ya kuki", navigate: "Kuyobora", allArticles: "Inkuru zose", rssFeed: "Amakuru ya RSS", follow: "Dukurikire", globalCoverage: "Amakuru yo mu Rwanda no ku isi", toggleDarkMode: "Hindura uburyo bw'umwijima", openMenu: "Fungura menu", closeMenu: "Funga menu", switchLanguage: "Hindura ururimi", translationUnavailable: "Iyi verisiyo ntiboneka.", breaking: "Yihutirwa", section: "Igice", discoverStories: "Menya inkuru", showingArticles: "Herekanwe inkuru {count} kuri {total}", articleSaved: "Inkuru yabitswe neza.", articlePublished: "Inkuru yashyizwe ahagaragara neza.", translationCreated: "Ubuhinduzi bwakozwe neza.", failedToSave: "Kubika inkuru byanze.", failedToLoad: "Kubona amakuru byanze.", emailRequired: "Imeyili irakenewe.", invalidEmail: "Andika imeyili iboneye.", alreadySubscribed: "Iyi meyili yamaze kwiyandikisha.", newsletterSuccess: "Kwiyandikisha byagenze neza!", newsletterThanks: "Murakoze kwiyandikisha ku makuru yacu.", pendingApproval: "Birategereje kwemezwa", dismiss: "Funga", namePlaceholder: "Amazina yawe *", emailOptional: "Imeyili (si ngombwa)", writeComment: "Andika igitekerezo cyawe...", submitting: "Biroherezwa...", postComment: "Ohereza igitekerezo", failedToPostComment: "Kohereza igitekerezo byanze"
   }
-  const env = (process.env.NEXT_PUBLIC_LOCALE || "en").toLowerCase()
-  if (env === "fr" || env === "rw") return env as Locale
-  return "en"
+} as const
+
+export type TranslationKey = keyof typeof common | keyof typeof secondaryEn | keyof typeof languageTransferEn
+export type CategoryLabelInput = { name?: string | null; slug?: string | null }
+
+const categoryKeys: Record<string, TranslationKey> = {
+  politic: "politics", politics: "politics", "political-news": "politics",
+  business: "business", sports: "sports", technology: "technology", tech: "technology",
+  entertainment: "entertainment", "entertainment-news": "entertainment", world: "world",
 }
 
-export function t(key: string, locale: Locale = getLocaleFromEnv()): string {
-  return dictionaries[locale][key] || dictionaries.en[key] || key
+export function categoryLabel(category: CategoryLabelInput | null | undefined, locale: Locale): string {
+  const value = `${category?.slug || ""} ${category?.name || ""}`.toLowerCase().replace(/\s+/g, "-")
+  const key = Object.entries(categoryKeys).find(([token]) => value.includes(token))?.[1]
+  return key ? t(key, locale) : category?.name || t("category", locale)
 }
-
-export function availableLocales(): Locale[] {
-  return ["en", "fr", "rw"]
-}
-
-export function setLocale(locale: Locale) {
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem("locale", locale)
-  }
-}
+export function normalizeLocale(value?: string | null): Locale { return value?.toLowerCase() === "rw" ? "rw" : "en" }
+export function getLocaleFromPath(pathname?: string | null): Locale { return normalizeLocale(pathname?.match(/^\/(en|rw)(?:\/|$)/)?.[1]) }
+export function t(key: TranslationKey, locale: Locale = "en", values?: Record<string, string | number>): string { let value: string = translations[locale][key]; if (values) value = value.replace(/\{(\w+)\}/g, (_, name: string) => String(values[name] ?? `{${name}}`)); return value }
+export function availableLocales(): Locale[] { return [...SUPPORTED_LOCALES] }
+export function getLocaleFromEnv(): Locale { return typeof window !== "undefined" ? getLocaleFromPath(window.location.pathname) : normalizeLocale(process.env.NEXT_PUBLIC_LOCALE) }
+export function setLocale(locale: Locale) { if (typeof window !== "undefined") window.localStorage.setItem("locale", locale) }

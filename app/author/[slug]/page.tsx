@@ -58,7 +58,7 @@ export default async function AuthorPage({ params }: { params: { slug: string } 
       <div className="mx-auto max-w-7xl px-4">
         <h1 className="text-2xl font-bold">{author?.display_name ?? 'Author'}</h1>
       </div>
-      <ArticlesList initialFilters={{ author: author?.id ?? params.slug }} />
+      <ArticlesList initialFilters={{ author: author?.id ?? params.slug, lang: 'en' }} />
     </main>
   );
 }

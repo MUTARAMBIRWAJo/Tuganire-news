@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Mail, CheckCircle2 } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
+import { getLocaleFromPath, t } from "@/lib/i18n"
+import { usePathname } from "next/navigation"
 
 export function NewsletterCTA() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const locale = getLocaleFromPath(usePathname())
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,9 +27,9 @@ export function NewsletterCTA() {
 
       if (insertError) {
         if (insertError.code === "23505") {
-          setError("You're already subscribed!")
+          setError(t("alreadySubscribed", locale))
         } else {
-          setError("Something went wrong. Please try again.")
+          setError(t("somethingWentWrong", locale))
         }
       } else {
         setSuccess(true)
@@ -34,7 +37,7 @@ export function NewsletterCTA() {
         setTimeout(() => setSuccess(false), 5000)
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.")
+      setError(t("somethingWentWrong", locale))
     } finally {
       setLoading(false)
     }
@@ -45,9 +48,9 @@ export function NewsletterCTA() {
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto text-center">
           <Mail className="h-12 w-12 mx-auto mb-4" />
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Stay in the Loop</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">{t("subscribeToUpdates", locale)}</h2>
           <p className="text-lg mb-8 text-blue-100 dark:text-blue-200">
-            Get the latest news, exclusive stories, and in-depth analysis delivered straight to your inbox.
+            {t("newsletterDescription", locale)}
           </p>
           
           {success ? (
@@ -59,7 +62,7 @@ export function NewsletterCTA() {
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <Input
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t("emailAddress", locale)}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -72,7 +75,7 @@ export function NewsletterCTA() {
                 disabled={loading}
                 className="bg-white text-blue-600 hover:bg-gray-100 whitespace-nowrap"
               >
-                {loading ? "Subscribing..." : "Subscribe"}
+                {loading ? t("subscribing", locale) : t("subscribe", locale)}
               </Button>
             </form>
           )}

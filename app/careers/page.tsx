@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import type { Metadata } from "next"
+import { t } from "@/lib/i18n"
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -21,13 +22,14 @@ export const metadata: Metadata = {
 }
 
 export default function CareersPage() {
+  const locale = "en" as const
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
       <SiteHeader />
 
       <main className="flex-1">
         <div className="max-w-6xl xl:max-w-7xl mx-auto sm:p-6 md:p-8 max-w-3xl">
-          <h1 className="text-4xl font-bold mb-4">Careers</h1>
+          <h1 className="text-4xl font-bold mb-4">{t("careers", locale)}</h1>
           <p className="text-slate-700 leading-relaxed mb-8">Join our mission to inform and inspire. We are building a modern newsroom and platform for trustworthy journalism.</p>
 
           <section className="mb-10">

@@ -1,13 +1,13 @@
 export const nav = [
-  { href: '/', label: 'Home' },
-  { href: '/category/politics', label: 'Politics' },
-  { href: '/category/business', label: 'Business' },
-  { href: '/category/sports', label: 'Sports' },
-  { href: '/category/technology', label: 'Technology' },
-  { href: '/category/entertainment', label: 'Entertainment' },
-  { href: '/category/world', label: 'World' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/', key: 'home' },
+  { href: '/category/politics', key: 'politics' },
+  { href: '/category/business', key: 'business' },
+  { href: '/category/sports', key: 'sports' },
+  { href: '/category/technology', key: 'technology' },
+  { href: '/category/entertainment', key: 'entertainment' },
+  { href: '/category/world', key: 'world' },
+  { href: '/about', key: 'about' },
+  { href: '/contact', key: 'contact' },
 ]
 
-export type NavItem = { href: string; label: string }
+export type NavItem = { href: string; key: string }

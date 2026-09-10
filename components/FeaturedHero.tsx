@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { categoryHref } from '@/lib/category-utils';
 
 export default function FeaturedHero({
   item
@@ -35,7 +36,7 @@ export default function FeaturedHero({
         <div className="flex flex-col justify-center">
           <div className="text-sm text-neutral-500">
             {item.categories?.name ? (
-              <Link href={`/category/${item.categories.slug}`} className="hover:underline">
+              <Link href={categoryHref(item.categories.slug || item.categories.name)} className="hover:underline">
                 {item.categories.name}
               </Link>
             ) : null}

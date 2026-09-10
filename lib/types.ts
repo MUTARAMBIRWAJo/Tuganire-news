@@ -47,6 +47,8 @@ export interface Article {
   author_id: string | null
   category_id: number | null
   featured_image: string | null
+  language?: "en" | "rw" | null
+  story_group_id?: string | null
   media: MediaItem[]
   video_url?: string | null
   videos?: string[]

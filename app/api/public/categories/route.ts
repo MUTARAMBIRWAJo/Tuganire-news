@@ -33,13 +33,16 @@ function normalizeArticle(a: any) {
     excerpt: a.excerpt || '',
     featured_image: a.featured_image || a.image_url || null,
     published_at: a.published_at || a.created_at || null,
+    language: a.language === 'rw' ? 'rw' : 'en',
     views_count: a.views_count || 0,
     author: author && (author.display_name || author.full_name || author.name) ? author : null,
     category: category && (category.name || category.slug) ? category : (a.category ? { name: String(a.category), slug: String(a.category).toLowerCase().replace(/\s+/g, '-') } : null),
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const language = searchParams.get('lang')?.toLowerCase() === 'rw' ? 'rw' : 'en'
   try {
     // get all categories
     if (!supabaseUrl || !serviceKey || supabaseUrl.includes('invalid.supabase')) {
@@ -54,11 +57,12 @@ export async function GET() {
   for (const c of categories || []) {
     const { data: arts } = await sb
       .from('articles')
-      .select('id, slug, title, excerpt, featured_image, published_at, views_count, article_type, author:app_users(display_name, avatar_url), category:categories(name, slug)')
+      .select('id, slug, title, excerpt, featured_image, published_at, views_count, article_type, language, author:app_users(display_name, avatar_url), category:categories(name, slug)')
       .eq('status', 'published')
       .not('published_at', 'is', null)
       .lte('published_at', new Date().toISOString())
       .eq('category_id', c.id)
+      .eq('language', language)
       .in('article_type', ['text', null])
       .order('published_at', { ascending: false })
       .limit(4)

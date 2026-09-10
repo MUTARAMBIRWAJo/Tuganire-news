@@ -1,3 +1,5 @@
+import { getAdRouteState } from "@/lib/adManager"
+
 type AdsKeeperWindow = Window & {
   _mgq?: Array<["_mgc.load"]>
   __adsKeeperPendingLoads?: number
@@ -9,6 +11,9 @@ const MAX_RETRIES = 16
 
 export function enqueueAdsKeeperLoad() {
   if (typeof window === "undefined") return
+
+  const { adskeeperEnabled } = getAdRouteState(window.location.pathname)
+  if (!adskeeperEnabled) return
 
   const w = window as AdsKeeperWindow
   w.__adsKeeperPendingLoads = (w.__adsKeeperPendingLoads ?? 0) + 1

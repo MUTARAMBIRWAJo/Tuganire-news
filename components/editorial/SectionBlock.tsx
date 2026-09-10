@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArticleCard, ArticleGrid } from './ArticleCard'
+import { categoryHref } from '@/lib/category-utils'
 
 interface SectionBlockProps {
   title: string
@@ -29,7 +30,7 @@ export default function SectionBlock({
         </h2>
         {showReadMore && (
           <Link 
-            href={`/category/${categorySlug}`}
+            href={categoryHref(categorySlug)}
             className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             Read more →

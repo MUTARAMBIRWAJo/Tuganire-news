@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { normalizeLanguage, getArticleBySlug, getRelatedArticles, getArticleTranslation, getArticleVersions } from '@/lib/articleQueries'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "invalid-service-role-key"
@@ -13,6 +14,8 @@ function normalizeArticle(a: any) {
   return {
     id: a.id,
     slug: a.slug,
+    language: a.language === 'rw' ? 'rw' : 'en',
+    story_group_id: a.story_group_id || null,
     title: a.title || '',
     excerpt: a.excerpt || '',
     content: a.content || '',
@@ -34,48 +37,55 @@ function normalizeArticle(a: any) {
   }
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const { searchParams } = new URL(req.url)
+  const requestedLanguage = normalizeLanguage(searchParams.get('lang'))
 
-  // Priority 1: published relational
-  const { data: primary } = await sb
-    .from('articles')
-    .select(`*, likes_count, author:app_users(id, display_name, avatar_url), category:categories(name, slug)`).eq('slug', slug)
-    .eq('status', 'published')
-    .maybeSingle()
+  // Query for published article with requested language
+  const { data: primary, error: primaryError } = await getArticleBySlug(sb, slug, requestedLanguage)
 
-  let article = normalizeArticle(primary)
-
-  // Fallback: any status, simple columns
-  if (!article) {
-    const { data: basic } = await sb
+  if (!primary) {
+    // Article doesn't exist in requested language
+    // Check if it exists in another language and redirect to translation if available
+    const { data: sourceBySlug } = await sb
       .from('articles')
-      .select('id, slug, title, excerpt, content, image_url, category, author_name, created_at, featured_image, published_at, views_count, likes_count')
+      .select('id, slug, story_group_id, language')
       .eq('slug', slug)
       .maybeSingle()
-    if (basic) {
-      article = normalizeArticle({
-        ...basic,
-        author: basic.author_name ? { display_name: basic.author_name, avatar_url: null } : null,
-        category: basic.category ? { name: basic.category, slug: String(basic.category).toLowerCase().replace(/\s+/g, '-') } : null,
-      })
+
+    if (sourceBySlug?.story_group_id) {
+      // Try to find translation in requested language
+      const { data: translated } = await getArticleTranslation(sb, sourceBySlug.story_group_id, requestedLanguage, true)
+      
+      if (translated?.slug && translated.slug !== slug) {
+        // Redirect to the translated article
+        const targetUrl = new URL(req.url)
+        targetUrl.pathname = `/${requestedLanguage}/articles/${translated.slug}`
+        return NextResponse.redirect(targetUrl.toString())
+      }
     }
+
+    return NextResponse.json({ error: 'not_found' }, { status: 404 })
   }
 
-  if (!article) return NextResponse.json({ error: 'not_found' }, { status: 404 })
-
-  let authorProfile = article.author
-  const authorId = (article.author as any)?.id || (primary as any)?.author_id || null
-  if (authorId) {
+  let article = normalizeArticle(primary)
+  if (!article) {
+    return NextResponse.json({ error: 'not_found' }, { status: 404 })
+  }
+  
+  // Enrich author profile if available
+  let authorProfile = article.author || null
+  if (article.author?.id) {
     try {
-      const { data: user } = await sb.from('app_users').select('*').eq('id', authorId).maybeSingle()
+      const { data: user } = await sb.from('app_users').select('*').eq('id', article.author.id).maybeSingle()
       if (user) {
         let articleCount = 0
         try {
           const { count } = await sb
             .from('articles')
             .select('id', { count: 'exact', head: true })
-            .eq('author_id', authorId)
+            .eq('author_id', article.author.id)
             .eq('status', 'published')
           articleCount = count ?? 0
         } catch {
@@ -111,29 +121,22 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     .order('created_at', { ascending: false })
     .limit(12)
 
-  // Related: same category top 3 published (exclude current)
+  // Related: same category, same language
   let related: any[] = []
-  if (article.category?.slug) {
-    const { data: catRow } = await sb.from('categories').select('id').eq('slug', article.category.slug).maybeSingle()
+  if (article.category?.name) {
+    const { data: catRow } = await sb.from('categories').select('id').eq('name', article.category.name).maybeSingle()
     if (catRow?.id) {
-      const { data: rel } = await sb
-        .from('articles')
-        .select('id, slug, title, excerpt, featured_image, published_at, views_count, likes_count, author:app_users(display_name, avatar_url), category:categories(name, slug)')
-        .eq('category_id', catRow.id)
-        .eq('status', 'published')
-        .not('published_at', 'is', null)
-        .lte('published_at', new Date().toISOString())
-        .neq('slug', article.slug)
-        .order('published_at', { ascending: false })
-        .limit(6)
+      const { data: rel, error: relError } = await getRelatedArticles(sb, article.id, catRow.id, requestedLanguage, 6)
       related = (rel || []).map(normalizeArticle)
     }
   }
 
   if (!related.length) {
+    // Fallback: latest articles in same language
     const { data: recent } = await sb
       .from('articles')
-      .select('id, slug, title, excerpt, featured_image, published_at, views_count, likes_count, author:app_users(display_name, avatar_url), category:categories(name, slug)')
+      .select('id, slug, title, excerpt, featured_image, published_at, views_count, likes_count, language, story_group_id, author:app_users(display_name, avatar_url), category:categories(name, slug)')
+      .eq('language', requestedLanguage)
       .eq('status', 'published')
       .not('published_at', 'is', null)
       .lte('published_at', new Date().toISOString())
