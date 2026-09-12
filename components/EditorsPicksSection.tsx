@@ -29,7 +29,7 @@ export default function EditorsPicksSection({ items, locale = "en" }: EditorsPic
           <h2 className="text-[1.6rem] font-bold tracking-[-0.03em] text-slate-950 dark:text-white">{locale === "rw" ? "Ibyatoranyijwe n'abanditsi" : "Editor's Picks"}</h2>
         </div>
         <Link 
-          href="/articles?sort=editor_pick" 
+          href={`/${locale}/articles?sort=editor_pick`}
           className="text-sm text-blue-600 hover:underline font-medium"
         >
           {t("allArticles", locale)}

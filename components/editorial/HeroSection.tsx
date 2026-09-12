@@ -3,6 +3,7 @@ import Image from "next/image"
 import { ArrowRight, Calendar, User } from "lucide-react"
 import { categoryHref } from "@/lib/category-utils"
 import { t, type Locale } from "@/lib/i18n"
+import { cleanExcerpt } from "@/lib/content"
 
 interface HeroSectionProps {
   item?: {
@@ -30,6 +31,7 @@ export default function HeroSection({ item, sideStories = [], locale = "en" }: H
   if (!item) return null
 
   const secondaryStories = sideStories.slice(0, 4)
+  const excerpt = cleanExcerpt(item.excerpt)
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return ""
@@ -68,7 +70,7 @@ export default function HeroSection({ item, sideStories = [], locale = "en" }: H
 
             {item.categories?.name && (
               <Link
-                href={categoryHref(item.categories.slug || item.categories.name)}
+                href={categoryHref(item.categories.slug || item.categories.name, locale)}
                 className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-900 backdrop-blur dark:bg-slate-950/95 dark:text-white"
               >
                 {item.categories.name}
@@ -83,8 +85,8 @@ export default function HeroSection({ item, sideStories = [], locale = "en" }: H
               </Link>
             </h1>
 
-            {item.excerpt && (
-              <p className="max-w-3xl text-pretty text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8">{item.excerpt}</p>
+            {excerpt && (
+              <p className="max-w-3xl text-pretty text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8">{excerpt}</p>
             )}
 
             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">

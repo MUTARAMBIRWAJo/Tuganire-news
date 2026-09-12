@@ -1,97 +1,50 @@
-import { ArticleCard } from "./article-card"
-import { TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { t, type Locale } from "@/lib/i18n"
+import { ArrowUpRight, TrendingUp } from "lucide-react"
+import { categoryHref } from "@/lib/category-utils"
+import { categoryLabel, t, type Locale } from "@/lib/i18n"
+import { formatArticleDate } from "@/lib/content"
 
 interface MostPopularSectionProps {
-  items: Array<{
-    id: string
-    slug: string
-    title: string
-    excerpt: string | null
-    featured_image: string | null
-    published_at: string | null
-    views_count?: number | null
-    comments_count?: number | null
-    category?: { name: string; slug: string } | null
-    author?: { display_name: string | null; avatar_url: string | null } | null
-  }>
+  items: Array<any>
   period?: "day" | "week" | "month"
+  locale?: Locale
 }
 
-export default function MostPopularSection({ items, period = "week", locale = "en" }: MostPopularSectionProps & { locale?: Locale }) {
-  if (!items || items.length === 0) return null
+export default function MostPopularSection({ items, period = "week", locale = "en" }: MostPopularSectionProps) {
+  if (!items?.length) return null
 
-  const periodLabels = {
+  const periodLabel = {
     day: locale === "rw" ? "Uyu munsi" : "Today",
-    week: locale === "rw" ? "Muri iki cyumweru" : "This Week",
-    month: locale === "rw" ? "Muri uku kwezi" : "This Month"
-  }
+    week: locale === "rw" ? "Muri iki cyumweru" : "This week",
+    month: locale === "rw" ? "Muri uku kwezi" : "This month",
+  }[period]
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-xl border border-orange-200 dark:border-slate-700 shadow-sm">
-      <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-500 rounded-lg">
-            <TrendingUp className="h-5 w-5 text-white" />
-          </div>
+    <section className="border-y border-slate-200 bg-slate-50 py-10 dark:border-slate-800 dark:bg-slate-900/40 sm:py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-[1.6rem] font-bold tracking-[-0.03em] text-gray-900 dark:text-white">{t("popular", locale)}</h2>
-            <p className="text-sm text-orange-700 dark:text-orange-300 font-medium">{periodLabels[period]}</p>
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400"><TrendingUp className="size-4" />{t("popular", locale)}</div>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">{locale === "rw" ? "Inkuru zisomwa cyane" : "What readers are reading"}</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{periodLabel}</p>
           </div>
+          <Link href={`/${locale}/articles?sort=views_desc`} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">{t("allArticles", locale)} <ArrowUpRight className="size-4" /></Link>
         </div>
-        <Link 
-          href="/articles?sort=views_desc" 
-          className="text-sm text-orange-600 dark:text-orange-400 hover:underline font-medium"
-        >
-          {t("allArticles", locale)}
-        </Link>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((article, index) => {
-          const rank = index + 1
-          const rankColors = [
-            "bg-gradient-to-br from-yellow-400 to-orange-500", // #1
-            "bg-gradient-to-br from-gray-300 to-gray-400",     // #2
-            "bg-gradient-to-br from-amber-600 to-amber-700",   // #3
-          ]
-          
-          return (
-            <div key={article.id} className="relative group">
-              {/* Ranking badge */}
-              <div className={`absolute -top-3 -left-3 z-20 ${rank <= 3 ? rankColors[rank - 1] : "bg-gray-500"} text-white text-sm font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg`}>
-                {rank}
+
+        <div className="divide-y divide-slate-200 border-y border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+          {items.slice(0, 6).map((article, index) => (
+            <article key={article.id || article.slug} className="grid gap-3 py-4 sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:items-center">
+              <div className="text-2xl font-black tabular-nums text-slate-300 dark:text-slate-700">{String(index + 1).padStart(2, "0")}</div>
+              <div className="min-w-0">
+                {article.category && <Link href={categoryHref(article.category.slug, locale)} className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-600 dark:text-brand-400">{categoryLabel(article.category, locale)}</Link>}
+                <h3 className="mt-1 line-clamp-2 text-base font-bold leading-snug text-slate-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 sm:text-lg"><Link href={`/${locale}/articles/${article.slug}`}>{article.title}</Link></h3>
+                {article.published_at && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatArticleDate(article.published_at, locale)}</p>}
               </div>
-              
-              {/* Popular indicator */}
-              {rank === 1 && (
-                <div className="absolute top-2 right-2 z-20 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                  🔥 Hot
-                </div>
-              )}
-              
-              <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-orange-100 dark:border-slate-700">
-                <ArticleCard
-                  article={{
-                    id: article.id,
-                    slug: article.slug,
-                    title: article.title,
-                    excerpt: article.excerpt,
-                    featured_image: article.featured_image,
-                    published_at: article.published_at,
-                    comments_count: article.comments_count ?? 0,
-                    category: (article.category as any) || undefined,
-                    author: (article.author as any) || undefined,
-                  } as any}
-                  compact
-                  locale={locale}
-                />
-              </div>
-            </div>
-          )
-        })}
+              {Number(article.views_count) > 0 && <div className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">{article.views_count} views</div>}
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   )
 }
-

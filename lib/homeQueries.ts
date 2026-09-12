@@ -14,13 +14,21 @@ export async function getBreaking(limit = 10, language: string = 'en') {
   if (!sb) return []
 
   let { data, error } = await sb
-    .from('v_breaking')
-    .select('*')
+    .from('articles')
+    .select(`id, slug, title, excerpt, featured_image, published_at,
+      category:category_id ( name, slug )`)
+    .eq('language', language === 'rw' ? 'rw' : 'en')
+    .eq('status', 'published')
+    .eq('is_breaking', true)
+    .neq('article_type', 'video')
+    .not('published_at', 'is', null)
+    .lte('published_at', new Date().toISOString())
+    .order('published_at', { ascending: false })
     .limit(limit)
 
   if (error) {
-    console.error('getBreaking error', error)
-    return []
+    console.error('getBreaking query error', error)
+    data = null
   }
 
   if (!data || data.length === 0) {

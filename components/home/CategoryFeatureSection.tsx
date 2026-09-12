@@ -32,7 +32,7 @@ export default function CategoryFeatureSection({ title, categorySlug, articles, 
           <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400">{t("category", locale)}</div>
           <h2 className="mt-1 text-[1.65rem] font-bold tracking-[-0.03em] text-slate-950 dark:text-white sm:text-[1.9rem]">{categoryLabel({ name: title, slug: categorySlug }, locale)}</h2>
         </div>
-        <Link href={categoryHref(categorySlug)} className="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+        <Link href={categoryHref(categorySlug, locale)} className="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
           {t("readMore", locale)}
           <ArrowRight className="size-4" />
         </Link>
@@ -44,7 +44,7 @@ export default function CategoryFeatureSection({ title, categorySlug, articles, 
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
           {secondary.map((article) => (
-            <ArticleCard key={article.slug || article.id} article={article} compact locale={locale} imageHeightClass="h-[150px]" imageAspectClass="aspect-[4/3]" />
+            <ArticleCard key={article.slug || article.id} article={article} compact locale={locale} imageAspectClass="aspect-[4/3]" />
           ))}
         </div>
       </div>

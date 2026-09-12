@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { escapePostgrestSearchTerm } from '@/lib/search'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "invalid-service-role-key"
@@ -30,14 +31,14 @@ export async function GET(request: Request) {
     .lte('published_at', new Date().toISOString())
     .not('published_at', 'is', null)
 
-  const term = q.replace(/%/g, '')
+  const term = escapePostgrestSearchTerm(q)
   query = query.or(`title.ilike.%${term}%,excerpt.ilike.%${term}%`)
 
   const from = page * pageSize
   const to = from + pageSize - 1
 
   const { data, error, count } = await query.order('published_at', { ascending: false }).range(from, to)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return NextResponse.json({ error: 'Unable to search articles' }, { status: 500 })
 
   const baseItems = (data || []).map((a: any) => ({
     ...a,

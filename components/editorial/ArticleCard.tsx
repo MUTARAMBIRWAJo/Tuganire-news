@@ -4,6 +4,7 @@ import { Calendar, Eye, User, MessageCircle, Heart } from "lucide-react"
 import { ShareButton } from "@/components/ShareButton"
 import type { Article } from "@/lib/types"
 import { categoryLabel, type Locale } from "@/lib/i18n"
+import { cleanExcerpt, formatArticleDate } from "@/lib/content"
 
 function badgeClassesForCategory(input?: { name?: string; slug?: string } | null) {
   const key = (input?.slug || input?.name || "").toString().toLowerCase()
@@ -34,6 +35,7 @@ export function ArticleCard({
   const author = article.author
   const authorName = (author as any)?.display_name ?? (author as any)?.full_name ?? (author as any)?.name
   const articlePath = `/${locale}/articles/${article.slug}`
+  const excerpt = cleanExcerpt(article.excerpt)
   const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}${articlePath}`
 
   // Compact variant for side lists
@@ -103,15 +105,7 @@ export function ArticleCard({
             {article.published_at && (
               <span className="flex items-center gap-1 whitespace-nowrap">
                 <Calendar className="h-3 w-3 flex-shrink-0" />
-                <span>{new Date(article.published_at).toLocaleString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  weekday: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false
-                })}</span>
+                <span>{formatArticleDate(article.published_at, locale)}</span>
               </span>
             )}
           </div>
@@ -153,9 +147,9 @@ export function ArticleCard({
             <h3 className="text-subheadline leading-tight line-clamp-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1">
               {article.title}
             </h3>
-            {showExcerpt && article.excerpt && (
+            {showExcerpt && excerpt && (
               <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-2 leading-relaxed">
-                {article.excerpt}
+                {excerpt}
               </p>
             )}
             
@@ -181,15 +175,7 @@ export function ArticleCard({
                 {article.published_at && (
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4 flex-shrink-0" />
-                    <span>{new Date(article.published_at).toLocaleString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      weekday: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false
-                    })}</span>
+                    <span>{formatArticleDate(article.published_at, locale)}</span>
                   </span>
                 )}
               </div>
@@ -235,9 +221,9 @@ export function ArticleCard({
           <h3 className="font-semibold text-gray-900 dark:text-white text-base leading-tight line-clamp-2 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1">
             {article.title}
           </h3>
-          {showExcerpt && article.excerpt && (
+          {showExcerpt && excerpt && (
             <p className="text-xs text-gray-700 dark:text-gray-300 mb-3 line-clamp-2 leading-relaxed">
-              {article.excerpt}
+              {excerpt}
             </p>
           )}
           

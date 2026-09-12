@@ -12,18 +12,20 @@ function createSupabaseClient() {
   return createClient(supabaseUrl, anonKey);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const requestedLanguage = new URL(request.url).searchParams.get('lang')?.toLowerCase()
+  const language = requestedLanguage === 'rw' ? 'rw' : 'en'
   const sb = createSupabaseClient();
   if (!sb) {
     const buildDate = new Date().toUTCString();
-    const selfUrl = `${siteUrl}/rss.xml`;
+    const selfUrl = `${siteUrl}/rss.xml?lang=${language}`;
     const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tuganire</title>
     <link>${siteUrl}</link>
     <description>Latest news from Tuganire</description>
-    <language>en</language>
+    <language>${language}</language>
     <lastBuildDate>${buildDate}</lastBuildDate>
     <ttl>30</ttl>
     <atom:link href="${selfUrl}" rel="self" type="application/rss+xml" />
@@ -40,7 +42,8 @@ export async function GET() {
 
   const { data, error } = await sb
     .from('articles')
-    .select('slug,title,excerpt,published_at')
+    .select('slug,title,excerpt,published_at,language')
+    .eq('language', language)
     .eq('status', 'published')
     .lte('published_at', new Date().toISOString())
     .order('published_at', { ascending: false })
@@ -50,7 +53,7 @@ export async function GET() {
 
   const items = data ?? [];
   const buildDate = new Date().toUTCString();
-  const selfUrl = `${siteUrl}/rss.xml`;
+  const selfUrl = `${siteUrl}/rss.xml?lang=${language}`;
 
   // Ensure excerpt is safe inside CDATA and trimmed
   const fmt = (s: string | null | undefined) => {
@@ -64,7 +67,7 @@ export async function GET() {
     <title>Tuganire</title>
     <link>${siteUrl}</link>
     <description>Latest news from Tuganire</description>
-    <language>en</language>
+    <language>${language}</language>
     <lastBuildDate>${buildDate}</lastBuildDate>
     <ttl>30</ttl>
     <atom:link href="${selfUrl}" rel="self" type="application/rss+xml" />
@@ -73,8 +76,8 @@ export async function GET() {
         (a) => `
     <item>
       <title><![CDATA[${a.title}]]></title>
-      <link>${siteUrl}/articles/${a.slug}</link>
-      <guid isPermaLink="true">${siteUrl}/articles/${a.slug}</guid>
+      <link>${siteUrl}/${language}/articles/${a.slug}</link>
+      <guid isPermaLink="true">${siteUrl}/${language}/articles/${a.slug}</guid>
       <pubDate>${a.published_at ? new Date(a.published_at).toUTCString() : ''}</pubDate>
       <description><![CDATA[${fmt(a.excerpt)}]]></description>
     </item>`

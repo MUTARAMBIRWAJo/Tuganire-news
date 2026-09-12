@@ -25,6 +25,8 @@ import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 import { enableGoogleAdsenseArticleSlot } from "@/lib/feature-flags"
 import { getSponsoredLabel, getFactCheckLabel, socialLinksFromAuthor } from "@/lib/editorialTrust"
 import { t } from "@/lib/i18n"
+import { getArticleBySlug, normalizeLanguage } from "@/lib/articleQueries"
+import { GET as getPublicArticle } from "@/app/api/public/articles/[slug]/route"
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
@@ -162,19 +164,22 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug, lang } = await params
-  const language = lang === 'rw' ? 'rw' : 'en'
+  const language = normalizeLanguage(lang)
   const canonicalUrl = `${siteUrl}/${language}/articles/${slug}`
-  const res = await fetch(`${siteUrl}/api/public/articles/${slug}?lang=${language}`, { next: { revalidate } })
-  if (!res.ok) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return {
       title: "Article Not Found",
     }
   }
-  const { article } = await res.json()
+
+  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  const { data: article } = await getArticleBySlug(sb, slug, language)
+  if (!article) {
+    return { title: "Article Not Found" }
+  }
 
   const alternateLanguages: Record<string, string> = {}
   if (article?.story_group_id) {
-    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: translations } = await sb
       .from("articles")
       .select("slug, language")
@@ -228,7 +233,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     { widgetId: "1998800", adHeightPx: 300 },
   ]
 
-  const res = await fetch(`${siteUrl}/api/public/articles/${slug}?lang=${language}`, { next: { revalidate } })
+  const res = await getPublicArticle(
+    new Request(`http://internal/api/public/articles/${encodeURIComponent(slug)}?lang=${language}`),
+    { params: Promise.resolve({ slug }) },
+  )
   if (res.status === 404) return notFound()
   if (!res.ok) return notFound()
   const { article, media: mediaItems, related: finalRelated } = await res.json()

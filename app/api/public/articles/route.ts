@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { escapePostgrestSearchTerm } from '@/lib/search';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
   }
 
   if (q) {
-    const term = q.replace(/%/g, '').trim();
+    const term = escapePostgrestSearchTerm(q.trim());
     if (term) {
       query = query.or(
         `title.ilike.%${term}%,excerpt.ilike.%${term}%`
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
   const to = from + pageSize - 1;
 
   const { data, error, count } = await query.range(from, to);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: 'Unable to load articles' }, { status: 500 });
 
   const baseItems = (data || []).map((a: any) => ({
     ...a,
@@ -138,7 +139,7 @@ export async function GET(request: Request) {
   return NextResponse.json({ items: finalItems, total: count ?? 0 }, { status: 200 });
   } catch (err: any) {
     console.error('public/articles route error', err)
-    return NextResponse.json({ items: [], total: 0, note: 'Articles temporarily unavailable' }, { status: 200 })
+    return NextResponse.json({ error: 'Unable to load articles' }, { status: 500 });
   }
 }
 

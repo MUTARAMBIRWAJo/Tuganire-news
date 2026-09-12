@@ -29,9 +29,9 @@ export function SiteFooter() {
           <div>
             <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-white">{t("trustAndCompany", locale)}</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href={localize("/about")} className="transition-colors hover:text-white">{t("brand", locale)}</Link></li>
-              <li><Link href={localize("/terms")} className="transition-colors hover:text-white">{t("editorialPolicy", locale)}</Link></li>
-              <li><Link href={localize("/advertise")} className="transition-colors hover:text-white">{t("advertiseWithUs", locale)}</Link></li>
+              <li><Link href="/about" className="transition-colors hover:text-white">{t("brand", locale)}</Link></li>
+              <li><Link href="/terms" className="transition-colors hover:text-white">{t("editorialPolicy", locale)}</Link></li>
+              <li><Link href="/advertise" className="transition-colors hover:text-white">{t("advertiseWithUs", locale)}</Link></li>
               <li><Link href={localize("/contact")} className="transition-colors hover:text-white">{t("contact", locale)}</Link></li>
             </ul>
           </div>
@@ -39,9 +39,9 @@ export function SiteFooter() {
           <div>
             <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-white">{t("legal", locale)}</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href={localize("/privacy-policy")} className="transition-colors hover:text-white">{t("privacyPolicy", locale)}</Link></li>
-              <li><Link href={localize("/terms")} className="transition-colors hover:text-white">{t("terms", locale)}</Link></li>
-              <li><Link href={localize("/cookie-policy")} className="transition-colors hover:text-white">{t("cookiePolicy", locale)}</Link></li>
+              <li><Link href="/privacy-policy" className="transition-colors hover:text-white">{t("privacyPolicy", locale)}</Link></li>
+              <li><Link href="/terms" className="transition-colors hover:text-white">{t("terms", locale)}</Link></li>
+              <li><Link href="/cookie-policy" className="transition-colors hover:text-white">{t("cookiePolicy", locale)}</Link></li>
             </ul>
           </div>
 
@@ -51,7 +51,7 @@ export function SiteFooter() {
               <li><Link href={localize("/articles")} className="transition-colors hover:text-white">{t("allArticles", locale)}</Link></li>
               <li><Link href={localize("/categories")} className="transition-colors hover:text-white">{t("categories", locale)}</Link></li>
               <li><Link href={localize("/search")} className="transition-colors hover:text-white">{t("search", locale)}</Link></li>
-              <li><Link href={localize("/rss.xml")} className="inline-flex items-center gap-1 transition-colors hover:text-white"><Rss className="h-3 w-3" />{t("rssFeed", locale)}</Link></li>
+              <li><a href={`/rss.xml?lang=${locale}`} className="inline-flex items-center gap-1 transition-colors hover:text-white"><Rss className="h-3 w-3" />{t("rssFeed", locale)}</a></li>
             </ul>
           </div>
 

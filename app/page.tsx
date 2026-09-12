@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site-header"
 import type { Metadata } from "next"
 import HeroSection from "@/components/editorial/HeroSection"
 import TrendingRail from "@/components/TrendingRail"
+import LatestNewsSection from "@/components/home/LatestNewsSection"
 import ErrorBoundary from '@/components/errors/ErrorBoundary'
 import { getBreaking, getEditorsPicks, getFeaturedHero, getLatestArticles, getLatestByCategoryRows, getMostPopular, getPhotoGallery, getTrending } from "@/lib/homeQueries"
 import EditorsPicksSection from "@/components/EditorsPicksSection"
@@ -74,6 +75,7 @@ export default async function HomePage({
   }
 
   const sideStories = (latestArticles as any[]).map((article: any) => ({
+    id: article.id,
     slug: article.slug,
     title: article.title,
     featured_image: article.featured_image,
@@ -126,6 +128,10 @@ export default async function HomePage({
 
         <ErrorBoundary>
           <TrendingRail items={trending as any} locale={language} />
+        </ErrorBoundary>
+
+        <ErrorBoundary>
+          <LatestNewsSection items={latestArticles as any} locale={language} />
         </ErrorBoundary>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

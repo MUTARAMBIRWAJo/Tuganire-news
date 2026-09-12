@@ -4,6 +4,7 @@ import { Calendar, Eye, User, MessageCircle, Heart, ArrowUpRight } from "lucide-
 import { ShareButton } from "@/components/ShareButton"
 import type { Article } from "@/lib/types"
 import { categoryLabel, t, type Locale } from "@/lib/i18n"
+import { cleanExcerpt, formatArticleDate } from "@/lib/content"
 
 function badgeClassesForCategory(input?: { name?: string; slug?: string } | null) {
   const key = (input?.slug || input?.name || "").toString().toLowerCase()
@@ -27,8 +28,9 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
   const category = article.category
   const author = article.author
   const authorName = (author as any)?.display_name ?? (author as any)?.full_name ?? (author as any)?.name
-  const language = article.language === "rw" ? "rw" : "en"
+  const language = article.language === "rw" || article.language === "en" ? article.language : locale || "en"
   const displayLocale = locale || language
+  const excerpt = cleanExcerpt(article.excerpt)
   const articlePath = `/${language}/articles/${article.slug}`
   const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}${articlePath}`
 
@@ -40,7 +42,7 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
     return (
       <Link
         href={articlePath}
-        className="group flex h-full flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_14px_24px_-20px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_18px_34px_-22px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
+        className="group flex flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_14px_24px_-20px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_18px_34px_-22px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
       >
         {article.featured_image && (
           <div className={"relative overflow-hidden bg-slate-100 dark:bg-slate-800 " + (imageAspectClass || "aspect-[4/3]") + (imageHeightClass ? ` ${imageHeightClass}` : "")}>
@@ -55,7 +57,7 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
             <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-950/60 to-transparent" />
           </div>
         )}
-        <div className="flex flex-1 flex-col p-4 sm:p-4">
+        <div className="flex flex-col p-4 sm:p-4">
           {category && (
             <span className={`mb-2 inline-flex w-fit items-center rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${badgeClassesForCategory(category)}`}>
               {categoryLabel(category, displayLocale)}
@@ -64,8 +66,8 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
           <h3 className="line-clamp-3 text-[1.02rem] font-bold leading-snug tracking-[-0.02em] text-slate-900 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-[1.18rem]">
             {article.title}
           </h3>
-          {article.excerpt && (
-            <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{article.excerpt}</p>
+          {excerpt && (
+            <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{excerpt}</p>
           )}
 
           <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-200 pt-3 text-[11px] text-slate-500 dark:border-slate-700 dark:text-slate-400">
@@ -82,14 +84,14 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
               )}
             </div>
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1 tabular-nums"><Eye className="h-3.5 w-3.5" />{views}</span>
-              <span className="inline-flex items-center gap-1 tabular-nums"><MessageCircle className="h-3.5 w-3.5" />{comments}</span>
+              {views > 0 && <span className="inline-flex items-center gap-1 tabular-nums"><Eye className="h-3.5 w-3.5" />{views} views</span>}
+              {comments > 0 && <span className="inline-flex items-center gap-1 tabular-nums"><MessageCircle className="h-3.5 w-3.5" />{comments} comments</span>}
             </div>
           </div>
 
           {article.published_at && (
             <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{new Date(article.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+              <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{formatArticleDate(article.published_at, displayLocale)}</span>
               <ShareButton url={shareUrl} title={article.title} size="sm" />
             </div>
           )}
@@ -121,11 +123,15 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
           </div>
         )}
         <div className="p-5 sm:p-6">
-          {article.excerpt && <p className="mb-3 text-sm font-medium uppercase tracking-[0.14em] text-brand-600 dark:text-brand-400">Analysis</p>}
+          {category && (
+            <span className="mb-3 inline-flex text-[10px] font-bold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">
+              {categoryLabel(category, displayLocale)}
+            </span>
+          )}
           <h3 className="text-[1.32rem] font-black leading-[1.12] tracking-[-0.03em] text-slate-950 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-[1.58rem]">
             {article.title}
           </h3>
-          {article.excerpt && <p className="mt-3 line-clamp-3 text-base leading-7 text-slate-600 dark:text-slate-300">{article.excerpt}</p>}
+          {excerpt && <p className="mt-3 line-clamp-3 text-base leading-7 text-slate-600 dark:text-slate-300">{excerpt}</p>}
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
             <div className="flex items-center gap-3">
@@ -140,7 +146,7 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
                 </span>
               )}
               {article.published_at && (
-                <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4" />{new Date(article.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4" />{formatArticleDate(article.published_at, displayLocale)}</span>
               )}
             </div>
             <span className="inline-flex items-center gap-1.5 font-medium text-brand-600 dark:text-brand-400">
@@ -149,9 +155,9 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <span className="inline-flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" />{views}</span>
-            <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5" />{comments}</span>
-            <span className="inline-flex items-center gap-1.5"><Heart className="h-3.5 w-3.5" />{likes}</span>
+            {views > 0 && <span className="inline-flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" />{views} views</span>}
+            {comments > 0 && <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5" />{comments} comments</span>}
+            {likes > 0 && <span className="inline-flex items-center gap-1.5"><Heart className="h-3.5 w-3.5" />{likes} likes</span>}
             <ShareButton url={shareUrl} title={article.title} size="sm" />
           </div>
         </div>

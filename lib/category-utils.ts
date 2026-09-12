@@ -14,6 +14,7 @@ export function normalizeCategorySlug(value?: string | null): string {
   return clean || "uncategorized"
 }
 
-export function categoryHref(value?: string | null): string {
-  return `/category/${normalizeCategorySlug(value)}`
+export function categoryHref(value?: string | null, locale?: "en" | "rw"): string {
+  const path = `/category/${normalizeCategorySlug(value)}`
+  return locale ? `/${locale}${path}` : path
 }
