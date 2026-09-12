@@ -110,6 +110,7 @@ export default function ArticlesList({ initialFilters, pageSize = 12, infinite =
                   language: a?.language === 'rw' ? 'rw' : 'en',
                 } as any}
                 variant="horizontal"
+                priority={idx === 0}
                 locale={a?.language === 'rw' ? 'rw' : 'en'}
               />
             ))}

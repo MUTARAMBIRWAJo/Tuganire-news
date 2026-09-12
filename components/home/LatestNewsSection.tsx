@@ -19,8 +19,7 @@ export default function LatestNewsSection({ items, locale }: LatestNewsSectionPr
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">{t("latestNews", locale)}</p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">{t("latestNews", locale)}</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">{t("latestNews", locale)}</h2>
           </div>
           <Link href={`/${locale}/articles`} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">
             {t("allArticles", locale)} <ArrowUpRight className="size-4" />
@@ -48,7 +47,7 @@ export default function LatestNewsSection({ items, locale }: LatestNewsSectionPr
             {secondary.map((article) => (
               <article key={article.id || article.slug} className="group grid grid-cols-[104px_minmax(0,1fr)] gap-4 py-4 first:pt-0 last:pb-0 sm:grid-cols-[128px_minmax(0,1fr)]">
                 <Link href={`/${locale}/articles/${article.slug}`} className="relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900">
-                  {article.featured_image ? <Image src={article.featured_image} alt={article.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" sizes="128px" /> : <div className="h-full" />}
+                  {article.featured_image ? <Image src={article.featured_image} alt={article.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" sizes="128px" /> : <div className="flex h-full flex-col items-center justify-center bg-slate-200 px-2 text-center text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:bg-slate-800 dark:text-slate-400">Tuganire News</div>}
                 </Link>
                 <div className="min-w-0">
                   {article.category && <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-600 dark:text-brand-400">{categoryLabel(article.category, locale)}</span>}

@@ -1,4 +1,4 @@
-const trailingCtaPattern = /(?:read\s+(?:(?:the\s+)?full\s+story|more|all(?:\s+about\s+it)?(?:\s+here)?|all\s+here|full\s+story\s+here)|soma\s+inkuru\s+yose\s+hano)\s*[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\s]*$/iu
+const trailingCtaPattern = /(?:read\s+(?:(?:the\s+)?full\s+story|more|story|all(?:\s+about\s+it)?(?:\s+here)?|all(?:\s+news)?\s+here|full\s+story\s+here)|soma\s+inkuru\s+yose\s+hano)\s*[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\s]*$/iu
 const trailingEmojiPattern = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\s]+$/u
 
 export function cleanExcerpt(value?: string | null): string {

@@ -1,9 +1,8 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Calendar, Clock3, Eye, User, MessageCircle, Heart, ArrowUpRight } from "lucide-react"
-import { ShareButton } from "@/components/ShareButton"
+import { Calendar, Clock3, Eye, MessageCircle, Heart } from "lucide-react"
 import type { Article } from "@/lib/types"
-import { categoryLabel, t, type Locale } from "@/lib/i18n"
+import { categoryLabel, type Locale } from "@/lib/i18n"
 import { cleanArticlePreview, formatArticleDate } from "@/lib/content"
 import { formatReadingTime } from "@/lib/readingTime"
 
@@ -23,6 +22,7 @@ interface ArticleCardProps {
   compact?: boolean
   imageHeightClass?: string
   imageAspectClass?: string
+  priority?: boolean
   locale?: Locale
 }
 
@@ -41,7 +41,7 @@ function EditorialImage({ article, aspectClass, sizes, priority = false }: { art
   )
 }
 
-export function ArticleCard({ article, variant, compact = false, imageHeightClass, imageAspectClass, locale }: ArticleCardProps) {
+export function ArticleCard({ article, variant, compact = false, imageHeightClass, imageAspectClass, priority = false, locale }: ArticleCardProps) {
   const category = article.category
   const author = article.author
   const authorName = (author as any)?.display_name ?? (author as any)?.full_name ?? (author as any)?.name
@@ -50,8 +50,6 @@ export function ArticleCard({ article, variant, compact = false, imageHeightClas
   const activeVariant = variant || (compact ? "compact" : "standard")
   const excerpt = cleanArticlePreview(article.excerpt || article.content, activeVariant === "featured" ? 180 : activeVariant === "standard" ? 130 : 90)
   const articlePath = `/${language}/articles/${article.slug}`
-  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}${articlePath}`
-
   const views = Number((article as any)?.views_count ?? 0)
   const comments = Number((article as any)?.comments_count ?? (article as any)?.comment_count ?? 0)
   const likes = Number((article as any)?.likes_count ?? 0)
@@ -60,7 +58,7 @@ export function ArticleCard({ article, variant, compact = false, imageHeightClas
     return (
       <article className="group grid gap-4 border-b border-slate-200 py-5 dark:border-slate-800 sm:grid-cols-[220px_minmax(0,1fr)]">
         <Link href={articlePath} className="relative block aspect-video overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-          <EditorialImage article={article} aspectClass="h-full w-full" sizes="(max-width: 640px) 100vw, 220px" />
+          <EditorialImage article={article} aspectClass="h-full w-full" sizes="(max-width: 640px) 100vw, 220px" priority={priority} />
         </Link>
         <div className="min-w-0">
           {category && <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">{categoryLabel(category, displayLocale)}</span>}
@@ -96,54 +94,32 @@ export function ArticleCard({ article, variant, compact = false, imageHeightClas
         href={articlePath}
         className="group flex flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_14px_24px_-20px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_18px_34px_-22px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
       >
-        <EditorialImage article={article} aspectClass={(imageAspectClass || "aspect-[4/3]") + (imageHeightClass ? ` ${imageHeightClass}` : "")} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw" />
+        <EditorialImage article={article} aspectClass={(imageAspectClass || "aspect-[4/3]") + (imageHeightClass ? ` ${imageHeightClass}` : "")} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw" priority={priority} />
         <div className="flex flex-col p-4 sm:p-4">
           {category && (
             <span className={`mb-2 inline-flex w-fit items-center rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${badgeClassesForCategory(category)}`}>
               {categoryLabel(category, displayLocale)}
             </span>
           )}
-          <h3 className="line-clamp-3 text-[1.02rem] font-bold leading-snug tracking-[-0.02em] text-slate-900 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-[1.18rem]">
+          <h3 className="line-clamp-2 text-[1.02rem] font-bold leading-snug tracking-[-0.02em] text-slate-900 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-[1.18rem]">
             {article.title}
           </h3>
-          {excerpt && (
-            <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{excerpt}</p>
-          )}
-
-          <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-200 pt-3 text-[11px] text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            <div className="flex min-w-0 items-center gap-2">
-              {author && (
-                <span className="flex items-center gap-1.5 truncate">
-                  {author.avatar_url ? (
-                    <Image src={author.avatar_url} alt={authorName || "Author"} width={16} height={16} className="rounded-full" />
-                  ) : (
-                    <User className="h-3.5 w-3.5" />
-                  )}
-                  <span className="truncate">{authorName || t("author", displayLocale)}</span>
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              {views > 0 && <span className="inline-flex items-center gap-1 tabular-nums"><Eye className="h-3.5 w-3.5" />{views} views</span>}
-              {comments > 0 && <span className="inline-flex items-center gap-1 tabular-nums"><MessageCircle className="h-3.5 w-3.5" />{comments} comments</span>}
-            </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            {authorName && <span className="truncate">{authorName}</span>}
+            {article.published_at && <span className="inline-flex items-center gap-1"><Calendar className="size-3.5" />{formatArticleDate(article.published_at, displayLocale)}</span>}
           </div>
-
-          {article.published_at && (
-            <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{formatArticleDate(article.published_at, displayLocale)}</span>
-            </div>
-          )}
         </div>
       </Link>
     )
   }
 
+  const isFeatured = activeVariant === "featured"
+
   return (
     <article className="group overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_18px_32px_-26px_rgba(15,23,42,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_22px_42px_-28px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900">
       <Link href={articlePath} className="block">
           <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
-            <EditorialImage article={article} aspectClass="h-full w-full" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+            <EditorialImage article={article} aspectClass="h-full w-full" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" priority={priority} />
             {category && (
               <div className="absolute left-4 top-4">
                 <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] ${badgeClassesForCategory(category)}`}>
@@ -152,42 +128,23 @@ export function ArticleCard({ article, variant, compact = false, imageHeightClas
               </div>
             )}
           </div>
-        <div className="p-5 sm:p-6">
-          {category && (
-            <span className="mb-3 inline-flex text-[10px] font-bold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">
-              {categoryLabel(category, displayLocale)}
-            </span>
-          )}
-          <h3 className="text-[1.32rem] font-black leading-[1.12] tracking-[-0.03em] text-slate-950 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-[1.58rem]">
+        <div className={isFeatured ? "p-5 sm:p-7" : "p-4 sm:p-5"}>
+          <h3 className={`${isFeatured ? "text-2xl sm:text-[1.85rem] line-clamp-3" : "text-lg sm:text-xl line-clamp-2"} font-bold leading-tight tracking-[-0.02em] text-slate-950 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400`}>
             {article.title}
           </h3>
-          {excerpt && <p className="mt-3 line-clamp-3 text-base leading-7 text-slate-600 dark:text-slate-300">{excerpt}</p>}
+          {excerpt && <p className={`${isFeatured ? "mt-3 text-base leading-7 line-clamp-3" : "mt-2 text-sm leading-6 line-clamp-2"} text-slate-600 dark:text-slate-300`}>{excerpt}</p>}
 
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            <div className="flex items-center gap-3">
-              {author && (
-                <span className="inline-flex items-center gap-2">
-                  {author.avatar_url ? (
-                    <Image src={author.avatar_url} alt={authorName || "Author"} width={20} height={20} className="rounded-full" />
-                  ) : (
-                    <User className="h-4 w-4" />
-                  )}
-                  <span>{authorName || "Anonymous"}</span>
-                </span>
-              )}
-              {article.published_at && (
-                <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4" />{formatArticleDate(article.published_at, displayLocale)}</span>
-              )}
-            </div>
-            <span className="inline-flex items-center gap-1.5 font-medium text-brand-600 dark:text-brand-400"><ArrowUpRight className="h-4 w-4" /></span>
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            {authorName && <span>{authorName}</span>}
+            {article.published_at && <span className="inline-flex items-center gap-1.5"><Calendar className="size-3.5" />{formatArticleDate(article.published_at, displayLocale)}</span>}
+            {article.content && isFeatured && <span className="inline-flex items-center gap-1.5"><Clock3 className="size-3.5" />{formatReadingTime(article.content)}</span>}
           </div>
 
-          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-            {views > 0 && <span className="inline-flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" />{views} views</span>}
-            {comments > 0 && <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5" />{comments} comments</span>}
-            {likes > 0 && <span className="inline-flex items-center gap-1.5"><Heart className="h-3.5 w-3.5" />{likes} likes</span>}
-            <ShareButton url={shareUrl} title={article.title} size="sm" />
-          </div>
+          {isFeatured && (views > 0 || comments > 0 || likes > 0) && <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
+            {views > 0 && <span className="inline-flex items-center gap-1.5"><Eye className="size-3.5" />{views} views</span>}
+            {comments > 0 && <span className="inline-flex items-center gap-1.5"><MessageCircle className="size-3.5" />{comments} comments</span>}
+            {likes > 0 && <span className="inline-flex items-center gap-1.5"><Heart className="size-3.5" />{likes} likes</span>}
+          </div>}
         </div>
       </Link>
     </article>
