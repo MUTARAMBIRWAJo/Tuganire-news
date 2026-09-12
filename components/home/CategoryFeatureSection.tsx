@@ -11,13 +11,14 @@ interface CategoryFeatureSectionProps {
   title: string
   categorySlug: string
   articles: Array<any>
+  variant?: "lead" | "grid" | "split" | "list"
   locale?: Locale
 }
 
-export default function CategoryFeatureSection({ title, categorySlug, articles, locale = "en" }: CategoryFeatureSectionProps) {
+export default function CategoryFeatureSection({ title, categorySlug, articles, variant = "lead", locale = "en" }: CategoryFeatureSectionProps) {
   if (!articles?.length) return null
 
-  const [featured, ...secondary] = articles.slice(0, 5)
+  const [featured, ...secondary] = articles.slice(0, variant === "grid" ? 3 : variant === "list" ? 4 : 3)
 
   return (
     <motion.section
@@ -25,7 +26,7 @@ export default function CategoryFeatureSection({ title, categorySlug, articles, 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-6"
+      className="border-y border-slate-200 bg-white py-8 dark:border-slate-800 dark:bg-slate-950 sm:py-10"
     >
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
@@ -38,16 +39,22 @@ export default function CategoryFeatureSection({ title, categorySlug, articles, 
         </Link>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.95fr)]">
-        <div>
-          <ArticleCard article={featured} locale={locale} />
+      {variant === "grid" ? (
+        <div className="grid gap-5 sm:grid-cols-3">
+          {[featured, ...secondary].map((article) => <ArticleCard key={article.slug || article.id} article={article} variant="standard" locale={locale} />)}
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-          {secondary.map((article) => (
-            <ArticleCard key={article.slug || article.id} article={article} compact locale={locale} imageAspectClass="aspect-[4/3]" />
-          ))}
+      ) : variant === "list" ? (
+        <div className="divide-y divide-slate-200 dark:divide-slate-800">
+          {[featured, ...secondary].map((article) => <ArticleCard key={article.slug || article.id} article={article} variant="horizontal" locale={locale} />)}
         </div>
-      </div>
+      ) : (
+        <div className={variant === "split" ? "grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]" : "grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.95fr)]"}>
+          <ArticleCard article={featured} variant="featured" locale={locale} />
+          <div className="divide-y divide-slate-200 dark:divide-slate-800">
+            {secondary.map((article) => <ArticleCard key={article.slug || article.id} article={article} variant="compact" locale={locale} imageAspectClass="aspect-[4/3]" />)}
+          </div>
+        </div>
+      )}
     </motion.section>
   )
 }

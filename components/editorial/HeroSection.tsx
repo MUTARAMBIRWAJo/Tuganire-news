@@ -63,8 +63,9 @@ export default function HeroSection({ item, sideStories = [], locale = "en" }: H
                 sizes="(max-width: 1024px) 100vw, 62vw"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-slate-400">
-                <span className="text-lg">{t("noArticles", locale)}</span>
+              <div className="flex h-full flex-col items-center justify-center gap-2 bg-[linear-gradient(135deg,#e2e8f0,#f8fafc)] text-center text-slate-500 dark:bg-[linear-gradient(135deg,#1e293b,#0f172a)] dark:text-slate-400">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Tuganire News</span>
+                <span className="text-sm">{item.categories?.name || t("category", locale)}</span>
               </div>
             )}
 
@@ -143,8 +144,9 @@ export default function HeroSection({ item, sideStories = [], locale = "en" }: H
                       sizes="(max-width: 1024px) 50vw, 24vw"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-slate-400">
-                      <span className="text-sm">No image</span>
+                    <div className="flex h-full flex-col items-center justify-center gap-2 bg-[linear-gradient(135deg,#e2e8f0,#f8fafc)] text-center text-slate-500 dark:bg-[linear-gradient(135deg,#1e293b,#0f172a)] dark:text-slate-400">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Tuganire News</span>
+                      <span className="text-xs">{story.categories?.name || t("category", locale)}</span>
                     </div>
                   )}
                   {story.categories?.name && (

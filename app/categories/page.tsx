@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
-import { ArticleCard } from '@/components/editorial/ArticleCard'
+import { ArticleCard } from '@/components/article-card'
 import ArticleCardSkeleton from '@/components/ArticleCardSkeleton'
 import { usePathname } from 'next/navigation'
 import { categoryLabel, getLocaleFromPath, t } from '@/lib/i18n'
@@ -88,7 +88,6 @@ export default function CategoriesPage() {
                         article={article} 
                         variant="compact"
                         locale={locale}
-                        className="h-full"
                       />
                     ))}
                   </div>

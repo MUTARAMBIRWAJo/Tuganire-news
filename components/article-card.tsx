@@ -1,10 +1,11 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Calendar, Eye, User, MessageCircle, Heart, ArrowUpRight } from "lucide-react"
+import { Calendar, Clock3, Eye, User, MessageCircle, Heart, ArrowUpRight } from "lucide-react"
 import { ShareButton } from "@/components/ShareButton"
 import type { Article } from "@/lib/types"
 import { categoryLabel, t, type Locale } from "@/lib/i18n"
-import { cleanExcerpt, formatArticleDate } from "@/lib/content"
+import { cleanArticlePreview, formatArticleDate } from "@/lib/content"
+import { formatReadingTime } from "@/lib/readingTime"
 
 function badgeClassesForCategory(input?: { name?: string; slug?: string } | null) {
   const key = (input?.slug || input?.name || "").toString().toLowerCase()
@@ -18,19 +19,36 @@ function badgeClassesForCategory(input?: { name?: string; slug?: string } | null
 
 interface ArticleCardProps {
   article: Article
+  variant?: "standard" | "featured" | "compact" | "horizontal" | "ranked"
   compact?: boolean
   imageHeightClass?: string
   imageAspectClass?: string
   locale?: Locale
 }
 
-export function ArticleCard({ article, compact = false, imageHeightClass, imageAspectClass, locale }: ArticleCardProps) {
+function EditorialImage({ article, aspectClass, sizes, priority = false }: { article: Article; aspectClass: string; sizes: string; priority?: boolean }) {
+  return (
+    <div className={`relative overflow-hidden bg-slate-100 dark:bg-slate-800 ${aspectClass}`}>
+      {article.featured_image ? (
+        <Image src={article.featured_image} alt={article.title || "Article image"} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" loading={priority ? "eager" : "lazy"} priority={priority} sizes={sizes} />
+      ) : (
+        <div className="flex h-full flex-col items-center justify-center gap-2 bg-[linear-gradient(135deg,#e2e8f0,#f8fafc)] px-4 text-center text-slate-500 dark:bg-[linear-gradient(135deg,#1e293b,#0f172a)] dark:text-slate-400">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Tuganire News</span>
+          <span className="text-xs">{article.category?.name || "News"}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function ArticleCard({ article, variant, compact = false, imageHeightClass, imageAspectClass, locale }: ArticleCardProps) {
   const category = article.category
   const author = article.author
   const authorName = (author as any)?.display_name ?? (author as any)?.full_name ?? (author as any)?.name
   const language = article.language === "rw" || article.language === "en" ? article.language : locale || "en"
   const displayLocale = locale || language
-  const excerpt = cleanExcerpt(article.excerpt)
+  const activeVariant = variant || (compact ? "compact" : "standard")
+  const excerpt = cleanArticlePreview(article.excerpt || article.content, activeVariant === "featured" ? 180 : activeVariant === "standard" ? 130 : 90)
   const articlePath = `/${language}/articles/${article.slug}`
   const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}${articlePath}`
 
@@ -38,25 +56,47 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
   const comments = Number((article as any)?.comments_count ?? (article as any)?.comment_count ?? 0)
   const likes = Number((article as any)?.likes_count ?? 0)
 
-  if (compact) {
+  if (activeVariant === "horizontal") {
+    return (
+      <article className="group grid gap-4 border-b border-slate-200 py-5 dark:border-slate-800 sm:grid-cols-[220px_minmax(0,1fr)]">
+        <Link href={articlePath} className="relative block aspect-video overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+          <EditorialImage article={article} aspectClass="h-full w-full" sizes="(max-width: 640px) 100vw, 220px" />
+        </Link>
+        <div className="min-w-0">
+          {category && <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">{categoryLabel(category, displayLocale)}</span>}
+          <h3 className="mt-1 line-clamp-3 text-xl font-bold leading-tight text-slate-950 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400"><Link href={articlePath}>{article.title}</Link></h3>
+          {excerpt && <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{excerpt}</p>}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+            {authorName && <span>By {authorName}</span>}
+            {article.published_at && <span>{formatArticleDate(article.published_at, displayLocale)}</span>}
+            {article.content && <span className="inline-flex items-center gap-1"><Clock3 className="size-3" />{formatReadingTime(article.content)}</span>}
+          </div>
+        </div>
+      </article>
+    )
+  }
+
+  if (activeVariant === "ranked") {
+    return (
+      <article className="group grid grid-cols-[42px_96px_minmax(0,1fr)] items-start gap-3 border-b border-slate-200 py-4 dark:border-slate-800">
+        <div className="text-2xl font-black tabular-nums text-slate-300 dark:text-slate-700" aria-hidden="true">{String((article as any).rank || 1).padStart(2, "0")}</div>
+        <Link href={articlePath} className="relative block aspect-[4/3] overflow-hidden rounded-md bg-slate-100 dark:bg-slate-900"><EditorialImage article={article} aspectClass="h-full w-full" sizes="96px" /></Link>
+        <div className="min-w-0">
+          {category && <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-600 dark:text-brand-400">{categoryLabel(category, displayLocale)}</span>}
+          <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-snug text-slate-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400"><Link href={articlePath}>{article.title}</Link></h3>
+          {article.published_at && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatArticleDate(article.published_at, displayLocale)}</p>}
+        </div>
+      </article>
+    )
+  }
+
+  if (activeVariant === "compact") {
     return (
       <Link
         href={articlePath}
         className="group flex flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_14px_24px_-20px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_18px_34px_-22px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
       >
-        {article.featured_image && (
-          <div className={"relative overflow-hidden bg-slate-100 dark:bg-slate-800 " + (imageAspectClass || "aspect-[4/3]") + (imageHeightClass ? ` ${imageHeightClass}` : "")}>
-            <Image
-              src={article.featured_image}
-              alt={article.title}
-              fill
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-              loading="lazy"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
-            />
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-950/60 to-transparent" />
-          </div>
-        )}
+        <EditorialImage article={article} aspectClass={(imageAspectClass || "aspect-[4/3]") + (imageHeightClass ? ` ${imageHeightClass}` : "")} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw" />
         <div className="flex flex-col p-4 sm:p-4">
           {category && (
             <span className={`mb-2 inline-flex w-fit items-center rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${badgeClassesForCategory(category)}`}>
@@ -92,7 +132,6 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
           {article.published_at && (
             <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{formatArticleDate(article.published_at, displayLocale)}</span>
-              <ShareButton url={shareUrl} title={article.title} size="sm" />
             </div>
           )}
         </div>
@@ -103,16 +142,8 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
   return (
     <article className="group overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_18px_32px_-26px_rgba(15,23,42,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_22px_42px_-28px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900">
       <Link href={articlePath} className="block">
-        {article.featured_image && (
           <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
-            <Image
-              src={article.featured_image}
-              alt={article.title}
-              fill
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
+            <EditorialImage article={article} aspectClass="h-full w-full" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
             {category && (
               <div className="absolute left-4 top-4">
                 <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] ${badgeClassesForCategory(category)}`}>
@@ -121,7 +152,6 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
               </div>
             )}
           </div>
-        )}
         <div className="p-5 sm:p-6">
           {category && (
             <span className="mb-3 inline-flex text-[10px] font-bold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">
@@ -149,9 +179,7 @@ export function ArticleCard({ article, compact = false, imageHeightClass, imageA
                 <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4" />{formatArticleDate(article.published_at, displayLocale)}</span>
               )}
             </div>
-            <span className="inline-flex items-center gap-1.5 font-medium text-brand-600 dark:text-brand-400">
-              Read story <ArrowUpRight className="h-4 w-4" />
-            </span>
+            <span className="inline-flex items-center gap-1.5 font-medium text-brand-600 dark:text-brand-400"><ArrowUpRight className="h-4 w-4" /></span>
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">

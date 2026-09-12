@@ -81,7 +81,7 @@ export default function ArticlesList({ initialFilters, pageSize = 12, infinite =
   return (
     <section className="mx-auto max-w-7xl px-4">
       <div className="mb-6 text-sm text-gray-600 dark:text-gray-400 font-medium">{total ? `Showing ${items.length} of ${total} articles` : null}</div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="divide-y divide-slate-200 dark:divide-slate-800">
         {isLoading
           ? Array.from({ length: pageSize }).map((_, i) => <ArticleCardSkeleton key={i} />)
           : items.length === 0
@@ -109,7 +109,8 @@ export default function ArticlesList({ initialFilters, pageSize = 12, infinite =
                   youtube_link: a?.youtube_link,
                   language: a?.language === 'rw' ? 'rw' : 'en',
                 } as any}
-                compact={true}
+                variant="horizontal"
+                locale={a?.language === 'rw' ? 'rw' : 'en'}
               />
             ))}
       </div>

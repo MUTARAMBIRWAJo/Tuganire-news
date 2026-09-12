@@ -24,7 +24,8 @@ import AuthorProfileCard from "@/components/articles/AuthorProfileCard"
 import { formatReadingTime, wordCount as getWordCount } from "@/lib/readingTime"
 import { enableGoogleAdsenseArticleSlot } from "@/lib/feature-flags"
 import { getSponsoredLabel, getFactCheckLabel, socialLinksFromAuthor } from "@/lib/editorialTrust"
-import { t } from "@/lib/i18n"
+import { categoryLabel, t } from "@/lib/i18n"
+import { cleanArticlePreview, formatArticleDate } from "@/lib/content"
 import { getArticleBySlug, normalizeLanguage } from "@/lib/articleQueries"
 import { GET as getPublicArticle } from "@/app/api/public/articles/[slug]/route"
 
@@ -397,14 +398,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   href={`/${language}/category/${category.slug}`}
                   className="mb-4 inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-700 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-300"
                 >
-                  {category.name}
+                  {categoryLabel(category, ui)}
                 </Link>
               )}
               <h1 className="max-w-[15ch] text-balance text-[clamp(1rem,2.1vw,2.3rem)] font-black leading-[1.04] tracking-[-0.04em] text-slate-950 dark:text-white sm:leading-[1.08] lg:max-w-[18ch]">
                 {article.title}
               </h1>
-              {article.excerpt && (
-                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:mt-5 sm:text-lg sm:leading-8">{article.excerpt}</p>
+              {cleanArticlePreview(article.excerpt || article.content, 220) && (
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:mt-5 sm:text-lg sm:leading-8">{cleanArticlePreview(article.excerpt || article.content, 220)}</p>
               )}
 
               <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2.5 text-[11px] text-slate-500 dark:text-slate-400 sm:gap-x-4 sm:text-sm">
@@ -418,11 +419,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     {author.display_name || t("author", ui)}
                   </span>
                 )}
-                {article.published_at && (
-                  <span className="inline-flex items-center gap-2"><Calendar className="h-4 w-4" />{new Date(article.published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
-                )}
+                {article.published_at && <span className="inline-flex items-center gap-2"><Calendar className="h-4 w-4" />{formatArticleDate(article.published_at, ui)}</span>}
                 <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4" />{readingTimeLabel}</span>
-                <span className="inline-flex items-center gap-2"><MessageCircle className="h-4 w-4" />{(article as any).comments_count || 0} {t("comments", ui)}</span>
+                {(article as any).comments_count > 0 && <span className="inline-flex items-center gap-2"><MessageCircle className="h-4 w-4" />{(article as any).comments_count} {t("comments", ui)}</span>}
                 <span className="inline-flex items-center gap-2"><LikeButton slug={slug} initialCount={(article as any).likes_count || 0} /></span>
               </div>
 

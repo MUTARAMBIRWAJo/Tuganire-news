@@ -74,7 +74,9 @@ export default async function HomePage({
     console.error("Homepage data unavailable:", error)
   }
 
-  const sideStories = (latestArticles as any[]).map((article: any) => ({
+  const sideStories = (latestArticles as any[])
+    .filter((article: any) => article.slug !== hero?.slug)
+    .map((article: any) => ({
     id: article.id,
     slug: article.slug,
     title: article.title,
@@ -82,16 +84,21 @@ export default async function HomePage({
     published_at: article.published_at,
     views_count: article.views_count,
     categories: article.category,
-  }))
+    }))
 
   const categoryTargets = [
-    { title: "Politics", keywords: ["politics", "political"] },
-    { title: "Sports", keywords: ["sports", "sport"] },
-    { title: "Business", keywords: ["business", "market", "economy"] },
-    { title: "Entertainment", keywords: ["entertainment", "culture", "lifestyle"] },
-    { title: "Technology", keywords: ["technology", "tech", "science"] },
-    { title: "World", keywords: ["world", "international", "global"] },
+    { title: "Politics", keywords: ["politics", "political"], variant: "lead" as const },
+    { title: "Business", keywords: ["business", "market", "economy"], variant: "grid" as const },
+    { title: "Technology", keywords: ["technology", "tech", "science"], variant: "list" as const },
+    { title: "Sports", keywords: ["sports", "sport"], variant: "split" as const },
+    { title: "World", keywords: ["world", "international", "global"], variant: "grid" as const },
+    { title: "Entertainment", keywords: ["entertainment", "culture", "lifestyle"], variant: "split" as const },
   ]
+
+  const excludedHomeStories = new Set([
+    hero?.slug,
+    ...(latestArticles as any[]).slice(0, 2).map((article: any) => article.slug),
+  ].filter(Boolean))
 
   const normalizedRows = (rows as any[])
     .map((row) => ({
@@ -107,10 +114,11 @@ export default async function HomePage({
       return {
         title: target.title,
         categorySlug: row.category_slug,
-        articles: row.articles,
+        variant: target.variant,
+        articles: row.articles.filter((article: any) => !excludedHomeStories.has(article.slug)),
       }
     })
-    .filter(Boolean) as Array<{ title: string; categorySlug: string; articles: any[] }>
+    .filter(Boolean) as Array<{ title: string; categorySlug: string; variant: "lead" | "grid" | "split" | "list"; articles: any[] }>
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
@@ -127,26 +135,41 @@ export default async function HomePage({
         </ErrorBoundary>
 
         <ErrorBoundary>
-          <TrendingRail items={trending as any} locale={language} />
+          <LatestNewsSection items={latestArticles as any} locale={language} />
         </ErrorBoundary>
 
         <ErrorBoundary>
-          <LatestNewsSection items={latestArticles as any} locale={language} />
+          <TrendingRail items={trending as any} locale={language} />
         </ErrorBoundary>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
             <div className="space-y-10">
-              {categorySections.map((section) => (
+              {categorySections.slice(0, 2).map((section) => (
                 <ErrorBoundary key={section.categorySlug}>
                   <CategoryFeatureSection
                     title={section.title}
                     categorySlug={section.categorySlug}
                     articles={section.articles}
+                    variant={section.variant}
                     locale={language}
                   />
                 </ErrorBoundary>
               ))}
+
+              <div className="grid gap-10 xl:grid-cols-2">
+                {categorySections.slice(2).map((section) => (
+                  <ErrorBoundary key={section.categorySlug}>
+                    <CategoryFeatureSection
+                      title={section.title}
+                      categorySlug={section.categorySlug}
+                      articles={section.articles}
+                      variant={section.variant}
+                      locale={language}
+                    />
+                  </ErrorBoundary>
+                ))}
+              </div>
 
               <ErrorBoundary>
                 <EditorsPicksSection items={editorsPicks as any} locale={language} />
@@ -158,7 +181,7 @@ export default async function HomePage({
                 <MostPopularSection items={mostPopular as any} period="week" locale={language} />
               </ErrorBoundary>
               <ErrorBoundary>
-                <PhotoGallery items={photoGallery as any} title="Video / Photo Gallery" />
+                <PhotoGallery items={photoGallery as any} title={language === "rw" ? "Amafoto n'amashusho" : "Video / Photo Gallery"} />
               </ErrorBoundary>
               <NewsroomIdentitySection locale={language} />
             </div>

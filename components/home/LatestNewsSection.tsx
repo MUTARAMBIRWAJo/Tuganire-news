@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowUpRight, Calendar } from "lucide-react"
 import { categoryLabel, t, type Locale } from "@/lib/i18n"
-import { cleanExcerpt, formatArticleDate } from "@/lib/content"
+import { cleanArticlePreview, formatArticleDate } from "@/lib/content"
 
 interface LatestNewsSectionProps {
   items: Array<any>
@@ -20,9 +20,7 @@ export default function LatestNewsSection({ items, locale }: LatestNewsSectionPr
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">{t("latestNews", locale)}</p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-              {locale === "rw" ? "Amakuru agezweho" : "What just happened"}
-            </h2>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">{t("latestNews", locale)}</h2>
           </div>
           <Link href={`/${locale}/articles`} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">
             {t("allArticles", locale)} <ArrowUpRight className="size-4" />
@@ -33,15 +31,15 @@ export default function LatestNewsSection({ items, locale }: LatestNewsSectionPr
           <article className="group grid gap-5 sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
             <Link href={`/${locale}/articles/${lead.slug}`} className="relative block aspect-[16/10] overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
               {lead.featured_image ? (
-                <Image src={lead.featured_image} alt={lead.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" sizes="(max-width: 640px) 100vw, 45vw" />
-              ) : <div className="flex h-full items-center justify-center text-sm text-slate-500">{t("noArticles", locale)}</div>}
+                <Image src={lead.featured_image} alt={lead.title} fill priority className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" sizes="(max-width: 640px) 100vw, 45vw" />
+              ) : <div className="flex h-full flex-col items-center justify-center gap-2 bg-[linear-gradient(135deg,#e2e8f0,#f8fafc)] text-center text-slate-500 dark:bg-[linear-gradient(135deg,#1e293b,#0f172a)] dark:text-slate-400"><span className="text-[10px] font-bold uppercase tracking-[0.2em]">Tuganire News</span><span className="text-xs">{lead.category ? categoryLabel(lead.category, locale) : t("category", locale)}</span></div>}
             </Link>
             <div className="flex flex-col justify-center">
               {lead.category && <span className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">{categoryLabel(lead.category, locale)}</span>}
               <h3 className="text-balance text-2xl font-bold leading-tight tracking-tight text-slate-950 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-3xl">
                 <Link href={`/${locale}/articles/${lead.slug}`}>{lead.title}</Link>
               </h3>
-              {cleanExcerpt(lead.excerpt) && <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{cleanExcerpt(lead.excerpt)}</p>}
+              {cleanArticlePreview(lead.excerpt || lead.content, 180) && <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{cleanArticlePreview(lead.excerpt || lead.content, 180)}</p>}
               {lead.published_at && <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400"><Calendar className="size-3.5" />{formatArticleDate(lead.published_at, locale)}</p>}
             </div>
           </article>
