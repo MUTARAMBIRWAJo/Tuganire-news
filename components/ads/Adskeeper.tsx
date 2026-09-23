@@ -17,18 +17,24 @@ export function AdskeeperLoader({ nonce }: AdskeeperLoaderProps) {
   const pathname = usePathname()
 
   useEffect(() => {
-    const { adskeeperEnabled } = getAdRouteState(pathname)
-
-    syncManagedScript({
-      id: AD_NETWORK_SCRIPT_IDS.adskeeper,
-      src: AD_NETWORK_SCRIPT_URLS.adskeeper,
-      enabled: adskeeperEnabled,
-      nonce,
-      crossOrigin: "anonymous",
-      dataset: {
-        network: "adskeeper",
-      },
-    })
+    let cancelled = false
+    const sync = async () => {
+      const { adskeeperEnabled } = getAdRouteState(pathname)
+      const response = await fetch("/api/public/adskeeper", { cache: "no-store" }).catch(() => null)
+      const configured = response?.ok ? await response.json().catch(() => ({ config: null })) : { config: null }
+      const siteId = configured.config?.siteId || process.env.NEXT_PUBLIC_ADSKEEPER_SITE_ID
+      if (cancelled) return
+      syncManagedScript({
+        id: AD_NETWORK_SCRIPT_IDS.adskeeper,
+        src: siteId ? AD_NETWORK_SCRIPT_URLS.adskeeper.replace("{siteId}", encodeURIComponent(siteId)) : AD_NETWORK_SCRIPT_URLS.adskeeper,
+        enabled: adskeeperEnabled && Boolean(siteId),
+        nonce,
+        crossOrigin: "anonymous",
+        dataset: { network: "adskeeper" },
+      })
+    }
+    void sync()
+    return () => { cancelled = true }
   }, [pathname, nonce])
 
   return null

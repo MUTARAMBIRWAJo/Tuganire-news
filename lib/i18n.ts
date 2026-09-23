@@ -52,17 +52,79 @@ const languageTransferRw = {
   changeToLanguage: "Hindura ibe {language}",
 } as const
 
+const stayUpdatedEn = {
+  stayUpdated: "Stay Updated",
+  stayUpdatedTitle: "Follow the newsroom, support the reporting.",
+  stayUpdatedDescription: "Subscribe, contribute, advertise, or promote your story through a clean, mobile-first newsroom experience.",
+  newsletterSubscribe: "Newsletter Subscribe",
+  newsletterSubscribeDescription: "Get the latest headlines, analysis, and breaking alerts in your inbox.",
+  supportIndependent: "Support Independent Journalism",
+  supportIndependentDescription: "Contribute to on-the-ground reporting, fact-checking, and newsroom tools.",
+  advertiseWithUsDescription: "Reach a trusted audience with clean, brand-safe advertising packages.",
+  promoteYourStory: "Promote Your Story",
+  promoteYourStoryDescription: "Publish sponsored stories, homepage boosts, and premium brand posts.",
+  becomeSupporter: "Become a Supporter",
+  becomeSupporterDescription: "Future membership perks and supporter-only benefits will live here.",
+  loadingAction: "Loading",
+} as const
+
+const stayUpdatedRw = {
+  stayUpdated: "Komeza ugezweho",
+  stayUpdatedTitle: "Kurikirana ibiro by'amakuru, ushyigikire itangazamakuru.",
+  stayUpdatedDescription: "Iyandikishe, utange inkunga, wamamaze cyangwa uteze imbere inkuru yawe mu buryo bworoshye kandi bukorera kuri telefone.",
+  newsletterSubscribe: "Iyandikishe ku kanyamakuru",
+  newsletterSubscribeDescription: "Akira amakuru mashya, isesengura n'amakuru yihutirwa kuri imeyili yawe.",
+  supportIndependent: "Shyigikira Itangazamakuru Ryigenga",
+  supportIndependentDescription: "Tanga inkunga ku itangazamakuru rikorwa ku butaka, igenzura ry'amakuru n'ibikoresho by'ibiro by'amakuru.",
+  advertiseWithUsDescription: "Gera ku bantu bizeye amakuru binyuze mu matangazo meza kandi yubahiriza umutekano w'ikirango.",
+  promoteYourStory: "Tangaza Inkuru Yawe",
+  promoteYourStoryDescription: "Tangaza inkuru zatewe inkunga, uzamure urubuga rwawe cyangwa ushyire ahagaragara ubutumwa bw'ikigo.",
+  becomeSupporter: "Ba Umushyigikizi",
+  becomeSupporterDescription: "Amahame y'abanyamuryango n'ibyiza by'abashyigikizi bizaboneka hano mu gihe kizaza.",
+  loadingAction: "Biratunganywa",
+} as const
+
+const homepageSectionsEn = {
+  latestBreakingStories: "Latest Breaking News & Stories",
+  verifiedReporting: "Verified reporting from Kigali and beyond",
+  newsroomFeed: "The newsroom feed",
+  latestNewsSection: "Latest News",
+  viewAll: "View all",
+  mostRead: "Most Read",
+  shared: "Shared",
+  whatReadersAreReading: "What readers are reading",
+  matchdayDesk: "Matchday desk",
+  sportsDescription: "Amavubi, local leagues and the stories behind Rwanda's sporting moments.",
+  editorsPicks: "Editor's Picks",
+} as const
+
+const homepageSectionsRw = {
+  latestBreakingStories: "Amakuru yihutirwa n'inkuru zigezweho",
+  verifiedReporting: "Amakuru yizewe aturuka i Kigali n'ahandi",
+  newsroomFeed: "Amakuru mashya y'ibiro by'amakuru",
+  latestNewsSection: "Amakuru aheruka",
+  viewAll: "Reba byose",
+  mostRead: "Ibisomwe cyane",
+  shared: "Byasangiwe",
+  whatReadersAreReading: "Ibyo abasomyi bari gusoma",
+  matchdayDesk: "Amakuru y'imikino",
+  sportsDescription: "Amakuru y'Amavubi, amarushanwa yo mu gihugu n'inkuru z'imikino mu Rwanda.",
+  editorsPicks: "Ibyatoranyijwe n'abanditsi",
+} as const
+
 export const translations = {
-  en: { ...common, ...secondaryEn, ...languageTransferEn },
+  en: { ...common, ...secondaryEn, ...languageTransferEn, ...stayUpdatedEn, ...homepageSectionsEn },
   rw: {
     ...common,
     ...secondaryRw,
     ...languageTransferRw,
+    ...stayUpdatedRw,
+    ...homepageSectionsRw,
     brand: "Tuganire Amakuru", coverage: "u Rwanda na Afurika", home: "Ahabanza", latestNews: "Amakuru aheruka", breakingNews: "Amakuru yihutirwa", featured: "Byatoranyijwe", trending: "Ibikunzwe", popular: "Ibikunzwe cyane", categories: "Ibyiciro", politics: "Politiki", business: "Ubucuruzi", sports: "Imikino", technology: "Ikoranabuhanga", entertainment: "Imyidagaduro", world: "Isi", about: "Twebwe", contact: "Twandikire", careers: "Akazi", articles: "Inkuru", search: "Shakisha", searchPlaceholder: "Shakisha ijambo, ingingo cyangwa umunyamakuru", login: "Injira", register: "Iyandikishe", logout: "Sohoka", language: "Ururimi", english: "Icyongereza", kinyarwanda: "Kinyarwanda", readMore: "Soma byinshi", readArticle: "Soma inkuru", share: "Sangiza", comments: "Ibitekerezo", noComments: "Nta bitekerezo biratangwa.", relatedArticles: "Izindi nkuru zijyanye n'iyi", noRelatedArticles: "Nta zindi nkuru zijyanye n'iyi zihari.", published: "Byashyizwe ahagaragara", updated: "Byavuguruwe", author: "Umwanditsi", category: "Icyiciro", tags: "Utumenyetso", readingTime: "Igihe cyo gusoma", minutesRead: "iminota yo gusoma", back: "Subira inyuma", next: "Ibikurikira", previous: "Ibyabanje", loadMore: "Erekana izindi", subscribe: "Iyandikishe", newsletter: "Akanyamakuru", subscribeToUpdates: "Iyandikishe ku makuru mashya", email: "Imeyili", submit: "Ohereza", cancel: "Hagarika", close: "Funga", save: "Bika", edit: "Hindura", delete: "Siba", confirm: "Emeza", loading: "Biratunganywa", success: "Byagenze neza", error: "Ikibazo", noArticles: "Nta nkuru zabonetse.", noResults: "Nta bisubizo bibonetse.", articleNotFound: "Inkuru ntiyabonetse.", pageNotFound: "Urupapuro ntiyabonetse", pageNotFoundDescription: "Urupapuro ushaka ntirubaho cyangwa rwimuwe.", somethingWentWrong: "Hari ikibazo cyabaye.", tryAgain: "Ongera ugerageze", goHome: "Jya ahabanza", browseArticles: "Reba inkuru", contactUs: "Twandikire", allRightsReserved: "Uburenganzira bwose burabitswe.", independentReporting: "Amakuru yigenga yerekeye u Rwanda, Afurika n'isi.", newsroom: "Ibiro by'amakuru bya Tuganire", trustAndCompany: "Ibyerekeye ikigo", editorialPolicy: "Amabwiriza y'itangazamakuru", advertiseWithUs: "Kwamamaza natwe", legal: "Amategeko", privacyPolicy: "Politiki y'ibanga", terms: "Amabwiriza", cookiePolicy: "Politiki ya kuki", navigate: "Kuyobora", allArticles: "Inkuru zose", rssFeed: "Amakuru ya RSS", follow: "Dukurikire", globalCoverage: "Amakuru yo mu Rwanda no ku isi", toggleDarkMode: "Hindura uburyo bw'umwijima", openMenu: "Fungura menu", closeMenu: "Funga menu", switchLanguage: "Hindura ururimi", translationUnavailable: "Iyi verisiyo ntiboneka.", breaking: "Yihutirwa", section: "Igice", discoverStories: "Menya inkuru", showingArticles: "Herekanwe inkuru {count} kuri {total}", articleSaved: "Inkuru yabitswe neza.", articlePublished: "Inkuru yashyizwe ahagaragara neza.", translationCreated: "Ubuhinduzi bwakozwe neza.", failedToSave: "Kubika inkuru byanze.", failedToLoad: "Kubona amakuru byanze.", emailRequired: "Imeyili irakenewe.", invalidEmail: "Andika imeyili iboneye.", alreadySubscribed: "Iyi meyili yamaze kwiyandikisha.", newsletterSuccess: "Kwiyandikisha byagenze neza!", newsletterThanks: "Murakoze kwiyandikisha ku makuru yacu.", pendingApproval: "Birategereje kwemezwa", dismiss: "Funga", namePlaceholder: "Amazina yawe *", emailOptional: "Imeyili (si ngombwa)", writeComment: "Andika igitekerezo cyawe...", submitting: "Biroherezwa...", postComment: "Ohereza igitekerezo", failedToPostComment: "Kohereza igitekerezo byanze"
   }
 } as const
 
-export type TranslationKey = keyof typeof common | keyof typeof secondaryEn | keyof typeof languageTransferEn
+export type TranslationKey = keyof typeof common | keyof typeof secondaryEn | keyof typeof languageTransferEn | keyof typeof stayUpdatedEn | keyof typeof homepageSectionsEn
 export type CategoryLabelInput = { name?: string | null; slug?: string | null }
 
 const categoryKeys: Record<string, TranslationKey> = {

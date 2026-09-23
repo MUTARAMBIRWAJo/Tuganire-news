@@ -12,14 +12,9 @@ export const AD_NETWORK_SCRIPT_IDS = {
   adskeeper: "tuganire-adskeeper-script",
 } as const
 
-const DEFAULT_ADSENSE_CLIENT = "ca-pub-1524579863977140"
-const DEFAULT_ADSKEEPER_SITE = "1087913"
-
 export const AD_NETWORK_SCRIPT_URLS = {
-  adsense: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${
-    process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || DEFAULT_ADSENSE_CLIENT
-  }`,
-  adskeeper: `https://jsc.adskeeper.com/site/${process.env.NEXT_PUBLIC_ADSKEEPER_SITE_ID || DEFAULT_ADSKEEPER_SITE}.js`,
+  adsense: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+  adskeeper: "https://jsc.adskeeper.com/site/{siteId}.js",
 } as const
 
 const RESTRICTED_PATHS = [
@@ -66,8 +61,8 @@ export function getAdRouteState(pathname?: string | null): AdRouteState {
     siteUrl.includes("127.0.0.1") ||
     siteUrl.includes("0.0.0.0")
 
-  const hasAdsenseConfig = !!(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NEXT_PUBLIC_ENABLE_ADSENSE)
-  const hasAdskeeperConfig = !!(process.env.NEXT_PUBLIC_ADSKEEPER_SITE_ID || process.env.NEXT_PUBLIC_ENABLE_ADSKEEPER)
+  const hasAdsenseConfig = !!process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
+  const hasAdskeeperConfig = !!process.env.NEXT_PUBLIC_ADSKEEPER_SITE_ID
 
   return {
     pathname: normalized,

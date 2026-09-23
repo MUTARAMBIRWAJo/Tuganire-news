@@ -17,18 +17,24 @@ export function GoogleAdsenseLoader({ nonce }: GoogleAdsenseLoaderProps) {
   const pathname = usePathname()
 
   useEffect(() => {
-    const { adsenseEnabled } = getAdRouteState(pathname)
-
-    syncManagedScript({
-      id: AD_NETWORK_SCRIPT_IDS.adsense,
-      src: AD_NETWORK_SCRIPT_URLS.adsense,
-      enabled: adsenseEnabled,
-      nonce,
-      crossOrigin: "anonymous",
-      dataset: {
-        network: "adsense",
-      },
-    })
+    let cancelled = false
+    const sync = async () => {
+      const { adsenseEnabled } = getAdRouteState(pathname)
+      const response = await fetch("/api/public/adsense", { cache: "no-store" }).catch(() => null)
+      const payload = response?.ok ? await response.json().catch(() => ({ config: null })) : { config: null }
+      const config = payload.config
+      if (cancelled) return
+      syncManagedScript({
+        id: AD_NETWORK_SCRIPT_IDS.adsense,
+        src: config?.publisherId ? `${AD_NETWORK_SCRIPT_URLS.adsense}?client=${encodeURIComponent(config.publisherId)}` : AD_NETWORK_SCRIPT_URLS.adsense,
+        enabled: adsenseEnabled && Boolean(config?.publisherId),
+        nonce,
+        crossOrigin: "anonymous",
+        dataset: { network: "adsense" },
+      })
+    }
+    void sync()
+    return () => { cancelled = true }
   }, [pathname, nonce])
 
   return null

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { isAdvertisementPlacement, type AdvertisementPlacement } from "@/lib/advertisements"
 
 const createServiceClient = (url: string, key: string) => {
   return createClient(url, key, { auth: { persistSession: false } })
@@ -13,19 +14,30 @@ const sb = createClient(supabaseUrl, anonKey, {
 })
 
 export const runtime = "edge"
-export const revalidate = 300 // Revalidate every 5 minutes
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const now = new Date().toISOString()
+    const { searchParams } = new URL(request.url)
+    const placementParam = searchParams.get("placement") || "HOME_BELOW_BREAKING_NEWS"
+    const locale = searchParams.get("locale") === "rw" ? "rw" : "en"
+    if (!isAdvertisementPlacement(placementParam)) {
+      return NextResponse.json({ ads: [] }, { status: 400 })
+    }
+    const placement = placementParam as AdvertisementPlacement
 
     // Use anon client to ensure public access
     const { data, error } = await sb
       .from("advertisements")
-      .select("id, title, description, media_type, media_url, link_url, view_count, display_order")
+      .select("id, title, description, title_en, description_en, cta_text_en, title_rw, description_rw, cta_text_rw, media_type, media_url, mobile_media_url, poster_url, link_url, placement, view_count, display_order, priority")
       .eq("is_active", true)
+      .eq("status", "ACTIVE")
+      .eq("placement", placement)
       .or(`start_date.is.null,start_date.lte.${now}`)
       .or(`end_date.is.null,end_date.gte.${now}`)
+      .order("priority", { ascending: false })
       .order("display_order", { ascending: true })
       .order("created_at", { ascending: false })
       
@@ -59,7 +71,20 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ ads: data || [] }, { status: 200 })
+    const localizedAds = (data || []).map((ad) => ({
+      id: ad.id,
+      media_type: ad.media_type,
+      media_url: ad.media_url,
+      mobile_media_url: ad.mobile_media_url || null,
+      poster_url: ad.poster_url || null,
+      title: (locale === "rw" ? ad.title_rw : ad.title_en) || ad.title,
+      description: (locale === "rw" ? ad.description_rw : ad.description_en) || ad.description,
+      cta_text: (locale === "rw" ? ad.cta_text_rw : ad.cta_text_en) || null,
+      link_url: ad.link_url,
+      placement: ad.placement,
+    }))
+
+    return NextResponse.json({ ads: localizedAds }, { status: 200 })
   } catch (error: any) {
     console.error("Advertisements API error:", error)
     return NextResponse.json({ ads: [] }, { status: 200 })

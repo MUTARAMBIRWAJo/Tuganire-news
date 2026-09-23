@@ -20,6 +20,7 @@ import { Plus, Edit, Trash2, Image as ImageIcon, Video, Eye, MousePointerClick }
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
+import { ADVERTISEMENT_PLACEMENTS, type AdvertisementStatus } from "@/lib/advertisements"
 
 interface Advertisement {
   id: string
@@ -27,6 +28,18 @@ interface Advertisement {
   description: string | null
   media_type: "image" | "video"
   media_url: string
+  poster_url?: string | null
+  mobile_media_url?: string | null
+  advertiser_name?: string | null
+  placement?: string
+  priority?: number
+  status?: AdvertisementStatus
+  title_en?: string | null
+  description_en?: string | null
+  cta_text_en?: string | null
+  title_rw?: string | null
+  description_rw?: string | null
+  cta_text_rw?: string | null
   link_url: string | null
   is_active: boolean
   display_order: number
@@ -43,6 +56,8 @@ interface Advertisement {
 
 export default function AdvertisementsPage() {
   const [ads, setAds] = useState<Advertisement[]>([])
+  const [filterStatus, setFilterStatus] = useState("all")
+  const [filterPlacement, setFilterPlacement] = useState("all")
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingAd, setEditingAd] = useState<Advertisement | null>(null)
@@ -53,6 +68,18 @@ export default function AdvertisementsPage() {
     description: "",
     media_type: "image" as "image" | "video",
     media_url: "",
+    poster_url: "",
+    mobile_media_url: "",
+    advertiser_name: "",
+    placement: "HOME_BELOW_BREAKING_NEWS",
+    priority: 0,
+    status: "ACTIVE" as AdvertisementStatus,
+    title_en: "",
+    description_en: "",
+    cta_text_en: "",
+    title_rw: "",
+    description_rw: "",
+    cta_text_rw: "",
     storage_bucket: "",
     storage_path: "",
     media_mime: "",
@@ -65,6 +92,7 @@ export default function AdvertisementsPage() {
   })
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const posterInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     fetchAds()
@@ -160,6 +188,18 @@ export default function AdvertisementsPage() {
       description: ad.description || "",
       media_type: ad.media_type,
       media_url: ad.media_url,
+      poster_url: ad.poster_url || "",
+      mobile_media_url: ad.mobile_media_url || "",
+      advertiser_name: ad.advertiser_name || "",
+      placement: ad.placement || "HOME_BELOW_BREAKING_NEWS",
+      priority: ad.priority || 0,
+      status: ad.status || (ad.is_active ? "ACTIVE" : "PAUSED"),
+      title_en: ad.title_en || ad.title,
+      description_en: ad.description_en || ad.description || "",
+      cta_text_en: ad.cta_text_en || "",
+      title_rw: ad.title_rw || "",
+      description_rw: ad.description_rw || "",
+      cta_text_rw: ad.cta_text_rw || "",
       storage_bucket: ad.storage_bucket || "",
       storage_path: ad.storage_path || "",
       media_mime: ad.media_mime || "",
@@ -179,6 +219,18 @@ export default function AdvertisementsPage() {
       description: "",
       media_type: "image",
       media_url: "",
+      poster_url: "",
+      mobile_media_url: "",
+      advertiser_name: "",
+      placement: "HOME_BELOW_BREAKING_NEWS",
+      priority: 0,
+      status: "ACTIVE" as AdvertisementStatus,
+      title_en: "",
+      description_en: "",
+      cta_text_en: "",
+      title_rw: "",
+      description_rw: "",
+      cta_text_rw: "",
       storage_bucket: "",
       storage_path: "",
       media_mime: "",
@@ -192,6 +244,11 @@ export default function AdvertisementsPage() {
     setEditingAd(null)
   }
 
+  const visibleAds = ads.filter((ad) =>
+    (filterStatus === "all" || (ad.status || (ad.is_active ? "ACTIVE" : "PAUSED")) === filterStatus) &&
+    (filterPlacement === "all" || ad.placement === filterPlacement)
+  )
+
   const ensureBucket = async (bucket: string) => {
     const res = await fetch("/api/storage/ensure-bucket", {
       method: "POST",
@@ -204,9 +261,18 @@ export default function AdvertisementsPage() {
     }
   }
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, target: "media" | "poster" = "media") => {
     const file = e.target.files?.[0]
     if (!file) return
+    const validMedia = target === "poster"
+      ? ["image/jpeg", "image/png", "image/webp"]
+      : formData.media_type === "image"
+        ? ["image/jpeg", "image/png", "image/webp", "image/gif"]
+        : ["video/mp4", "video/webm"]
+    if (!validMedia.includes(file.type)) {
+      toast({ title: "Invalid file", description: target === "poster" ? "Poster must be a JPG, PNG, or WebP image." : "Choose a supported image or MP4/WebM video.", variant: "destructive" })
+      return
+    }
     try {
       setUploading(true)
       const bucket = process.env.NEXT_PUBLIC_SUPABASE_MEDIA_BUCKET || "media"
@@ -214,7 +280,7 @@ export default function AdvertisementsPage() {
 
       const ext = file.name.split(".").pop() || "bin"
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const folder = formData.media_type === "image" ? "images" : "videos"
+      const folder = target === "poster" ? "posters" : formData.media_type === "image" ? "images" : "videos"
       const path = `advertisements/${folder}/${fileName}`
 
       const { error: uploadError } = await supabase.storage
@@ -238,8 +304,8 @@ export default function AdvertisementsPage() {
         }
       }
 
-      setFormData({
-        ...formData,
+      setFormData((current) => target === "poster" ? { ...current, poster_url: publicUrl } : {
+        ...current,
         media_url: publicUrl,
         storage_bucket: bucket,
         storage_path: path,
@@ -252,7 +318,9 @@ export default function AdvertisementsPage() {
     } finally {
       setUploading(false)
       // clear the input value so same file can be re-selected
-      if (fileInputRef.current) {
+      if (target === "poster") {
+        if (posterInputRef.current) posterInputRef.current.value = ""
+      } else if (fileInputRef.current) {
         fileInputRef.current.value = ""
       }
     }
@@ -309,6 +377,37 @@ export default function AdvertisementsPage() {
                   />
                 </div>
 
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="advertiser_name">Advertiser Name</Label>
+                    <Input id="advertiser_name" value={formData.advertiser_name} onChange={(e) => setFormData({ ...formData, advertiser_name: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label htmlFor="placement">Placement *</Label>
+                    <select id="placement" value={formData.placement} onChange={(e) => setFormData({ ...formData, placement: e.target.value })} className="w-full rounded-md border px-3 py-2" required>
+                      {ADVERTISEMENT_PLACEMENTS.map((placement) => <option key={placement.code} value={placement.code}>{placement.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-slate-200 p-4">
+                  <p className="mb-3 text-sm font-semibold">English Content</p>
+                  <div className="grid gap-3">
+                    <Input placeholder="English title" value={formData.title_en} onChange={(e) => setFormData({ ...formData, title_en: e.target.value, title: e.target.value })} required />
+                    <Textarea placeholder="English description" value={formData.description_en} onChange={(e) => setFormData({ ...formData, description_en: e.target.value, description: e.target.value })} rows={2} />
+                    <Input placeholder="English CTA text" value={formData.cta_text_en} onChange={(e) => setFormData({ ...formData, cta_text_en: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-slate-200 p-4">
+                  <p className="mb-3 text-sm font-semibold">Kinyarwanda Content</p>
+                  <div className="grid gap-3">
+                    <Input placeholder="Kinyarwanda title" value={formData.title_rw} onChange={(e) => setFormData({ ...formData, title_rw: e.target.value })} />
+                    <Textarea placeholder="Kinyarwanda description" value={formData.description_rw} onChange={(e) => setFormData({ ...formData, description_rw: e.target.value })} rows={2} />
+                    <Input placeholder="Kinyarwanda CTA text" value={formData.cta_text_rw} onChange={(e) => setFormData({ ...formData, cta_text_rw: e.target.value })} />
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="media_type">Media Type *</Label>
                   <select
@@ -328,7 +427,7 @@ export default function AdvertisementsPage() {
                   <Input
                     id="media_file"
                     type="file"
-                    accept={formData.media_type === "image" ? "image/*" : "video/*"}
+                    accept={formData.media_type === "image" ? "image/jpeg,image/png,image/webp,image/gif" : "video/mp4,video/webm"}
                     onChange={handleFileChange}
                     ref={fileInputRef}
                   />
@@ -347,6 +446,14 @@ export default function AdvertisementsPage() {
                   )}
                 </div>
 
+                {formData.media_type === "video" && (
+                  <div>
+                    <Label htmlFor="poster_file">Video Poster / Thumbnail</Label>
+                    <Input id="poster_file" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => handleFileChange(e, "poster")} ref={posterInputRef} />
+                    {formData.poster_url && <Image src={formData.poster_url} alt="Video poster preview" width={160} height={90} unoptimized className="mt-2 h-20 w-36 rounded object-cover" />}
+                  </div>
+                )}
+
                 <div>
                   <Label htmlFor="link_url">Link URL (Optional)</Label>
                   <Input
@@ -361,6 +468,12 @@ export default function AdvertisementsPage() {
                   </p>
                 </div>
 
+                <div>
+                  <Label htmlFor="mobile_media_url">Mobile Media URL (Optional)</Label>
+                  <Input id="mobile_media_url" type="url" value={formData.mobile_media_url} onChange={(e) => setFormData({ ...formData, mobile_media_url: e.target.value })} placeholder="https://..." />
+                  <p className="mt-1 text-xs text-slate-500">Use this only when the mobile creative differs from the primary media.</p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="display_order">Display Order</Label>
@@ -370,6 +483,11 @@ export default function AdvertisementsPage() {
                       value={formData.display_order}
                       onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="priority">Priority</Label>
+                    <Input id="priority" type="number" min="0" value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: Math.max(0, parseInt(e.target.value) || 0) })} />
                   </div>
 
                   <div className="flex items-center space-x-2 pt-6">
@@ -404,6 +522,21 @@ export default function AdvertisementsPage() {
                   </div>
                 </div>
 
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <select id="status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as AdvertisementStatus, is_active: e.target.value === "ACTIVE" })} className="w-full rounded-md border px-3 py-2">
+                    {(["DRAFT", "ACTIVE", "PAUSED", "EXPIRED", "ARCHIVED"] as AdvertisementStatus[]).map((status) => <option key={status} value={status}>{status}</option>)}
+                  </select>
+                </div>
+
+                <div className="rounded-md border border-dashed border-slate-300 p-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Preview</p>
+                  <div className="flex min-h-24 items-center gap-4 rounded bg-[#071b38] p-4 text-white">
+                    {formData.media_url && (formData.media_type === "image" ? <Image src={formData.media_url} alt="Advertisement preview" width={120} height={72} unoptimized className="h-16 w-24 rounded object-cover" /> : <video src={formData.media_url} poster={formData.poster_url || undefined} controls className="h-16 w-24 rounded object-cover" />)}
+                    <div className="min-w-0"><p className="font-bold">{formData.title_en || formData.title || "Advertisement title"}</p><p className="text-sm text-slate-200">{formData.description_en || formData.description || "Advertisement description"}</p></div>
+                  </div>
+                </div>
+
                 <div className="flex justify-end gap-2 pt-4">
                   <Button
                     type="button"
@@ -433,8 +566,19 @@ export default function AdvertisementsPage() {
             </CardContent>
           </Card>
         ) : (
+          <>
+          <div className="mb-4 flex flex-wrap gap-3">
+            <select aria-label="Filter by status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-md border px-3 py-2 text-sm">
+              <option value="all">All statuses</option>
+              {(["DRAFT", "ACTIVE", "PAUSED", "EXPIRED", "ARCHIVED"] as AdvertisementStatus[]).map((status) => <option key={status} value={status}>{status}</option>)}
+            </select>
+            <select aria-label="Filter by placement" value={filterPlacement} onChange={(e) => setFilterPlacement(e.target.value)} className="rounded-md border px-3 py-2 text-sm">
+              <option value="all">All placements</option>
+              {ADVERTISEMENT_PLACEMENTS.map((placement) => <option key={placement.code} value={placement.code}>{placement.label}</option>)}
+            </select>
+          </div>
           <div className="grid gap-4">
-            {ads.map((ad) => (
+            {visibleAds.map((ad) => (
               <Card key={ad.id}>
                 <CardContent className="p-6">
                   <div className="flex gap-6">
@@ -548,6 +692,7 @@ export default function AdvertisementsPage() {
               </Card>
             ))}
           </div>
+          </>
         )}
       </main>
     </div>

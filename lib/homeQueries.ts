@@ -228,10 +228,15 @@ export async function getLatestByCategoryRows(language: string = 'en') {
   const { data: categories, error: catError } = await sb
     .from('categories')
     .select('id, name, slug')
+    .limit(100)
     .order('name', { ascending: true });
   
   if (catError) {
-    console.error('getLatestByCategoryRows categories error', catError)
+    console.warn('getLatestByCategoryRows categories unavailable', {
+      message: catError.message,
+      code: catError.code,
+      details: catError.details,
+    })
     return []
   }
   
@@ -240,18 +245,22 @@ export async function getLatestByCategoryRows(language: string = 'en') {
     (categories || []).map(async (category: any) => {
       const { data: articles, error: artError } = await sb
         .from('articles')
-        .select('id, slug, title, excerpt, featured_image, published_at, views_count, author:app_users(display_name, avatar_url)')
+        .select('id, slug, title, excerpt, featured_image, published_at, views_count, article_type')
         .eq('language', language === 'rw' ? 'rw' : 'en')
         .eq('status', 'published')
         .not('published_at', 'is', null)
         .lte('published_at', new Date().toISOString())
         .eq('category_id', category.id)
-        .in('article_type', ['text', null])
+        .neq('article_type', 'video')
         .order('published_at', { ascending: false })
         .limit(5);
       
       if (artError) {
-        console.error('getLatestByCategoryRows articles error for', category.slug, artError)
+        console.warn('getLatestByCategoryRows articles unavailable for', category.slug, {
+          message: artError.message,
+          code: artError.code,
+          details: artError.details,
+        })
         return { 
           category_name: category.name, 
           category_slug: category.slug, 
@@ -411,14 +420,16 @@ export async function getMostPopular(limit = 6, days = 7, language: string = 'en
 
   const dateThreshold = new Date();
   dateThreshold.setDate(dateThreshold.getDate() - days);
-  
-  const { data, error } = await sb
-    .from('articles')
-    .select(`
+
+  const popularSelect = `
       id, slug, title, excerpt, featured_image, published_at, views_count,
-      category:category_id ( id, name, slug ),
-      author:author_id ( id, display_name, avatar_url )
-    `)
+      category:categories ( id, name, slug ),
+      author:app_users ( id, display_name, avatar_url )
+    `
+
+  let { data, error } = await sb
+    .from('articles')
+    .select(popularSelect)
     .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
@@ -430,8 +441,37 @@ export async function getMostPopular(limit = 6, days = 7, language: string = 'en
     .limit(limit);
   
   if (error) {
-    console.error('getMostPopular error', error)
-    return []
+    console.warn('getMostPopular unavailable', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    })
+
+    // Keep the homepage useful when the rolling-window query has a transient failure.
+    const fallback = await sb
+      .from('articles')
+      .select(popularSelect)
+      .eq('language', language === 'rw' ? 'rw' : 'en')
+      .eq('status', 'published')
+      .neq('article_type', 'video')
+      .not('published_at', 'is', null)
+      .lte('published_at', new Date().toISOString())
+      .order('views_count', { ascending: false, nullsFirst: false })
+      .order('published_at', { ascending: false })
+      .limit(limit)
+
+    if (fallback.error) {
+      console.warn('getMostPopular fallback unavailable', {
+        message: fallback.error.message,
+        code: fallback.error.code,
+        details: fallback.error.details,
+        hint: fallback.error.hint,
+      })
+      return []
+    }
+
+    data = fallback.data
   }
   
   // Attach approved comments_count per item

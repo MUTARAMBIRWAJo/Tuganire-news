@@ -99,6 +99,8 @@ export function DashboardSidebar() {
       { name: "System Health", icon: Activity, path: "/dashboard/superadmin/health" },
       { name: "Audit Logs", icon: Database, path: "/dashboard/superadmin/audit" },
       { name: "Advertisements", icon: Monitor, path: "/dashboard/superadmin/advertisements" },
+      { name: "Advertising Providers", icon: Monitor, path: "/dashboard/superadmin/advertising/providers" },
+      { name: "AdsKeeper", icon: Monitor, path: "/dashboard/superadmin/advertising/adskeeper" },
       { name: "System Settings", icon: Settings, path: "/dashboard/superadmin/settings" },
     ]
   } else if (role === "admin") {
@@ -109,6 +111,9 @@ export function DashboardSidebar() {
       { name: "Comments", icon: MessageSquare, path: "/dashboard/admin/comments" },
       { name: "Analytics", icon: BarChart3, path: "/dashboard/admin/analytics" },
       { name: "Monetization", icon: CreditCard, path: "/dashboard/monetization" },
+      { name: "Advertisements", icon: Monitor, path: "/dashboard/admin/advertisements" },
+      { name: "Advertising Providers", icon: Monitor, path: "/dashboard/admin/advertising/providers" },
+      { name: "AdsKeeper", icon: Monitor, path: "/dashboard/admin/advertising/adskeeper" },
       { name: "Newsletter", icon: Mail, path: "/dashboard/newsletter" },
       { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
     ]

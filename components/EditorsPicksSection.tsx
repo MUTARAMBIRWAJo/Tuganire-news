@@ -26,7 +26,7 @@ export default function EditorsPicksSection({ items, locale = "en" }: EditorsPic
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
-          <h2 className="text-[1.6rem] font-bold tracking-[-0.03em] text-slate-950 dark:text-white">{locale === "rw" ? "Ibyatoranyijwe n'abanditsi" : "Editor's Picks"}</h2>
+          <h2 className="text-[1.6rem] font-bold tracking-[-0.03em] text-slate-950 dark:text-white">{t("editorsPicks", locale)}</h2>
         </div>
         <Link 
           href={`/${locale}/articles?sort=editor_pick`}

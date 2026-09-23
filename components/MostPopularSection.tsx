@@ -25,7 +25,7 @@ export default function MostPopularSection({ items, period = "week", locale = "e
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400"><TrendingUp className="size-4" />{t("popular", locale)}</div>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">{locale === "rw" ? "Inkuru zisomwa cyane" : "What readers are reading"}</h2>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">{t("whatReadersAreReading", locale)}</h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{periodLabel}</p>
           </div>
           <Link href={`/${locale}/articles?sort=views_desc`} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">{t("allArticles", locale)} <ArrowUpRight className="size-4" /></Link>

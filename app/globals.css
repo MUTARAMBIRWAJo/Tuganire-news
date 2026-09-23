@@ -57,6 +57,55 @@ html, body {
   overflow-x: clip;
 }
 
+@keyframes ad-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep the homepage hero readable when a headline is unusually long. */
+@media (max-width: 767px) {
+  .group.relative.min-h-\[390px\] {
+    min-height: 0;
+  }
+
+  .group.relative.min-h-\[390px\] > a {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+  }
+
+  .group.relative.min-h-\[390px\] > a + div {
+    display: none;
+  }
+
+  .group.relative.min-h-\[390px\] > div:last-child {
+    position: relative;
+    inset: auto;
+    padding: 1.25rem;
+  }
+
+  .group.relative.min-h-\[390px\] h2 {
+    font-size: 1.15rem !important;
+    line-height: 1.15 !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .group.relative.min-h-\[390px\] h2 {
+    font-size: clamp(1.25rem, 1.8vw, 1.75rem) !important;
+    line-height: 1.08 !important;
+  }
+}
+
 @layer utilities {
   /* Editorial Typography Variables */
   :root {

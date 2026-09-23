@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getCurrentUser } from "@/lib/auth"
 
 export const runtime = "nodejs"
 
 export async function POST(req: Request) {
   try {
+    const user = await getCurrentUser()
+    if (!user || !["admin", "superadmin"].includes(user.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { bucket, public: isPublic } = await req.json()
     if (!bucket) {
       return NextResponse.json({ error: "bucket is required" }, { status: 400 })
@@ -43,10 +49,23 @@ export async function POST(req: Request) {
     }
 
     const existingBucket = buckets?.find((b) => b.name === bucket)
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+      "video/mp4",
+      "video/webm",
+    ]
     
     if (existingBucket) {
       // Bucket exists, update it if needed
-      const { error: updateErr } = await admin.storage.updateBucket(bucket, { public: !!isPublic })
+      const { error: updateErr } = await admin.storage.updateBucket(bucket, {
+        public: !!isPublic,
+        fileSizeLimit: 100 * 1024 * 1024,
+        allowedMimeTypes,
+      })
       if (updateErr) {
         // If it failed to update and bucket is not public while we requested public, surface an error
         const currentlyPublic = (existingBucket as any).public === true

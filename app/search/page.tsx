@@ -6,6 +6,7 @@ import ArticlesList from '@/components/ArticlesList';
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { t } from '@/lib/i18n';
+import AdvertisementSlot from '@/components/AdvertisementSlot';
 
 export default function SearchPage({ lang }: { lang?: string }) {
   const routeParams = useParams<{ lang?: string }>()
@@ -39,6 +40,7 @@ export default function SearchPage({ lang }: { lang?: string }) {
         </section>
 
         <div className="news-shell py-8">
+          <AdvertisementSlot placement="SEARCH_TOP" />
           <ArticlesList initialFilters={filters} />
         </div>
       </main>

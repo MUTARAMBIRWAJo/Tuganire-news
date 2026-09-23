@@ -36,7 +36,7 @@ export default function BreakingNewsBar({ items, className = "" }: BreakingNewsB
         <div className="relative min-w-0 flex-1 overflow-hidden" aria-live="polite">
           <div className="ticker-mask pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#0b2a5b] to-transparent sm:w-12" aria-hidden />
           <div className="ticker-mask pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#1650a3] to-transparent sm:w-12" aria-hidden />
-          <div className="ticker-track flex w-max items-center gap-6 whitespace-nowrap will-change-transform" style={{ animationDuration: "60s" }}>
+          <div className="ticker-track flex w-max items-center gap-6 whitespace-nowrap will-change-transform hover:[animation-play-state:paused]" style={{ animationDuration: "60s" }}>
             {row}
             {row}
           </div>

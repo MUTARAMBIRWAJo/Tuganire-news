@@ -17,6 +17,7 @@ import AdsKeeperMarqueeRow from "@/components/ads/AdsKeeperMarqueeRow"
 import ArticleProgressBar from "@/components/articles/ArticleProgressBar"
 import ArticleShareRail from "@/components/articles/ArticleShareRail"
 import ArticleAdsenseSlot from "@/components/ads/ArticleAdsenseSlot"
+import AdvertisementSlot from "@/components/AdvertisementSlot"
 import ArticleBreadcrumbs from "@/components/article-breadcrumbs"
 import ArticleTableOfContents from "@/components/article-table-of-contents"
 import ErrorBoundary from '@/components/errors/ErrorBoundary'
@@ -401,7 +402,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   {categoryLabel(category, ui)}
                 </Link>
               )}
-              <h1 className="max-w-[15ch] text-balance text-[clamp(1rem,2.1vw,2.3rem)] font-black leading-[1.04] tracking-[-0.04em] text-slate-950 dark:text-white sm:leading-[1.08] lg:max-w-[18ch]">
+              <h1 className="max-w-[22ch] text-balance text-[clamp(1.25rem,2.8vw,2rem)] font-black leading-[1.08] tracking-[-0.025em] text-slate-950 dark:text-white sm:leading-[1.1] lg:max-w-[28ch]">
                 {article.title}
               </h1>
               {cleanArticlePreview(article.excerpt || article.content, 220) && (
@@ -435,6 +436,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               )}
             </header>
 
+            <AdvertisementSlot placement="ARTICLE_TOP" />
+
             {isVideo ? (
               <div id="player" className="mb-8 overflow-hidden rounded-[24px] border border-slate-200 bg-black shadow-[0_18px_40px_-28px_rgba(15,23,42,0.8)] dark:border-slate-700">
                 <div className="aspect-video w-full">
@@ -451,6 +454,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             {article.content && (
               <>
+                <AdvertisementSlot placement="ARTICLE_MIDDLE" />
                 <div className="mb-8 lg:hidden">
                   <ArticleShareRail url={shareUrl} title={shareText} slug={slug} />
                 </div>
@@ -472,6 +476,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </Prose>
               </>
             )}
+
+            <AdvertisementSlot placement="ARTICLE_BOTTOM" />
 
             {finalRelated && finalRelated.length > 0 && (
               <section className="mb-12 rounded-[24px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900/40">
@@ -540,6 +546,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </article>
 
           <aside className="space-y-6 lg:sticky lg:top-24">
+            <ErrorBoundary>
+              <AdvertisementSlot placement="ARTICLE_SIDEBAR" />
+            </ErrorBoundary>
             <ErrorBoundary>
               <ArticleShareRail url={shareUrl} title={shareText} slug={slug} />
             </ErrorBoundary>

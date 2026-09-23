@@ -1,11 +1,10 @@
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import type { Metadata } from "next"
-import HeroSection from "@/components/editorial/HeroSection"
-import TrendingRail from "@/components/TrendingRail"
-import LatestNewsSection from "@/components/home/LatestNewsSection"
+import HomepageEditorial from "@/components/home/HomepageEditorial"
+import { homepageFallbackArticles, toHomepageArticle } from "@/lib/homepage-data"
 import ErrorBoundary from '@/components/errors/ErrorBoundary'
-import { getBreaking, getEditorsPicks, getFeaturedHero, getLatestArticles, getLatestByCategoryRows, getMostPopular, getPhotoGallery, getTrending } from "@/lib/homeQueries"
+import { getBreaking, getEditorsPicks, getFeaturedHero, getLatestArticles, getLatestByCategoryRows, getMostPopular, getPhotoGallery } from "@/lib/homeQueries"
 import EditorsPicksSection from "@/components/EditorsPicksSection"
 import MostPopularSection from "@/components/MostPopularSection"
 import PhotoGallery from "@/components/PhotoGallery"
@@ -14,8 +13,10 @@ import NewsroomIdentitySection from "@/components/home/NewsroomIdentitySection"
 import StayUpdatedWidget from "@/components/payments/StayUpdatedWidget"
 import AdsKeeperHero from '@/components/ads/AdsKeeperHero'
 import ArticleAdsenseSlot from '@/components/ads/ArticleAdsenseSlot'
+import AdvertisementSlot from '@/components/AdvertisementSlot'
 
 export const revalidate = 30
+export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Tuganire News - Latest Breaking News, Stories & Analysis",
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
     description: "Stay informed with the latest breaking news and stories.",
   },
   alternates: {
-    canonical: "/",
+    canonical: "https://www.tuganire.site/",
     types: {
       "application/rss+xml": "/rss.xml",
     },
@@ -52,7 +53,6 @@ export default async function HomePage({
 
   let breaking: any[] = []
   let hero: any = null
-  let trending: any[] = []
   let rows: any[] = []
   let editorsPicks: any[] = []
   let mostPopular: any[] = []
@@ -60,10 +60,9 @@ export default async function HomePage({
   let latestArticles: any[] = []
 
   try {
-    ;[breaking, hero, trending, rows, editorsPicks, mostPopular, photoGallery, latestArticles] = await Promise.all([
+    ;[breaking, hero, rows, editorsPicks, mostPopular, photoGallery, latestArticles] = await Promise.all([
       getBreaking(10, language),
       getFeaturedHero(language),
-      getTrending(10, language),
       getLatestByCategoryRows(language),
       getEditorsPicks(6, language),
       getMostPopular(6, 7, language),
@@ -73,18 +72,6 @@ export default async function HomePage({
   } catch (error) {
     console.error("Homepage data unavailable:", error)
   }
-
-  const sideStories = (latestArticles as any[])
-    .filter((article: any) => article.slug !== hero?.slug)
-    .map((article: any) => ({
-    id: article.id,
-    slug: article.slug,
-    title: article.title,
-    featured_image: article.featured_image,
-    published_at: article.published_at,
-    views_count: article.views_count,
-    categories: article.category,
-    }))
 
   const categoryTargets = [
     { title: "Politics", keywords: ["politics", "political"], variant: "lead" as const },
@@ -120,9 +107,19 @@ export default async function HomePage({
     })
     .filter(Boolean) as Array<{ title: string; categorySlug: string; variant: "lead" | "grid" | "split" | "list"; articles: any[] }>
 
+  const breakingSlugs = new Set((breaking as any[]).map((article) => article.slug).filter(Boolean))
+  const homepageArticles = (latestArticles as any[]).map((article) => ({
+    ...toHomepageArticle(article, language),
+    breaking: Boolean(article.is_breaking || breakingSlugs.has(article.slug)),
+  }))
+  const availableArticles = homepageArticles.length ? homepageArticles : homepageFallbackArticles
+  const homepageHero = hero ? { ...toHomepageArticle(hero, language, true), breaking: Boolean(hero.is_breaking || breakingSlugs.has(hero.slug)) } : availableArticles[0] || null
+  const homepageMostRead = (mostPopular as any[]).map((article) => toHomepageArticle(article, language))
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
       <SiteHeader
+        showAdvertisement
         breakingItems={(breaking as any[]).map((b: any) => ({
           slug: b.slug,
           title: b.title,
@@ -130,16 +127,27 @@ export default async function HomePage({
       />
 
       <main className="space-y-10 pb-20">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "NewsMediaOrganization",
+          name: "Tuganire News",
+          url: "https://www.tuganire.site",
+          description: "Verified reporting and public-interest journalism from Rwanda, East Africa and the diaspora.",
+          areaServed: ["Rwanda", "East Africa"],
+        }) }} />
+        {homepageHero && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "NewsArticle",
+          headline: homepageHero.title,
+          description: homepageHero.excerpt,
+          image: homepageHero.image ? [homepageHero.image] : undefined,
+          datePublished: homepageHero.publishedAt || undefined,
+          author: { "@type": "Organization", name: homepageHero.author },
+          publisher: { "@type": "Organization", name: "Tuganire News", url: "https://www.tuganire.site" },
+          mainEntityOfPage: `https://www.tuganire.site/${language}/articles/${homepageHero.slug}`,
+        }) }} />}
         <ErrorBoundary>
-          <HeroSection item={hero as any} sideStories={sideStories.slice(0, 4) as any} locale={language} />
-        </ErrorBoundary>
-
-        <ErrorBoundary>
-          <LatestNewsSection items={latestArticles as any} locale={language} />
-        </ErrorBoundary>
-
-        <ErrorBoundary>
-          <TrendingRail items={trending as any} locale={language} />
+          <HomepageEditorial articles={availableArticles} hero={homepageHero} mostRead={homepageMostRead.length ? homepageMostRead : availableArticles} locale={language} />
         </ErrorBoundary>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -156,6 +164,8 @@ export default async function HomePage({
                   />
                 </ErrorBoundary>
               ))}
+
+              <AdvertisementSlot placement="HOME_MIDDLE" />
 
               <div className="grid gap-10 xl:grid-cols-2">
                 {categorySections.slice(2).map((section) => (
@@ -183,6 +193,7 @@ export default async function HomePage({
               <ErrorBoundary>
                 <PhotoGallery items={photoGallery as any} title={language === "rw" ? "Amafoto n'amashusho" : "Video / Photo Gallery"} />
               </ErrorBoundary>
+              <AdvertisementSlot placement="HOME_BOTTOM" />
               <NewsroomIdentitySection locale={language} />
             </div>
 

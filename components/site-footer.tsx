@@ -65,7 +65,7 @@ export function SiteFooter() {
             </div>
             <div className="mt-4 space-y-2 text-xs text-slate-400">
               <p className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{t("globalCoverage", locale)}</p>
-              <a href="mailto:tuganire.tntorg@gmail.com" className="flex items-center gap-1 transition-colors hover:text-white"><Mail className="h-3.5 w-3.5" />tuganire.tntorg@gmail.com</a>
+              <a href="mailto:info@tuganire.site" className="flex items-center gap-1 transition-colors hover:text-white"><Mail className="h-3.5 w-3.5" />info@tuganire.site</a>
             </div>
           </div>
         </div>

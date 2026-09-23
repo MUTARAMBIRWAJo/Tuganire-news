@@ -72,7 +72,7 @@ export function LocaleSwitcher() {
       aria-label={t("switchLanguage", current)}
       onChange={handleChange}
       value={current}
-      className="h-8 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700 hover:bg-slate-50"
+      className="h-5 rounded border-0 bg-transparent px-1 text-[10px] font-bold text-slate-700 outline-none hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
     >
       {locales.map((loc) => (
         <option key={loc} value={loc}>

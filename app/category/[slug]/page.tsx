@@ -8,6 +8,7 @@ import EmptyCategoryState from '@/components/EmptyCategoryState';
 import AdsKeeperFluid from '@/components/AdsKeeperFluid';
 import ErrorBoundary from '@/components/errors/ErrorBoundary';
 import { t } from '@/lib/i18n';
+import AdvertisementSlot from '@/components/AdvertisementSlot';
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://tuganire.site').replace(/\/+$/, '');
 
@@ -89,6 +90,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         </div>
 
         <div className="news-shell py-8">
+          <AdvertisementSlot placement="CATEGORY_TOP" />
           <AdsKeeperFluid />
         </div>
 
@@ -99,6 +101,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
               emptyFallback={<EmptyCategoryState title={`No articles in ${categoryName}`} message={`There are currently no published articles in ${categoryName}. Check back later or explore other sections.`} />}
             />
           </ErrorBoundary>
+          <AdvertisementSlot placement="CATEGORY_MIDDLE" />
         </div>
       </main>
       <SiteFooter />
