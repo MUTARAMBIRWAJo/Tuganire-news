@@ -650,35 +650,105 @@ export default function HomepageEditorial({ articles, hero, mostRead, locale }: 
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-6 rounded-2xl bg-[#0A1931] p-6 text-white shadow-2xl sm:p-10 lg:grid-cols-[1fr_0.8fr] lg:items-center">
-          <div>
-            <p className="mb-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#FAD201]">
-              <Sparkles className="size-4" /> {t("investigations", locale)}
-            </p>
-            <h2 className="max-w-2xl text-3xl font-black leading-tight sm:text-4xl">
-              {t("investigationsHeadline", locale)}
-            </h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
-              {t("investigationsDescription", locale)}
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3 text-xs font-bold">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-2">
-                <ShieldCheck className="size-4 text-[#00A1DE]" /> {t("verified", locale)}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-2">
-                <ShieldCheck className="size-4 text-[#FAD201]" /> {t("factChecked", locale)}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-2">
-                <ShieldCheck className="size-4 text-[#00A651]" /> {t("transparent", locale)}
-              </span>
+        <div className="overflow-hidden rounded-[28px] border border-[#1d335a] bg-[#0A1931] text-white shadow-[0_30px_80px_-40px_rgba(10,25,49,0.9)]">
+          <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-5 sm:px-7 lg:flex-row lg:items-end lg:justify-between lg:px-8">
+            <div>
+              <p className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#FAD201]">
+                <Sparkles className="size-4" /> {t("investigations", locale)}
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] sm:text-3xl lg:text-[2.1rem]">{t("investigationsHeadline", locale)}</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{t("investigationsDescription", locale)}</p>
             </div>
+            <Link href={`/${locale}/search?q=${encodeURIComponent(locale === "rw" ? "amateka" : "history")}`} className="inline-flex items-center gap-2 self-start rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white transition-colors hover:bg-white/10">
+              {t("viewAll", locale)}
+              <ArrowRight className="size-4" />
+            </Link>
           </div>
 
-          <div className="relative min-h-[220px] overflow-hidden rounded-xl border border-white/15 bg-[#113052]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(0,161,222,0.4),transparent_45%)]" />
-            <div className="absolute bottom-5 left-5 max-w-xs">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00A1DE]">{t("inFocus", locale)}</p>
-              <p className="mt-2 text-xl font-bold">{t("followingDecisions", locale)}</p>
+          <div className="p-5 sm:p-7 lg:p-8">
+            <div className="mb-5 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-200/90">
+              {[
+                locale === "rw" ? "Amateka" : "History",
+                locale === "rw" ? "Ubushakashatsi" : "Research",
+                locale === "rw" ? "Magazine" : "Magazine",
+                locale === "rw" ? "Archive" : "Archive",
+              ].map((tag) => (
+                <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5">{tag}</span>
+              ))}
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.9fr)]">
+              <article className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-950/20">
+                <Link href={articles[0] ? `/${locale}/articles/${articles[0].slug}` : `/${locale}`} className="block">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-slate-800">
+                    {articles[0] ? <StoryImage article={articles[0]} eager locale={locale} className="" /> : <div className="flex h-full items-end bg-[linear-gradient(135deg,#0A1931,#00A1DE)] p-4 text-xs font-bold uppercase tracking-[0.16em] text-white/80">{t("brand", locale)}</div>}
+                    <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center rounded-full bg-[#FAD201] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#0A1931]">{locale === "rw" ? "Amateka" : "History"}</span>
+                      <span className="rounded-full bg-slate-950/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-100">{t("featured", locale)}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-4 p-5 sm:p-6">
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+                      <span>{articles[0]?.category || (locale === "rw" ? "Amateka" : "History")}</span>
+                      <span aria-hidden="true">•</span>
+                      <span>{articles[0] ? formatKigaliDate(articles[0].publishedAt, locale) : locale === "rw" ? "Uyu munsi" : "Today"}</span>
+                    </div>
+                    <h3 className="text-2xl font-black leading-tight tracking-[-0.03em] text-white sm:text-[2rem]">{articles[0]?.title || (locale === "rw" ? "Tuganire Igenzura gitangiwe mu byahise" : "Tuganire Igenzura begins with the past")}</h3>
+                    <p className="max-w-2xl text-sm leading-7 text-slate-300">{articles[0]?.excerpt || (locale === "rw" ? "Kugira ngo dusobanukire ibiri kuba uyu munsi, dushobora gusuzuma ibyabaye kera, ibimenyetso byabyo n'ingaruka zibikurikiraho." : "To understand the present, we look at the decisions, institutions and changes that shaped what came next.")}</p>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+                      <div className="flex items-center gap-3 text-xs text-slate-300">
+                        <span className="inline-flex items-center gap-1"><Clock3 className="size-3.5" />{articles[0]?.readTime || 6} {t("minutesRead", locale)}</span>
+                        <span className="inline-flex items-center gap-1"><ShieldCheck className="size-3.5" />{t("verified", locale)}</span>
+                      </div>
+                      <span className="inline-flex items-center gap-2 text-sm font-bold text-[#00A1DE]">{t("readArticle", locale)} <ArrowRight className="size-4" /></span>
+                    </div>
+                  </div>
+                </Link>
+              </article>
+
+              <div className="space-y-5">
+                <div className="rounded-2xl border border-white/10 bg-[#113052] p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00A1DE]">{locale === "rw" ? "Uyu munsi mu mateka" : "Today in history"}</p>
+                  <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/20 p-3 text-sm text-slate-100">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300">{new Intl.DateTimeFormat(locale === "rw" ? "fr-FR" : "en-US", { day: "2-digit", month: "long", year: "numeric" }).format(new Date())}</div>
+                    <div className="mt-2 text-xl font-black text-white">{locale === "rw" ? "Kuze kubyabaye kera" : "Past decisions, present realities"}</div>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-300">{locale === "rw" ? "Dushaka gusobanukirwa uko ibyabaye kera byahinduye imibereho, imiyoborere n'ubundi buzima bw'uyu munsi." : "We trace how historical decisions, institutions and everyday changes still shape present-day life."}</p>
+                  <Link href={articles[1] ? `/${locale}/articles/${articles[1].slug}` : `/${locale}`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#FAD201]">
+                    {t("readArticle", locale)} <ArrowRight className="size-4" />
+                  </Link>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#FAD201]">{locale === "rw" ? "Impamvu bikiri ingenzi uyu munsi" : "Why it still matters today"}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-200">{locale === "rw" ? "Amateka ntabwo ari ibisigo gusa; ni uburyo bwo gusobanukirwa ibibazo by'ubu, inzego z'ubuzima, amahame y'iterambere n'ubuzima bwa buri munsi." : "History is not a static archive: it helps explain the institutions, development choices and daily realities shaping life today."}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 border-t border-white/10 pt-6">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00A1DE]">{locale === "rw" ? "Tuganire Magazine" : "Tuganire Magazine"}</p>
+                  <h3 className="mt-1 text-xl font-black text-white">{locale === "rw" ? "Inkuru ntoya n'ubushakashatsi" : "Short stories and background reporting"}</h3>
+                </div>
+                <Link href={`/${locale}/search?q=${encodeURIComponent(locale === "rw" ? "amateka" : "history")}`} className="text-sm font-bold text-[#FAD201] hover:underline">{t("viewAll", locale)}</Link>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {(articles.slice(1, 5) || []).map((article, index) => (
+                  <Link key={article.slug || article.id || index} href={`/${locale}/articles/${article.slug}`} className="group block rounded-2xl border border-white/10 bg-white/5 p-3 transition-colors hover:border-[#00A1DE]/50 hover:bg-white/10">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-800">
+                      <StoryImage article={article} locale={locale} className="" />
+                    </div>
+                    <div className="mt-3 min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#00A1DE]">{article.category || (locale === "rw" ? "Amateka" : "History")}</p>
+                      <h4 className="mt-2 line-clamp-3 text-base font-bold leading-snug tracking-[-0.02em] text-white group-hover:text-[#FAD201]">{article.title}</h4>
+                      <p className="mt-2 line-clamp-2 text-xs leading-6 text-slate-300">{article.excerpt}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </div>

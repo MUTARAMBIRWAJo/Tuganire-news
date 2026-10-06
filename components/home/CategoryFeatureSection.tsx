@@ -42,18 +42,22 @@ export default function CategoryFeatureSection({ title, categorySlug, articles, 
       </div>
 
       {variant === "grid" ? (
-        <div className="grid items-start gap-5 sm:grid-cols-3">
-          {[featured, ...secondary].map((article) => <ArticleCard key={article.slug || article.id} article={article} variant="standard" locale={locale} />)}
+        <div className="grid items-start gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {[featured, ...secondary].map((article) => <div key={article.slug || article.id} className="min-w-0"><ArticleCard article={article} variant="standard" locale={locale} /></div>)}
         </div>
       ) : variant === "list" ? (
         <div className="divide-y divide-slate-200 dark:divide-slate-800">
           {[featured, ...secondary].map((article) => <ArticleCard key={article.slug || article.id} article={article} variant="horizontal" locale={locale} />)}
         </div>
       ) : (
-        <div className={variant === "split" ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]" : "grid items-start gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.95fr)]"}>
-          <ArticleCard article={featured} variant="featured" locale={locale} priority />
-          <div className="divide-y divide-slate-200 dark:divide-slate-800">
-            {secondary.map((article) => <ArticleCard key={article.slug || article.id} article={article} variant="compact" locale={locale} imageAspectClass="aspect-[4/3]" />)}
+        <div className={variant === "split" ? "grid items-start gap-5 md:gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(220px,1fr)]" : "grid items-start gap-5 md:gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,1fr)]"}>
+          <div className="min-w-0">
+            <ArticleCard article={featured} variant="featured" locale={locale} priority />
+          </div>
+          <div className="min-w-0">
+            <div className="grid gap-4">
+              {secondary.map((article) => <div key={article.slug || article.id} className="min-w-0"><ArticleCard article={article} variant="compact" locale={locale} imageAspectClass="aspect-[4/3]" /></div>)}
+            </div>
           </div>
         </div>
       )}

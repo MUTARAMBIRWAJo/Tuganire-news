@@ -99,16 +99,16 @@ export function ArticleCard({ article, variant, compact = false, imageHeightClas
     return (
       <Link
         href={articlePath}
-        className="group flex self-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_14px_24px_-20px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_18px_34px_-22px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
+        className="group flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_14px_24px_-20px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_18px_34px_-22px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
       >
-        <EditorialImage article={article} aspectClass={(imageAspectClass || "aspect-[4/3]") + (imageHeightClass ? ` ${imageHeightClass}` : "")} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw" priority={priority} locale={displayLocale} />
-        <div className="flex flex-col p-4 sm:p-4">
+        <EditorialImage article={article} aspectClass={(imageAspectClass || "aspect-[4/3]") + (imageHeightClass ? ` ${imageHeightClass}` : "")} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 45vw, 22vw" priority={priority} locale={displayLocale} />
+        <div className="flex min-w-0 flex-col p-4 sm:p-4">
           {category && (
             <span className={`mb-2 inline-flex w-fit items-center rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${badgeClassesForCategory(category)}`}>
               {categoryLabel(category, displayLocale)}
             </span>
           )}
-          <h3 className="line-clamp-3 text-[1.02rem] font-bold leading-[1.15] tracking-[-0.02em] text-slate-900 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-[1.12rem]">
+          <h3 className="min-w-0 break-words line-clamp-3 text-[1.02rem] font-bold leading-[1.15] tracking-[-0.02em] text-slate-900 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400 sm:text-[1.12rem]">
             {article.title}
           </h3>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
@@ -123,8 +123,8 @@ export function ArticleCard({ article, variant, compact = false, imageHeightClas
   const isFeatured = activeVariant === "featured"
 
   return (
-    <article className="group self-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_32px_-26px_rgba(15,23,42,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_22px_42px_-28px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900">
-      <Link href={articlePath} className="block">
+    <article className="group w-full min-w-0 self-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_32px_-26px_rgba(15,23,42,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_22px_42px_-28px_rgba(37,99,235,0.28)] dark:border-slate-700 dark:bg-slate-900">
+      <Link href={articlePath} className="block min-w-0">
           <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
             <EditorialImage article={article} aspectClass="h-full w-full" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" priority={priority} locale={displayLocale} />
             {category && (
@@ -136,11 +136,11 @@ export function ArticleCard({ article, variant, compact = false, imageHeightClas
               </div>
             )}
           </div>
-        <div className={isFeatured ? "p-5 sm:p-7" : "p-4 sm:p-5"}>
-          <h3 className={`${isFeatured ? "text-xl sm:text-2xl line-clamp-3" : "text-base sm:text-lg line-clamp-2"} font-bold leading-snug tracking-[-0.01em] text-slate-950 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400`}>
+        <div className={`${isFeatured ? "p-5 sm:p-7" : "p-4 sm:p-5"} min-w-0`}>
+          <h3 className={`${isFeatured ? "text-xl sm:text-2xl line-clamp-3" : "text-base sm:text-lg line-clamp-2"} min-w-0 break-words font-bold leading-snug tracking-[-0.01em] text-slate-950 transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400`}>
             {article.title}
           </h3>
-          {excerpt && <p className={`${isFeatured ? "mt-3 text-base leading-7 line-clamp-3" : "mt-2 text-sm leading-6 line-clamp-2"} text-slate-600 dark:text-slate-300`}>{excerpt}</p>}
+          {excerpt && <p className={`${isFeatured ? "mt-3 text-base leading-7 line-clamp-3" : "mt-2 text-sm leading-6 line-clamp-2"} min-w-0 break-words text-slate-600 dark:text-slate-300`}>{excerpt}</p>}
 
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
             {authorName && <span>{authorName}</span>}
