@@ -1,12 +1,12 @@
 "use client"
 
-import { availableLocales, setLocale, getLocaleFromPath, t } from "@/lib/i18n"
+import { availableLocales, setLocale, getLocaleFromPath, t, type Locale } from "@/lib/i18n"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 
-export function LocaleSwitcher() {
+export function LocaleSwitcher({ localeOverride }: { localeOverride?: Locale } = {}) {
   const pathname = usePathname()
-  const current = getLocaleFromPath(pathname)
+  const current = localeOverride || getLocaleFromPath(pathname)
   const locales = availableLocales()
   const [isLoading, setIsLoading] = useState(false)
 

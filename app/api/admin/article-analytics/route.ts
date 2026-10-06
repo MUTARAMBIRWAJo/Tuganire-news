@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { requireApiRoles } from "@/lib/auth/api-guard";
 
 function getServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,9 +20,15 @@ function getServiceClient() {
 
 export async function GET(req: Request) {
   try {
+    const authorization = await requireApiRoles(["admin", "superadmin"])
+    if (!authorization.authorized) return authorization.response
+
     const { client: sb, error: envError } = getServiceClient();
     if (envError || !sb) {
-      return NextResponse.json({ error: envError || "Service unavailable" }, { status: 503 });
+      return NextResponse.json({ error: "Service unavailable" }, {
+        status: 503,
+        headers: { "Cache-Control": "private, no-store" },
+      });
     }
     const sbAny = sb as any;
 
@@ -200,12 +207,12 @@ export async function GET(req: Request) {
       browsers,
       devices,
       trafficByHour,
-    });
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (e) {
     console.error("/api/admin/article-analytics error", e);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500, headers: { "Cache-Control": "private, no-store" } }
     );
   }
 }

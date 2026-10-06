@@ -17,6 +17,7 @@ import AdsKeeperMarqueeRow from "@/components/ads/AdsKeeperMarqueeRow"
 import ArticleProgressBar from "@/components/articles/ArticleProgressBar"
 import ArticleShareRail from "@/components/articles/ArticleShareRail"
 import ArticleAdsenseSlot from "@/components/ads/ArticleAdsenseSlot"
+import { ArticleViewTracker } from "@/components/article-view-tracker"
 import AdvertisementSlot from "@/components/AdvertisementSlot"
 import ArticleBreadcrumbs from "@/components/article-breadcrumbs"
 import ArticleTableOfContents from "@/components/article-table-of-contents"
@@ -29,6 +30,7 @@ import { categoryLabel, t } from "@/lib/i18n"
 import { cleanArticlePreview, formatArticleDate } from "@/lib/content"
 import { getArticleBySlug, normalizeLanguage } from "@/lib/articleQueries"
 import { GET as getPublicArticle } from "@/app/api/public/articles/[slug]/route"
+import { sanitizeArticleHtml } from "@/lib/content/sanitizeArticleHtml"
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
@@ -357,7 +359,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const shareUrl = canonicalUrl
   const shareText = article.title
-  const articleContentHtml = injectHeadingIds(String(article.content || ""))
+  const articleContentHtml = injectHeadingIds(sanitizeArticleHtml(String(article.content || "")))
   const articleTocHeadings = buildArticleHeadings(articleContentHtml)
   const articleContentBlocks = enableGoogleAdsenseArticleSlot
     ? buildArticleContentBlocks(articleContentHtml, 3)
@@ -379,6 +381,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ArticleProgressBar />
+      <ArticleViewTracker articleId={String(article.id)} />
       <div className="min-h-screen bg-white dark:bg-slate-950">
         <SiteHeader />
 

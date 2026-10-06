@@ -7,7 +7,7 @@ import ArticlesList from '@/components/ArticlesList';
 import EmptyCategoryState from '@/components/EmptyCategoryState';
 import AdsKeeperFluid from '@/components/AdsKeeperFluid';
 import ErrorBoundary from '@/components/errors/ErrorBoundary';
-import { t } from '@/lib/i18n';
+import { categoryLabel, t } from '@/lib/i18n';
 import AdvertisementSlot from '@/components/AdvertisementSlot';
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://tuganire.site').replace(/\/+$/, '');
@@ -68,7 +68,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     }
   }
 
-  const categoryName = cat?.name ?? 'Category'
+  const categoryName = categoryLabel(cat, language)
 
   return (
     <>
@@ -98,7 +98,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           <ErrorBoundary>
             <ArticlesList
               initialFilters={{ category: resolved.slug, lang: language }}
-              emptyFallback={<EmptyCategoryState title={`No articles in ${categoryName}`} message={`There are currently no published articles in ${categoryName}. Check back later or explore other sections.`} />}
+              emptyFallback={<EmptyCategoryState title={`${t("category", language)}: ${categoryName}`} message={t("noArticles", language)} />}
             />
           </ErrorBoundary>
           <AdvertisementSlot placement="CATEGORY_MIDDLE" />

@@ -2,6 +2,7 @@ export const revalidate = 60;
 
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { Input } from "@/components/ui/input"
@@ -45,6 +46,7 @@ export default async function SuperAdminApprovalsPage({
 
   async function approveUser(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const supa = serviceKey && url
       ? createServiceClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -54,6 +56,7 @@ export default async function SuperAdminApprovalsPage({
   }
   async function rejectUser(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const supa = serviceKey && url
       ? createServiceClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -64,6 +67,7 @@ export default async function SuperAdminApprovalsPage({
 
   async function setRole(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const role = String(formData.get("role") || "").trim()
     if (!role) return
@@ -76,6 +80,7 @@ export default async function SuperAdminApprovalsPage({
 
   async function updateName(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const display_name = String(formData.get("display_name") || "").trim()
     if (!display_name) return
@@ -88,6 +93,7 @@ export default async function SuperAdminApprovalsPage({
 
   async function deleteUser(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const supa = serviceKey && url
       ? createServiceClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })

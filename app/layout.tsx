@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import dynamic from "next/dynamic"
 import "./globals.css"
 import { LocaleDocument } from "@/components/locale-document"
+import { SessionTimeoutManager } from "@/components/session-timeout-manager"
+import { VisitorTrackingBootstrap } from "@/components/visitor-tracking-bootstrap"
 
 const AdNetworkManager = dynamic(() => import("@/components/ads/AdNetworkManager"))
 
@@ -52,6 +54,8 @@ export default function RootLayout({
       <body className="font-sans antialiased" suppressHydrationWarning>
         <LocaleDocument />
         <AdNetworkManager />
+        <SessionTimeoutManager />
+        <VisitorTrackingBootstrap />
         {children}
         <AutoRefresh intervalMs={60000} />
         <ChatWidget />

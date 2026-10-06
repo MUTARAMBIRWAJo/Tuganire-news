@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
@@ -62,6 +63,7 @@ export default async function SuperAdminStoragePage() {
 
   async function createBucket(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const name = String(formData.get("name") || "").trim()
     const isPublic = String(formData.get("public")) === "true"
     
@@ -90,6 +92,7 @@ export default async function SuperAdminStoragePage() {
 
   async function deleteBucket(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const name = String(formData.get("name") || "").trim()
     if (!name) return
 

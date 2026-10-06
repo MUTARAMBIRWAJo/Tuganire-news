@@ -31,7 +31,7 @@ BEGIN
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'display_name', NULL),
-    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'public'::user_role),
+    'public'::user_role,
     false  -- New signups are not approved by default
   )
   ON CONFLICT (id) DO NOTHING;
@@ -63,7 +63,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NULL),
-    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'public'::user_role),
+    'public'::user_role,
     false  -- New signups are not approved by default
   )
   ON CONFLICT (id) DO NOTHING;
@@ -71,4 +71,3 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-

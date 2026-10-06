@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
@@ -45,6 +46,7 @@ export default async function SuperAdminModerationPage({
 
   async function approveArticle(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -57,6 +59,7 @@ export default async function SuperAdminModerationPage({
 
   async function rejectArticle(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY

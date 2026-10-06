@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getCurrentUser } from "@/lib/auth"
 
 export const runtime = "nodejs"
 
@@ -182,8 +183,27 @@ export async function POST(req: Request) {
     }
 
     if (articleId) {
+      const user = await getCurrentUser()
+      if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+      const role = user.role.toLowerCase()
+      if (!["reporter", "editor", "admin", "superadmin"].includes(role)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+
       const sb = getServiceClient()
       if (sb) {
+        const { data: article } = await sb
+          .from("articles")
+          .select("author_id")
+          .eq("id", articleId)
+          .maybeSingle()
+
+        if (!article) return NextResponse.json({ error: "Article not found" }, { status: 404 })
+        if (role === "reporter" && article.author_id !== user.id) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        }
+
         const readability = !isVideo && plain.length > 200 ? readabilityScore(plain) : null
         const keywordDensityScore = Array.isArray(kws) && kws.length > 0 && plain
           ? Math.max(

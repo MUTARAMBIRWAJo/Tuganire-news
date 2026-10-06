@@ -35,8 +35,8 @@ import { useSupabaseAuth } from "@/hooks/use-supabase-auth"
 import { useRouter } from "next/navigation"
 import { brandFromHost } from "@/lib/host"
 import { useEffect, useState } from "react"
-import { createBrowserClient } from "@supabase/ssr"
 import type { UserRole } from "@/lib/auth/roles"
+import { supabase } from "@/lib/supabaseClient"
 
 interface NavLink {
   name: string
@@ -59,14 +59,11 @@ export function DashboardSidebar() {
 
   // Pending approvals badge state
   const [pendingApprovals, setPendingApprovals] = useState<number>(0)
+  const [signOutError, setSignOutError] = useState<string | null>(null)
 
   useEffect(() => {
     // Only fetch for superadmin/admin
     if (profile?.role === "superadmin" || profile?.role === "admin") {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
       supabase
         .from("app_users")
         .select("id", { count: "exact", head: true })
@@ -102,6 +99,7 @@ export function DashboardSidebar() {
       { name: "Advertising Providers", icon: Monitor, path: "/dashboard/superadmin/advertising/providers" },
       { name: "AdsKeeper", icon: Monitor, path: "/dashboard/superadmin/advertising/adskeeper" },
       { name: "System Settings", icon: Settings, path: "/dashboard/superadmin/settings" },
+      { name: "2FA Setup", icon: ShieldCheck, path: "/dashboard/superadmin/security" },
     ]
   } else if (role === "admin") {
     links = [
@@ -116,6 +114,7 @@ export function DashboardSidebar() {
       { name: "AdsKeeper", icon: Monitor, path: "/dashboard/admin/advertising/adskeeper" },
       { name: "Newsletter", icon: Mail, path: "/dashboard/newsletter" },
       { name: "Approvals", icon: ShieldCheck, path: "/dashboard/superadmin/approvals", badge: pendingApprovals },
+      { name: "2FA Setup", icon: ShieldCheck, path: "/dashboard/admin/security" },
     ]
   } else if (role === "reporter") {
     links = [
@@ -124,6 +123,7 @@ export function DashboardSidebar() {
       { name: "Drafts", icon: Clock, path: "/dashboard/reporter/drafts" },
       { name: "Statistics", icon: PieChart, path: "/dashboard/reporter/stats" },
       { name: "Profile", icon: User, path: "/dashboard/reporter/profile" },
+      { name: "2FA Setup", icon: ShieldCheck, path: "/dashboard/reporter/security" },
     ]
   } else if (role === "subscriber") {
     links = [
@@ -132,6 +132,7 @@ export function DashboardSidebar() {
       { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Saved Articles", icon: FileText, path: "/dashboard/public/saved" },
       { name: "Profile", icon: User, path: "/dashboard/public/settings" },
+      { name: "2FA Setup", icon: ShieldCheck, path: "/dashboard/subscriber/security" },
     ]
   } else if (role === "advertiser") {
     links = [
@@ -140,6 +141,7 @@ export function DashboardSidebar() {
       { name: "Billing", icon: CreditCard, path: "/dashboard/monetization" },
       { name: "Audience", icon: PieChart, path: "/dashboard/advertiser/audience" },
       { name: "Profile", icon: User, path: "/dashboard/public/settings" },
+      { name: "2FA Setup", icon: ShieldCheck, path: "/dashboard/advertiser/security" },
     ]
   } else if (role === "supporter") {
     links = [
@@ -147,6 +149,7 @@ export function DashboardSidebar() {
       { name: "Contributions", icon: CreditCard, path: "/dashboard/supporter/contributions" },
       { name: "Impact", icon: Activity, path: "/dashboard/supporter/impact" },
       { name: "Profile", icon: User, path: "/dashboard/public/settings" },
+      { name: "2FA Setup", icon: ShieldCheck, path: "/dashboard/supporter/security" },
     ]
   } else {
     links = [
@@ -161,8 +164,13 @@ export function DashboardSidebar() {
   }
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push("/auth/login")
+    setSignOutError(null)
+    try {
+      await signOut()
+      router.replace("/auth/login")
+    } catch {
+      setSignOutError("Unable to log out. Please try again.")
+    }
   }
 
   return (
@@ -218,6 +226,7 @@ export function DashboardSidebar() {
           <p className="text-sm font-medium text-white">{profile?.display_name || "User"}</p>
           <p className="text-xs text-slate-400 capitalize">{role}</p>
         </div>
+        {signOutError && <p className="mb-2 px-4 text-xs text-red-300" role="alert">{signOutError}</p>}
         <Button
           onClick={handleSignOut}
           variant="ghost"

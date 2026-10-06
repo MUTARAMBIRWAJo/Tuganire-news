@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { Input } from "@/components/ui/input"
@@ -157,6 +158,7 @@ export default async function SuperAdminArticlesPage({
 
   async function deleteArticle(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -169,6 +171,7 @@ export default async function SuperAdminArticlesPage({
 
   async function updateStatus(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const newStatus = String(formData.get("status"))
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -208,6 +211,7 @@ export default async function SuperAdminArticlesPage({
 
   async function publishArticle(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY

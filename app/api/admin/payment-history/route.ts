@@ -2,17 +2,26 @@ import "server-only"
 
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import type { NextRequest } from "next/server"
+import { NextResponse } from "next/server"
+import { requireApiRoles } from "@/lib/auth/api-guard"
 
 export async function GET(req: NextRequest) {
   try {
+    const authorization = await requireApiRoles(["admin", "superadmin"])
+    if (!authorization.authorized) return authorization.response
+
     const { searchParams } = new URL(req.url)
-    const limit = parseInt(searchParams.get("limit") || "12", 10)
+    const requestedLimit = Number.parseInt(searchParams.get("limit") || "12", 10)
+    const limit = Number.isInteger(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 12
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !serviceRole) {
-      return new Response(JSON.stringify({ rows: [], enabled: false }), { status: 200, headers: { "Content-Type": "application/json" } })
+      return NextResponse.json({ error: "Service unavailable" }, {
+        status: 503,
+        headers: { "Cache-Control": "private, no-store" },
+      })
     }
 
     const supabase = createSupabaseClient(supabaseUrl, serviceRole, {
@@ -28,12 +37,19 @@ export async function GET(req: NextRequest) {
       .limit(limit)
 
     if (error || !data) {
-      return new Response(JSON.stringify({ rows: [], enabled: true }), { status: 200, headers: { "Content-Type": "application/json" } })
+      console.error("/api/admin/payment-history query failed", error)
+      return NextResponse.json({ error: "Unable to load payment history" }, {
+        status: 500,
+        headers: { "Cache-Control": "private, no-store" },
+      })
     }
 
-    return new Response(JSON.stringify({ rows: data }), { status: 200, headers: { "Content-Type": "application/json" } })
+    return NextResponse.json({ rows: data }, { headers: { "Cache-Control": "private, no-store" } })
   } catch (e) {
     console.error("/api/admin/payment-history error", e)
-    return new Response(JSON.stringify({ rows: [], enabled: true }), { status: 500, headers: { "Content-Type": "application/json" } })
+    return NextResponse.json({ error: "Unable to load payment history" }, {
+      status: 500,
+      headers: { "Cache-Control": "private, no-store" },
+    })
   }
 }

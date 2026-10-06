@@ -3,11 +3,11 @@
 import Link from "next/link"
 import { Facebook, Twitter, Linkedin, Instagram, Rss, MapPin, Mail } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { getLocaleFromPath, t } from "@/lib/i18n"
+import { getLocaleFromPath, t, type Locale } from "@/lib/i18n"
 
-export function SiteFooter() {
+export function SiteFooter({ locale: localeOverride }: { locale?: Locale } = {}) {
   const currentYear = new Date().getFullYear()
-  const locale = getLocaleFromPath(usePathname())
+  const locale = localeOverride || getLocaleFromPath(usePathname())
   const localize = (href: string) => `/${locale}${href === "/" ? "" : href}`
 
   return (
