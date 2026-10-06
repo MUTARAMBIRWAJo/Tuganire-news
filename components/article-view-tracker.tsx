@@ -3,7 +3,9 @@
 import { useEffect } from "react"
 
 interface VisitorTrackingApi {
+  initVisitorTracking?: () => Promise<unknown>
   initArticleTracking?: (articleId: string) => void
+  trackShare?: (params: { articleId: string; platform: string; metadata?: Record<string, unknown> }) => Promise<void>
 }
 
 declare global {

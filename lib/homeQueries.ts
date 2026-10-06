@@ -320,22 +320,101 @@ export async function getEditorsPicks(limit = 6, language: string = 'en') {
 export async function getMostPopular(limit = 6, days = 7, language: string = 'en') {
   if (!sb) return []
 
+  const buildRankedArticles = async (rows: any[] = []) => {
+    const seenGroups = new Set<string>()
+    const ranked = (rows || [])
+      .map((article: any) => ({
+        ...article,
+        author: Array.isArray(article.author) ? article.author[0] : article.author,
+        category: Array.isArray(article.category) ? article.category[0] : article.category,
+      }))
+      .sort((a: any, b: any) => {
+        const viewsDiff = Number(b.views_count ?? 0) - Number(a.views_count ?? 0)
+        if (viewsDiff !== 0) return viewsDiff
+        return new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime()
+      })
+      .filter((article: any) => {
+        const groupKey = article.story_group_id || article.id
+        if (seenGroups.has(groupKey)) return false
+        seenGroups.add(groupKey)
+        return true
+      })
+      .slice(0, limit)
+
+    return Promise.all(ranked.map(async (article: any) => {
+      const { count } = await sb.from('comments').select('id', { count: 'exact', head: true }).eq('article_slug', article.slug).eq('status', 'approved')
+      return { ...article, comments_count: count ?? 0 }
+    }))
+  }
+
+  if (!analyticsSb) {
+    const { data, error } = await sb
+      .from('articles')
+      .select(`id, slug, story_group_id, title, excerpt, featured_image, published_at, views_count,
+        category:category_id ( id, name, slug ), author:author_id ( id, display_name, avatar_url )`)
+      .eq('language', language === 'rw' ? 'rw' : 'en')
+      .eq('status', 'published')
+      .neq('article_type', 'video')
+      .not('published_at', 'is', null)
+      .lte('published_at', new Date().toISOString())
+      .order('views_count', { ascending: false, nullsFirst: false })
+      .order('published_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.warn('getMostPopular fallback query unavailable', error.message)
+      return []
+    }
+
+    return buildRankedArticles(data || [])
+  }
+
   const dateThreshold = new Date()
   dateThreshold.setDate(dateThreshold.getDate() - days)
-  if (!analyticsSb) return []
   const { data: viewRows, error: viewError } = await analyticsSb
     .from('article_views_detailed')
     .select('article_id')
     .gte('started_at', dateThreshold.toISOString())
   if (viewError) {
     console.warn('getMostPopular view query unavailable', viewError.message)
-    return []
+    return buildRankedArticles((await sb
+      .from('articles')
+      .select(`id, slug, story_group_id, title, excerpt, featured_image, published_at, views_count,
+        category:category_id ( id, name, slug ), author:author_id ( id, display_name, avatar_url )`)
+      .eq('language', language === 'rw' ? 'rw' : 'en')
+      .eq('status', 'published')
+      .neq('article_type', 'video')
+      .not('published_at', 'is', null)
+      .lte('published_at', new Date().toISOString())
+      .order('views_count', { ascending: false, nullsFirst: false })
+      .order('published_at', { ascending: false })
+      .limit(limit)).data || [])
   }
 
   const viewCounts = new Map<string, number>()
   for (const row of viewRows || []) viewCounts.set(row.article_id, (viewCounts.get(row.article_id) || 0) + 1)
   const articleIds = [...viewCounts.keys()]
-  if (!articleIds.length) return []
+  if (!articleIds.length) {
+    const { data, error } = await sb
+      .from('articles')
+      .select(`id, slug, story_group_id, title, excerpt, featured_image, published_at, views_count,
+        category:category_id ( id, name, slug ), author:author_id ( id, display_name, avatar_url )`)
+      .eq('language', language === 'rw' ? 'rw' : 'en')
+      .eq('status', 'published')
+      .neq('article_type', 'video')
+      .not('published_at', 'is', null)
+      .lte('published_at', new Date().toISOString())
+      .order('views_count', { ascending: false, nullsFirst: false })
+      .order('published_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.warn('getMostPopular analytics fallback query unavailable', error.message)
+      return []
+    }
+
+    return buildRankedArticles(data || [])
+  }
 
   const { data, error } = await sb
     .from('articles')
@@ -352,7 +431,6 @@ export async function getMostPopular(limit = 6, days = 7, language: string = 'en
     return []
   }
 
-  const seenGroups = new Set<string>()
   const ranked = (data || [])
     .map((article: any) => ({
       ...article,
@@ -360,19 +438,8 @@ export async function getMostPopular(limit = 6, days = 7, language: string = 'en
       author: Array.isArray(article.author) ? article.author[0] : article.author,
       category: Array.isArray(article.category) ? article.category[0] : article.category,
     }))
-    .sort((a: any, b: any) => b.views_count - a.views_count || new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
-    .filter((article: any) => {
-      const groupKey = article.story_group_id || article.id
-      if (seenGroups.has(groupKey)) return false
-      seenGroups.add(groupKey)
-      return true
-    })
-    .slice(0, limit)
 
-  return Promise.all(ranked.map(async (article: any) => {
-    const { count } = await sb.from('comments').select('id', { count: 'exact', head: true }).eq('article_slug', article.slug).eq('status', 'approved')
-    return { ...article, comments_count: count ?? 0 }
-  }))
+  return buildRankedArticles(ranked)
 }
 
 export async function getMostLiked(limit = 6, language: string = 'en') {

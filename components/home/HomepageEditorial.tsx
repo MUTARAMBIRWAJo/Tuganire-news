@@ -59,7 +59,8 @@ export default function HomepageEditorial({ articles, hero, mostRead, locale }: 
   const [bookmarks, setBookmarks] = useState<string[]>([])
   const [toast, setToast] = useState<string | null>(null)
   const secondary = articles.filter((article) => article.slug !== hero?.slug).slice(0, 4)
-  const displayedMostRead = [...mostRead].sort((a, b) => (b.views || 0) - (a.views || 0))
+  const fallbackMostRead = mostRead.length ? mostRead : articles.slice(0, 5).map((article) => ({ ...article, views: article.views ?? 0 }))
+  const displayedMostRead = [...fallbackMostRead].sort((a, b) => (b.views || 0) - (a.views || 0))
   useEffect(() => { try { setBookmarks(JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || "[]")) } catch { setBookmarks([]) } }, [])
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(null), 2200); return () => window.clearTimeout(timer) }, [toast])
   const toggleBookmark = (article: HomepageArticle) => { const next = bookmarks.includes(article.slug) ? bookmarks.filter((slug) => slug !== article.slug) : [...bookmarks, article.slug]; setBookmarks(next); localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(next)); setToast(next.includes(article.slug) ? "Saved to your reading list" : "Removed from your reading list") }
