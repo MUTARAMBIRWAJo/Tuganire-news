@@ -21,9 +21,16 @@ export default async function SuperAdminVisitorsPage() {
         })
       : await createClient()
 
-  const { data: visitors, error } = await supabase
-    .from("visitors")
-    .select(
+  const activeSince = new Date(Date.now() - 30 * 60 * 1000).toISOString()
+  const [
+    { data: visitors, count: visitorCount, error },
+    { count: sessionCount, error: sessionError },
+    { count: viewCount, error: viewError },
+    { count: activeSessionCount, error: activeSessionError },
+  ] = await Promise.all([
+    supabase
+      .from("visitors")
+      .select(
       `
       id,
       first_seen_at,
@@ -40,13 +47,20 @@ export default async function SuperAdminVisitorsPage() {
       last_referrer,
       email
     `,
-    )
-    .order("last_seen_at", { ascending: false })
-    .limit(500)
+        { count: "exact" },
+      )
+      .order("last_seen_at", { ascending: false })
+      .limit(500),
+    supabase.from("sessions").select("id", { count: "exact", head: true }),
+    supabase.from("article_views_detailed").select("id", { count: "exact", head: true }),
+    supabase.from("sessions").select("id", { count: "exact", head: true }).gte("updated_at", activeSince),
+  ])
 
-  if (error) {
+  if (error || sessionError || viewError || activeSessionError) {
     console.error("Failed to load visitors", error)
   }
+
+  const loadError = error || sessionError || viewError || activeSessionError
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -60,9 +74,34 @@ export default async function SuperAdminVisitorsPage() {
           </p>
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: "Unique visitors", value: visitorCount ?? 0 },
+            { label: "Active sessions", value: activeSessionCount ?? 0 },
+            { label: "Total sessions", value: sessionCount ?? 0 },
+            { label: "Article views", value: viewCount ?? 0 },
+          ].map((metric) => (
+            <Card key={metric.label}>
+              <CardContent className="p-5">
+                <p className="text-sm text-slate-500">{metric.label}</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-900">{metric.value.toLocaleString()}</p>
+                {metric.label === "Active sessions" && <p className="mt-1 text-xs text-slate-500">Seen in the last 30 minutes</p>}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {loadError && (
+          <Card className="border-red-200">
+            <CardContent className="p-5 text-sm text-red-700">
+              Visitor analytics could not be loaded. Check the tracking tables and server Supabase configuration.
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
-            <CardTitle>Visitor Records ({visitors?.length ?? 0})</CardTitle>
+            <CardTitle>Latest visitor records ({visitorCount ?? visitors?.length ?? 0})</CardTitle>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             <table className="min-w-full text-sm border-collapse">

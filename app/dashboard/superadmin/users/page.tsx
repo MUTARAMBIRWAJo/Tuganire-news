@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { Input } from "@/components/ui/input"
@@ -89,6 +90,7 @@ export default async function SuperAdminUsersPage({
 
   async function setApproval(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const approved = String(formData.get("approved")) === "true"
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -102,6 +104,7 @@ export default async function SuperAdminUsersPage({
 
   async function setRole(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const newRole = String(formData.get("role"))
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -115,6 +118,7 @@ export default async function SuperAdminUsersPage({
 
   async function updateName(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const display_name = String(formData.get("display_name") || "").trim()
     if (!display_name) return
@@ -129,6 +133,7 @@ export default async function SuperAdminUsersPage({
 
   async function createUser(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const display_name = String(formData.get("display_name") || "").trim()
     const role = String(formData.get("role") || "reporter").trim()
     const is_approved = String(formData.get("is_approved") || "false") === "true"
@@ -144,6 +149,7 @@ export default async function SuperAdminUsersPage({
 
   async function deleteUser(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY

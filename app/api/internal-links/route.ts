@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getCurrentUser } from "@/lib/auth"
 
 export const runtime = "nodejs"
 
@@ -38,6 +39,27 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { title, content, currentArticleId } = body
+
+    if (currentArticleId) {
+      const user = await getCurrentUser()
+      if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+      const role = user.role.toLowerCase()
+      if (!["reporter", "editor", "admin", "superadmin"].includes(role)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+
+      const { data: article } = await sb
+        .from("articles")
+        .select("author_id")
+        .eq("id", currentArticleId)
+        .maybeSingle()
+
+      if (!article) return NextResponse.json({ error: "Article not found" }, { status: 404 })
+      if (role === "reporter" && article.author_id !== user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+    }
 
     const keywords = extractKeywords(`${title || ""} ${content || ""}`)
     if (!keywords.length) return NextResponse.json({ suggestions: [] })

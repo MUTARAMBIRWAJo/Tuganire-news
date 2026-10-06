@@ -141,7 +141,11 @@ export async function POST(req: Request) {
       sessionId = sessionData.id;
     }
 
-    return NextResponse.json({ visitorId: finalVisitorId, sessionId });
+    return NextResponse.json({
+      visitorId: finalVisitorId,
+      sessionId,
+      sessionToken: effectiveSessionToken,
+    });
   } catch (error) {
     console.error("/api/track-visitor error", error);
     return NextResponse.json(

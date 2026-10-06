@@ -49,6 +49,16 @@
     window.sessionStorage.setItem("session_token", token);
   }
 
+  function getSessionId(): string | null {
+    if (typeof window === "undefined") return null;
+    return window.sessionStorage.getItem("session_id");
+  }
+
+  function setSessionId(id: string) {
+    if (typeof window === "undefined") return;
+    window.sessionStorage.setItem("session_id", id);
+  }
+
   async function trackVisitor() {
     if (typeof window === "undefined") return null;
 
@@ -86,7 +96,8 @@
 
     const data = await res.json();
     if (data.visitorId) setVisitorId(data.visitorId);
-    if (data.sessionId) setSessionToken(data.sessionId);
+    if (data.sessionToken) setSessionToken(data.sessionToken);
+    if (data.sessionId) setSessionId(data.sessionId);
 
     return data as { visitorId: string; sessionId?: string } | null;
   }
@@ -105,7 +116,7 @@
 
     const referrer = document.referrer || null;
     const path = window.location.pathname + window.location.search;
-    const sessionId = getSessionToken() || null;
+    const sessionId = getSessionId();
 
     const payload = {
       visitorId,

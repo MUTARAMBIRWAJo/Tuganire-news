@@ -2,10 +2,15 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || null;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || null;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
 
 let sb: any = null
+let analyticsSb: any = null
 if (supabaseUrl && anonKey) {
   sb = createClient(supabaseUrl, anonKey)
+  if (serviceKey) {
+    analyticsSb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  }
 } else {
   console.warn('Supabase not configured — homeQueries returning safe fallbacks')
 }
@@ -15,7 +20,7 @@ export async function getBreaking(limit = 10, language: string = 'en') {
 
   let { data, error } = await sb
     .from('articles')
-    .select(`id, slug, title, excerpt, featured_image, published_at,
+    .select(`id, slug, story_group_id, title, excerpt, featured_image, published_at,
       category:category_id ( name, slug )`)
     .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
@@ -29,30 +34,6 @@ export async function getBreaking(limit = 10, language: string = 'en') {
   if (error) {
     console.error('getBreaking query error', error)
     data = null
-  }
-
-  if (!data || data.length === 0) {
-    const { data: latest } = await sb
-      .from('articles')
-      .select(`id, slug, title, excerpt, featured_image, published_at,
-        category:category_id ( name, slug )`)
-      .eq('language', language === 'rw' ? 'rw' : 'en')
-      .eq('status', 'published')
-      .neq('article_type', 'video')
-      .lte('published_at', new Date().toISOString())
-      .order('published_at', { ascending: false })
-      .limit(limit)
-
-    data = (latest || []).map((a: any) => ({
-      id: a.id,
-      slug: a.slug,
-      title: a.title,
-      excerpt: a.excerpt,
-      featured_image: a.featured_image,
-      published_at: a.published_at,
-      category_name: Array.isArray(a.category) ? a.category[0]?.name : a.category?.name,
-      category_slug: Array.isArray(a.category) ? a.category[0]?.slug : a.category?.slug,
-    }))
   }
 
   // Attach approved comments_count per item
@@ -80,76 +61,53 @@ export async function getFeaturedHero(language: string = 'en') {
 
   const { data: initialArticles, error } = await sb
     .from('articles')
-    .select('id, slug, title, excerpt, featured_image, published_at, is_featured, is_editor_pick, author_id, category_id')
+    .select('id, slug, story_group_id, title, excerpt, featured_image, published_at, is_featured, is_editor_pick, author_id, category_id')
     .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
+    .not('published_at', 'is', null)
     .lte('published_at', new Date().toISOString())
     .or('is_editor_pick.eq.true,is_featured.eq.true')
     .order('published_at', { ascending: false })
-    .limit(1);
+    .limit(1)
   if (error) {
     console.error('getFeaturedHero query error', error)
     return null
   }
-  let article = (initialArticles?.[0] as any) || null;
+  let article = initialArticles?.[0] as any || null
   if (!article) {
-    // fallback to most recent published
     const { data: fallback } = await sb
       .from('articles')
-      .select('id, slug, title, excerpt, featured_image, published_at, author_id, category_id')
+      .select('id, slug, story_group_id, title, excerpt, featured_image, published_at, author_id, category_id')
       .eq('language', language === 'rw' ? 'rw' : 'en')
       .eq('status', 'published')
       .neq('article_type', 'video')
+      .not('published_at', 'is', null)
       .lte('published_at', new Date().toISOString())
       .order('published_at', { ascending: false })
       .limit(1)
-      .maybeSingle();
-    if (!fallback) return null;
-    article = fallback as any;
+      .maybeSingle()
+    if (!fallback) return null
+    article = fallback
   }
-
-  if (!article) return null;
 
   const [{ data: author }, { data: category }] = await Promise.all([
-    article.author_id
-      ? sb.from('app_users').select('display_name, avatar_url').eq('id', article.author_id).maybeSingle()
-      : Promise.resolve({ data: null } as any),
-    article.category_id
-      ? sb.from('categories').select('name, slug').eq('id', article.category_id).maybeSingle()
-      : Promise.resolve({ data: null } as any)
-  ]);
-
-  // Attach comments_count
-  let comments_count = 0;
+    article.author_id ? sb.from('app_users').select('display_name, avatar_url').eq('id', article.author_id).maybeSingle() : Promise.resolve({ data: null } as any),
+    article.category_id ? sb.from('categories').select('name, slug').eq('id', article.category_id).maybeSingle() : Promise.resolve({ data: null } as any),
+  ])
+  let comments_count = 0
   if (article.slug) {
-    try {
-      const { count } = await sb
-        .from('comments')
-        .select('id', { count: 'exact', head: true })
-        .eq('article_slug', article.slug)
-        .eq('status', 'approved');
-      comments_count = count ?? 0;
-    } catch {
-      comments_count = 0;
-    }
+    const { count } = await sb.from('comments').select('id', { count: 'exact', head: true }).eq('article_slug', article.slug).eq('status', 'approved')
+    comments_count = count ?? 0
   }
-
-  return {
-    ...article,
-    categories: category,
-    authors: author,
-    comments_count
-  } as any;
+  return { ...article, categories: category, authors: author, comments_count }
 }
 
 export async function getTrending(limit = 10, language: string = 'en') {
   if (!sb) return []
-
-  let { data, error } = await sb
+  const { data, error } = await sb
     .from('articles')
-    .select(`id, slug, title, excerpt, featured_image, published_at, views_count,
-      category:category_id ( name, slug )`)
+    .select('id, slug, story_group_id, title, excerpt, featured_image, published_at, views_count, category:category_id ( name, slug )')
     .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .not('published_at', 'is', null)
@@ -157,68 +115,12 @@ export async function getTrending(limit = 10, language: string = 'en') {
     .neq('article_type', 'video')
     .order('views_count', { ascending: false, nullsFirst: false })
     .order('published_at', { ascending: false })
-    .limit(limit);
+    .limit(limit)
   if (error) {
     console.error('getTrending error', error)
     return []
   }
-  if (!data || data.length === 0) {
-    // fallback to latest published
-    const { data: latest } = await sb
-      .from('articles')
-      .select(`id, slug, title, excerpt, featured_image, published_at,
-        category:category_id ( name, slug )`)
-      .eq('language', language === 'rw' ? 'rw' : 'en')
-      .eq('status', 'published')
-      .neq('article_type', 'video')
-      .lte('published_at', new Date().toISOString())
-      .order('published_at', { ascending: false })
-      .limit(limit);
-    data = (latest || []).map((a: any) => ({
-      id: a.id,
-      slug: a.slug,
-      title: a.title,
-      excerpt: a.excerpt ?? '',
-      featured_image: a.featured_image ?? null,
-      published_at: a.published_at ?? null,
-      views_count: null as number | null,
-      category_name: Array.isArray(a.category) ? a.category[0]?.name : a.category?.name,
-      category_slug: Array.isArray(a.category) ? a.category[0]?.slug : a.category?.slug,
-      author_display_name: null as string | null,
-      author_avatar_url: null as string | null,
-    }));
-  } else {
-    data = (data || []).map((article: any) => ({
-      id: article.id,
-      slug: article.slug,
-      title: article.title,
-      excerpt: article.excerpt ?? '',
-      featured_image: article.featured_image ?? null,
-      published_at: article.published_at ?? null,
-      views_count: article.views_count ?? null,
-      category_name: Array.isArray(article.category) ? article.category[0]?.name : article.category?.name,
-      category_slug: Array.isArray(article.category) ? article.category[0]?.slug : article.category?.slug,
-      author_display_name: null as string | null,
-      author_avatar_url: null as string | null,
-    }));
-  }
-  // Attach approved comments_count per item
-  const withCounts = await Promise.all(
-    (data || []).map(async (a: any) => {
-      if (!a?.slug) return { ...a, comments_count: 0 };
-      try {
-        const { count } = await sb
-          .from('comments')
-          .select('id', { count: 'exact', head: true })
-          .eq('article_slug', a.slug)
-          .eq('status', 'approved');
-        return { ...a, comments_count: count ?? 0 };
-      } catch {
-        return { ...a, comments_count: 0 };
-      }
-    })
-  );
-  return withCounts ?? [];
+  return data ?? []
 }
 
 export async function getLatestByCategoryRows(language: string = 'en') {
@@ -245,7 +147,7 @@ export async function getLatestByCategoryRows(language: string = 'en') {
     (categories || []).map(async (category: any) => {
       const { data: articles, error: artError } = await sb
         .from('articles')
-        .select('id, slug, title, excerpt, featured_image, published_at, views_count, article_type')
+        .select('id, slug, story_group_id, title, excerpt, featured_image, published_at, views_count, article_type')
         .eq('language', language === 'rw' ? 'rw' : 'en')
         .eq('status', 'published')
         .not('published_at', 'is', null)
@@ -301,7 +203,7 @@ export async function getPhotoGallery(limit = 8, language: string = 'en') {
   const { data, error } = await sb
     .from('articles')
     .select(`
-      id, slug, title, featured_image, published_at, views_count,
+      id, slug, story_group_id, title, featured_image, published_at, views_count,
       category:category_id ( id, name, slug )
     `)
     .eq('language', language === 'rw' ? 'rw' : 'en')
@@ -367,7 +269,7 @@ export async function getEditorsPicks(limit = 6, language: string = 'en') {
   const { data, error } = await sb
     .from('articles')
     .select(`
-      id, slug, title, excerpt, featured_image, published_at, views_count,
+      id, slug, story_group_id, title, excerpt, featured_image, published_at, views_count,
       category:category_id ( id, name, slug ),
       author:author_id ( id, display_name, avatar_url )
     `)
@@ -418,90 +320,59 @@ export async function getEditorsPicks(limit = 6, language: string = 'en') {
 export async function getMostPopular(limit = 6, days = 7, language: string = 'en') {
   if (!sb) return []
 
-  const dateThreshold = new Date();
-  dateThreshold.setDate(dateThreshold.getDate() - days);
+  const dateThreshold = new Date()
+  dateThreshold.setDate(dateThreshold.getDate() - days)
+  if (!analyticsSb) return []
+  const { data: viewRows, error: viewError } = await analyticsSb
+    .from('article_views_detailed')
+    .select('article_id')
+    .gte('started_at', dateThreshold.toISOString())
+  if (viewError) {
+    console.warn('getMostPopular view query unavailable', viewError.message)
+    return []
+  }
 
-  const popularSelect = `
-      id, slug, title, excerpt, featured_image, published_at, views_count,
-      category:categories ( id, name, slug ),
-      author:app_users ( id, display_name, avatar_url )
-    `
+  const viewCounts = new Map<string, number>()
+  for (const row of viewRows || []) viewCounts.set(row.article_id, (viewCounts.get(row.article_id) || 0) + 1)
+  const articleIds = [...viewCounts.keys()]
+  if (!articleIds.length) return []
 
-  let { data, error } = await sb
+  const { data, error } = await sb
     .from('articles')
-    .select(popularSelect)
+    .select(`id, slug, story_group_id, title, excerpt, featured_image, published_at, views_count,
+      category:category_id ( id, name, slug ), author:author_id ( id, display_name, avatar_url )`)
+    .in('id', articleIds)
     .eq('language', language === 'rw' ? 'rw' : 'en')
     .eq('status', 'published')
     .neq('article_type', 'video')
     .not('published_at', 'is', null)
     .lte('published_at', new Date().toISOString())
-    .gte('published_at', dateThreshold.toISOString())
-    .order('views_count', { ascending: false, nullsFirst: false })
-    .order('published_at', { ascending: false })
-    .limit(limit);
-  
   if (error) {
-    console.warn('getMostPopular unavailable', {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
-    })
-
-    // Keep the homepage useful when the rolling-window query has a transient failure.
-    const fallback = await sb
-      .from('articles')
-      .select(popularSelect)
-      .eq('language', language === 'rw' ? 'rw' : 'en')
-      .eq('status', 'published')
-      .neq('article_type', 'video')
-      .not('published_at', 'is', null)
-      .lte('published_at', new Date().toISOString())
-      .order('views_count', { ascending: false, nullsFirst: false })
-      .order('published_at', { ascending: false })
-      .limit(limit)
-
-    if (fallback.error) {
-      console.warn('getMostPopular fallback unavailable', {
-        message: fallback.error.message,
-        code: fallback.error.code,
-        details: fallback.error.details,
-        hint: fallback.error.hint,
-      })
-      return []
-    }
-
-    data = fallback.data
+    console.warn('getMostPopular article query unavailable', error.message)
+    return []
   }
-  
-  // Attach approved comments_count per item
-  const withCounts = await Promise.all(
-    (data || []).map(async (a: any) => {
-      if (!a?.slug) return { ...a, comments_count: 0 };
-      try {
-        const { count } = await sb
-          .from('comments')
-          .select('id', { count: 'exact', head: true })
-          .eq('article_slug', a.slug)
-          .eq('status', 'approved');
-        return { 
-          ...a, 
-          comments_count: count ?? 0,
-          author: Array.isArray(a.author) ? a.author[0] : a.author,
-          category: Array.isArray(a.category) ? a.category[0] : a.category,
-        };
-      } catch {
-        return { 
-          ...a, 
-          comments_count: 0,
-          author: Array.isArray(a.author) ? a.author[0] : a.author,
-          category: Array.isArray(a.category) ? a.category[0] : a.category,
-        };
-      }
+
+  const seenGroups = new Set<string>()
+  const ranked = (data || [])
+    .map((article: any) => ({
+      ...article,
+      views_count: viewCounts.get(article.id) || 0,
+      author: Array.isArray(article.author) ? article.author[0] : article.author,
+      category: Array.isArray(article.category) ? article.category[0] : article.category,
+    }))
+    .sort((a: any, b: any) => b.views_count - a.views_count || new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+    .filter((article: any) => {
+      const groupKey = article.story_group_id || article.id
+      if (seenGroups.has(groupKey)) return false
+      seenGroups.add(groupKey)
+      return true
     })
-  );
-  
-  return withCounts ?? [];
+    .slice(0, limit)
+
+  return Promise.all(ranked.map(async (article: any) => {
+    const { count } = await sb.from('comments').select('id', { count: 'exact', head: true }).eq('article_slug', article.slug).eq('status', 'approved')
+    return { ...article, comments_count: count ?? 0 }
+  }))
 }
 
 export async function getMostLiked(limit = 6, language: string = 'en') {

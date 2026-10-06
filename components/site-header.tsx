@@ -10,7 +10,7 @@ import { LocaleSwitcher } from "@/components/locale-switcher"
 import BreakingNewsBar from "@/components/BreakingNewsBar"
 import AdvertisementSlot from "@/components/AdvertisementSlot"
 import { nav } from '@/components/nav'
-import { getLocaleFromPath, t } from '@/lib/i18n'
+import { getLocaleFromPath, t, type Locale } from '@/lib/i18n'
 
 interface BreakingNewsItem {
   slug: string
@@ -20,9 +20,10 @@ interface BreakingNewsItem {
 interface SiteHeaderProps {
   breakingItems?: BreakingNewsItem[]
   showAdvertisement?: boolean
+  locale?: Locale
 }
 
-export function SiteHeader({ breakingItems = [], showAdvertisement = false }: SiteHeaderProps) {
+export function SiteHeader({ breakingItems = [], showAdvertisement = false, locale: localeOverride }: SiteHeaderProps) {
   const [darkMode, setDarkMode] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [kigaliDate, setKigaliDate] = useState("")
@@ -62,7 +63,7 @@ export function SiteHeader({ breakingItems = [], showAdvertisement = false }: Si
   }
 
   const pathname = usePathname()
-  const locale = getLocaleFromPath(pathname)
+  const locale = localeOverride || getLocaleFromPath(pathname)
   const localize = (href: string) => `/${locale}${href === "/" ? "" : href}`
 
   const linkClass = (href: string) => {
@@ -89,7 +90,7 @@ export function SiteHeader({ breakingItems = [], showAdvertisement = false }: Si
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-1.5 text-[11px] font-medium text-slate-500 sm:px-6 lg:px-8">
           <div className="hidden items-center gap-4 sm:flex"><span className="inline-flex items-center gap-1.5"><Clock3 className="size-3.5 text-brand-600" />Kigali, Rwanda · <span className="min-w-[112px]">{kigaliDate || "Today"}</span></span><span className="inline-flex items-center gap-1.5"><CloudSun className="size-3.5 text-[#00A1DE]" />28°C Kigali</span></div>
           <div className="flex items-center gap-2 sm:gap-3"><span className="hidden items-center gap-2 md:flex"><a href="https://www.facebook.com" aria-label="Facebook"><Facebook className="size-3.5 hover:text-brand-600" /></a><a href="https://www.instagram.com" aria-label="Instagram"><Instagram className="size-3.5 hover:text-brand-600" /></a><a href="https://www.youtube.com" aria-label="YouTube"><Youtube className="size-3.5 hover:text-brand-600" /></a></span><div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 p-0.5 shadow-sm dark:border-slate-700 dark:bg-slate-950/70">
-            <div className="flex h-6 items-center border-r border-slate-200 px-1 dark:border-slate-700"><LocaleSwitcher /></div>
+            <div className="flex h-6 items-center border-r border-slate-200 px-1 dark:border-slate-700"><LocaleSwitcher localeOverride={locale} /></div>
             <Button variant="ghost" size="icon" asChild className="size-6 rounded-full text-slate-600 hover:bg-slate-100 hover:text-brand-600 dark:text-slate-300 dark:hover:bg-slate-800">
               <Link href={localize("/auth/login")} aria-label={t("login", locale)}><User className="size-3" /></Link>
             </Button>
@@ -107,7 +108,6 @@ export function SiteHeader({ breakingItems = [], showAdvertisement = false }: Si
               alt="Tuganire"
               width={56}
               height={56}
-              priority
               className="h-12 w-12 object-contain sm:h-14 sm:w-14"
             />
             <div className="hidden min-w-0 sm:block">

@@ -9,7 +9,9 @@ export async function getCurrentUser() {
     const result = await supabase.auth.getUser()
     user = result.data.user
   } catch (error) {
-    console.error("[auth:ssr] Supabase Auth request failed", error instanceof Error ? error.message : error)
+    console.error("[auth:ssr] Supabase Auth request failed", {
+      name: error instanceof Error ? error.name : "UnknownError",
+    })
     return null
   }
 
@@ -18,15 +20,33 @@ export async function getCurrentUser() {
     return null
   }
 
+  const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (aalError || !aalData) {
+    console.error("[auth:ssr] MFA assurance lookup failed")
+    return null
+  }
+
+  if (aalData.nextLevel === "aal2" && aalData.currentLevel !== "aal2") {
+    return null
+  }
+
   // Use RPC to avoid potential recursive RLS policies on direct table access
   const { data: profile, error } = (await supabase
     .rpc("get_my_app_user")
     .single()) as { data: AppUser | null; error: any }
   if (error) {
-    console.error("[auth:ssr] failed to fetch profile", error)
+    console.error("[auth:ssr] failed to fetch profile", {
+      code: error.code,
+      message: error.message,
+    })
   }
 
-  return profile as AppUser | null
+  const appUser = profile as AppUser | null
+  if (appUser && appUser.role !== "public" && appUser.is_approved !== true) {
+    return null
+  }
+
+  return appUser
 }
 
 export async function isAdmin(userId: string) {

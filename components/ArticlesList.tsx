@@ -4,6 +4,8 @@ import useSWR from 'swr';
 import { useEffect, useMemo, useRef } from 'react';
 import ArticleCardSkeleton from '@/components/ArticleCardSkeleton';
 import { ArticleCard } from '@/components/article-card';
+import { getLocaleFromPath, t } from '@/lib/i18n';
+import { usePathname } from 'next/navigation';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -32,6 +34,7 @@ function buildQuery(filters: Filters) {
 }
 
 export default function ArticlesList({ initialFilters, pageSize = 12, infinite = true, emptyFallback }: { initialFilters?: Filters; pageSize?: number; infinite?: boolean; emptyFallback?: React.ReactNode }) {
+  const locale = getLocaleFromPath(usePathname());
   const controlled = typeof initialFilters?.page === 'number' && typeof initialFilters?.pageSize === 'number';
 
   // Controlled single-page mode (respects page & pageSize from parent)
@@ -76,16 +79,16 @@ export default function ArticlesList({ initialFilters, pageSize = 12, infinite =
     return () => obs.disconnect();
   }, [controlled, infinite, isLoadingMore, isEnd, setSize]);
 
-  if ((controlled && singleError) || (!controlled && error)) return <div className="px-4">Failed to load.</div>;
+  if ((controlled && singleError) || (!controlled && error)) return <div className="px-4">{t("failedToLoad", locale)}</div>;
 
   return (
     <section className="mx-auto max-w-7xl px-4">
-      <div className="mb-6 text-sm text-gray-600 dark:text-gray-400 font-medium">{total ? `Showing ${items.length} of ${total} articles` : null}</div>
+      <div className="mb-6 text-sm text-gray-600 dark:text-gray-400 font-medium">{total ? t("showingArticles", locale, { count: items.length, total }) : null}</div>
       <div className="divide-y divide-slate-200 dark:divide-slate-800">
         {isLoading
           ? Array.from({ length: pageSize }).map((_, i) => <ArticleCardSkeleton key={i} />)
           : items.length === 0
-          ? (emptyFallback ?? <div className="col-span-full text-center text-sm text-gray-600 dark:text-gray-400">No articles found.</div>)
+          ? (emptyFallback ?? <div className="col-span-full text-center text-sm text-gray-600 dark:text-gray-400">{t("noArticles", locale)}</div>)
           : items.map((a, idx) => (
               <ArticleCard 
                 key={a?.id ?? idx} 
@@ -125,11 +128,11 @@ export default function ArticlesList({ initialFilters, pageSize = 12, infinite =
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoadingMore}
             >
-              {isLoadingMore ? 'Loading…' : 'Load more'}
+              {isLoadingMore ? t("loading", locale) : t("loadMore", locale)}
             </button>
           )}
           {infinite && <div ref={sentinelRef} className="h-10" />}
-          {isEnd && <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">You reached the end of articles.</div>}
+          {isEnd && <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">{t("reachedEnd", locale)}</div>}
         </div>
       )}
     </section>

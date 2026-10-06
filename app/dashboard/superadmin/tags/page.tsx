@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
@@ -33,6 +34,7 @@ export default async function SuperAdminTagsPage({
 
   async function createTag(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const name = String(formData.get("name") || "").trim()
     if (!name) return
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -46,6 +48,7 @@ export default async function SuperAdminTagsPage({
 
   async function renameTag(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = Number(formData.get("id"))
     const name = String(formData.get("name") || "").trim()
     if (!id || !name) return
@@ -60,6 +63,7 @@ export default async function SuperAdminTagsPage({
 
   async function deleteTag(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = Number(formData.get("id"))
     if (!id) return
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL

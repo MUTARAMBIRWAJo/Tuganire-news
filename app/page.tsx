@@ -2,7 +2,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import type { Metadata } from "next"
 import HomepageEditorial from "@/components/home/HomepageEditorial"
-import { homepageFallbackArticles, toHomepageArticle } from "@/lib/homepage-data"
+import { toHomepageArticle } from "@/lib/homepage-data"
 import ErrorBoundary from '@/components/errors/ErrorBoundary'
 import { getBreaking, getEditorsPicks, getFeaturedHero, getLatestArticles, getLatestByCategoryRows, getMostPopular, getPhotoGallery } from "@/lib/homeQueries"
 import EditorsPicksSection from "@/components/EditorsPicksSection"
@@ -49,7 +49,7 @@ export default async function HomePage({
   params?: Promise<{ lang?: string }>
 } = {}) {
   const resolved = await params
-  const language = resolved?.lang === "rw" ? "rw" : "en"
+  const language = resolved?.lang === "en" ? "en" : "rw"
 
   let breaking: any[] = []
   let hero: any = null
@@ -82,10 +82,18 @@ export default async function HomePage({
     { title: "Entertainment", keywords: ["entertainment", "culture", "lifestyle"], variant: "split" as const },
   ]
 
-  const excludedHomeStories = new Set([
-    hero?.slug,
-    ...(latestArticles as any[]).slice(0, 2).map((article: any) => article.slug),
-  ].filter(Boolean))
+  const storyKey = (article: any) => String(article?.story_group_id || article?.id || article?.slug || "")
+  const usedStoryGroups = new Set<string>()
+  const selectUnique = (articles: any[], excludeUsed = true) => articles.filter((article) => {
+    const key = storyKey(article)
+    if (!key || (excludeUsed && usedStoryGroups.has(key))) return false
+    usedStoryGroups.add(key)
+    return true
+  })
+
+  selectUnique(breaking)
+  if (hero) usedStoryGroups.add(storyKey(hero))
+  const uniqueLatestArticles = selectUnique(latestArticles)
 
   const normalizedRows = (rows as any[])
     .map((row) => ({
@@ -102,23 +110,27 @@ export default async function HomePage({
         title: target.title,
         categorySlug: row.category_slug,
         variant: target.variant,
-        articles: row.articles.filter((article: any) => !excludedHomeStories.has(article.slug)),
+        articles: selectUnique(row.articles),
       }
     })
     .filter(Boolean) as Array<{ title: string; categorySlug: string; variant: "lead" | "grid" | "split" | "list"; articles: any[] }>
 
   const breakingSlugs = new Set((breaking as any[]).map((article) => article.slug).filter(Boolean))
-  const homepageArticles = (latestArticles as any[]).map((article) => ({
+  const homepageArticles = uniqueLatestArticles.map((article) => ({
     ...toHomepageArticle(article, language),
     breaking: Boolean(article.is_breaking || breakingSlugs.has(article.slug)),
   }))
-  const availableArticles = homepageArticles.length ? homepageArticles : homepageFallbackArticles
-  const homepageHero = hero ? { ...toHomepageArticle(hero, language, true), breaking: Boolean(hero.is_breaking || breakingSlugs.has(hero.slug)) } : availableArticles[0] || null
-  const homepageMostRead = (mostPopular as any[]).map((article) => toHomepageArticle(article, language))
+  const availableArticles = homepageArticles
+  const homepageHero = hero ? { ...toHomepageArticle(hero, language, true), breaking: Boolean(hero.is_breaking || breakingSlugs.has(hero.slug)) } : null
+  const uniqueEditorsPicks = selectUnique(editorsPicks)
+  const uniqueMostPopular = selectUnique(mostPopular)
+  const uniquePhotoGallery = selectUnique(photoGallery)
+  const homepageMostRead = uniqueMostPopular.map((article) => toHomepageArticle(article, language))
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
       <SiteHeader
+        locale={language}
         showAdvertisement
         breakingItems={(breaking as any[]).map((b: any) => ({
           slug: b.slug,
@@ -147,7 +159,7 @@ export default async function HomePage({
           mainEntityOfPage: `https://www.tuganire.site/${language}/articles/${homepageHero.slug}`,
         }) }} />}
         <ErrorBoundary>
-          <HomepageEditorial articles={availableArticles} hero={homepageHero} mostRead={homepageMostRead.length ? homepageMostRead : availableArticles} locale={language} />
+          <HomepageEditorial articles={availableArticles} hero={homepageHero} mostRead={homepageMostRead} locale={language} />
         </ErrorBoundary>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -182,16 +194,16 @@ export default async function HomePage({
               </div>
 
               <ErrorBoundary>
-                <EditorsPicksSection items={editorsPicks as any} locale={language} />
+                <EditorsPicksSection items={uniqueEditorsPicks as any} locale={language} />
               </ErrorBoundary>
               <ErrorBoundary>
                 <ArticleAdsenseSlot />
               </ErrorBoundary>
               <ErrorBoundary>
-                <MostPopularSection items={mostPopular as any} period="week" locale={language} />
+                <MostPopularSection items={uniqueMostPopular as any} period="week" locale={language} />
               </ErrorBoundary>
               <ErrorBoundary>
-                <PhotoGallery items={photoGallery as any} title={language === "rw" ? "Amafoto n'amashusho" : "Video / Photo Gallery"} />
+                <PhotoGallery items={uniquePhotoGallery as any} title={language === "rw" ? "Amafoto n'amashusho" : "Video / Photo Gallery"} />
               </ErrorBoundary>
               <AdvertisementSlot placement="HOME_BOTTOM" />
               <NewsroomIdentitySection locale={language} />
@@ -207,7 +219,7 @@ export default async function HomePage({
         </section>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={language} />
     </div>
   )
 }

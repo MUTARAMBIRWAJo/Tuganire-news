@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { supabase } from "@/lib/supabaseClient"
+import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -30,6 +30,11 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isSupabaseConfigured) {
+      setError("Authentication service is not configured. Please contact support.")
+      return
+    }
+
     const supabases = supabase
     setIsLoading(true)
     setError(null)

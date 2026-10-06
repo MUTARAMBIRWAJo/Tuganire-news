@@ -1,3 +1,4 @@
+
 # Supabase database access and schema inspection
 
 ## Purpose

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/guards"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { Input } from "@/components/ui/input"
@@ -39,6 +40,7 @@ export default async function SuperAdminUserDetailPage({ params }: { params: Pro
 
   async function updateProfile(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const update: Record<string, any> = {
       display_name: String(formData.get("display_name") || "").trim() || null,
@@ -72,6 +74,7 @@ export default async function SuperAdminUserDetailPage({ params }: { params: Pro
 
   async function resetPassword(formData: FormData) {
     "use server"
+    await requireRole("superadmin")
     const id = String(formData.get("id"))
     const newPassword = String(formData.get("new_password") || "")
     if (!newPassword || newPassword.length < 8) return

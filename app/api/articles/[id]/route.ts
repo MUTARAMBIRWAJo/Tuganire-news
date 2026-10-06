@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { getCurrentUser } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
+import { sanitizeArticleHtml } from "@/lib/content/sanitizeArticleHtml"
 
 const editableFields = [
   "title",
@@ -35,7 +36,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const { data: existing, error: lookupError } = await sb
     .from("articles")
-    .select("id, author_id, created_at, published_at, language, story_group_id")
+    .select("id, author_id, created_at, published_at, language, story_group_id, status")
     .eq("id", id)
     .single()
 
@@ -46,7 +47,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!canEditAny && !(role === "reporter" && existing.author_id === user.id)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-
   let body: Record<string, unknown>
   try {
     body = await req.json()
@@ -54,8 +54,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
   }
 
+  const reporterStatusInvalid = "status" in body &&
+    (typeof body.status !== "string" || !["draft", "submitted"].includes(body.status))
+  if (role === "reporter" && (!["draft", "submitted"].includes(existing.status) || reporterStatusInvalid)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
   const title = typeof body.title === "string" ? body.title.trim() : ""
-  const content = typeof body.content === "string" ? body.content.trim() : ""
+  const content = typeof body.content === "string" ? sanitizeArticleHtml(body.content.trim()) : ""
   if (!title || !content) {
     return NextResponse.json({ error: "Title and content are required" }, { status: 400 })
   }

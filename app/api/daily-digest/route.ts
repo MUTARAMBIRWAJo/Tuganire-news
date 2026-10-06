@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { requireApiRoles } from "@/lib/auth/api-guard"
 
 export const runtime = "edge"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.supabase.local"
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "invalid-anon-key"
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY!
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini"
 
-// Service client preferred to allow writes
-const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+const sb = serviceKey
+  ? createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  : null
 
 export async function POST(req: Request) {
   try {
+    const authorization = await requireApiRoles(["admin", "superadmin"])
+    if (!authorization.authorized) return authorization.response
+    if (!sb || !OPENAI_API_KEY) {
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 })
+    }
+
     const { date } = (await req.json().catch(() => ({}))) as { date?: string }
     const digestDate = date ? new Date(date) : new Date()
     const dStr = new Date(Date.UTC(digestDate.getUTCFullYear(), digestDate.getUTCMonth(), digestDate.getUTCDate())).toISOString().slice(0,10)
