@@ -5,6 +5,7 @@ import HomepageEditorial from "@/components/home/HomepageEditorial"
 import { toHomepageArticle } from "@/lib/homepage-data"
 import ErrorBoundary from '@/components/errors/ErrorBoundary'
 import { getBreaking, getEditorsPicks, getFeaturedHero, getLatestArticles, getLatestByCategoryRows, getMostPopular, getPhotoGallery } from "@/lib/homeQueries"
+import { getHomepageEditorial, getTodayInHistoryEntry } from "@/lib/editorial"
 import EditorsPicksSection from "@/components/EditorsPicksSection"
 import MostPopularSection from "@/components/MostPopularSection"
 import PhotoGallery from "@/components/PhotoGallery"
@@ -58,9 +59,11 @@ export default async function HomePage({
   let mostPopular: any[] = []
   let photoGallery: any[] = []
   let latestArticles: any[] = []
+  let editorialItems: any[] = []
+  let todayInHistory: any = null
 
   try {
-    ;[breaking, hero, rows, editorsPicks, mostPopular, photoGallery, latestArticles] = await Promise.all([
+    ;[breaking, hero, rows, editorsPicks, mostPopular, photoGallery, latestArticles, editorialItems, todayInHistory] = await Promise.all([
       getBreaking(10, language),
       getFeaturedHero(language),
       getLatestByCategoryRows(language),
@@ -68,6 +71,8 @@ export default async function HomePage({
       getMostPopular(6, 7, language),
       getPhotoGallery(8, language),
       getLatestArticles(5, language),
+      getHomepageEditorial(language, 5),
+      getTodayInHistoryEntry(language),
     ])
   } catch (error) {
     console.error("Homepage data unavailable:", error)
@@ -159,7 +164,14 @@ export default async function HomePage({
           mainEntityOfPage: `https://www.tuganire.site/${language}/articles/${homepageHero.slug}`,
         }) }} />}
         <ErrorBoundary>
-          <HomepageEditorial articles={availableArticles} hero={homepageHero} mostRead={homepageMostRead} locale={language} />
+          <HomepageEditorial
+            articles={availableArticles}
+            hero={homepageHero}
+            mostRead={homepageMostRead}
+            editorial={editorialItems}
+            todayInHistory={todayInHistory}
+            locale={language}
+          />
         </ErrorBoundary>
 
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

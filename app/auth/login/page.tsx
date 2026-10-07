@@ -211,6 +211,34 @@ export default function LoginPage() {
     }
   }
 
+  const getLoginErrorMessage = (error: unknown) => {
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase()
+      if (message.includes("failed to fetch") || message.includes("network")) {
+        return locale === "rw"
+          ? "Uruzinduko rw'amakuru rwahagaritswe. Reba intaneti cyangwa ugerageze nyuma."
+          : "Network connection failed while signing in. Please check your connection and try again."
+      }
+      if (message.includes("invalid login credentials") || message.includes("invalid_grant") || message.includes("user not found")) {
+        return locale === "rw"
+          ? "Amakuru yo kwinjira ntabwo ahura. Reba imeyili n'ijambobanga."
+          : "The email or password is incorrect. Please try again."
+      }
+      if (message.includes("auth") && message.includes("service") && message.includes("configure")) {
+        return locale === "rw"
+          ? "Serivisi yo kwinjira ntishobora gukorwa. Twandikire ubufasha."
+          : "Authentication service is temporarily unavailable. Please contact support."
+      }
+      return locale === "rw"
+        ? "Kwinjira byanze. Ongera ugerageze."
+        : "Login failed. Please try again."
+    }
+
+    return locale === "rw"
+      ? "Kwinjira byanze. Ongera ugerageze."
+      : "Login failed. Please try again."
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isSupabaseConfigured) {
@@ -246,8 +274,8 @@ export default function LoginPage() {
       const mfaResult = await startMfaChallengeIfRequired()
       if (mfaResult === "error") return
       if (mfaResult === "not-required") await completeLogin()
-    } catch {
-      setError(locale === "rw" ? "Kwinjira byanze. Ongera ugerageze." : "Login failed. Please try again.")
+    } catch (error) {
+      setError(getLoginErrorMessage(error))
     } finally {
       setIsLoading(false)
     }

@@ -22,10 +22,34 @@ import { t, type Locale } from "@/lib/i18n"
 import { cleanArticlePreview } from "@/lib/content"
 import { formatKigaliDate, type HomepageArticle } from "@/lib/homepage-data"
 
+interface EditorialItem {
+  id: string
+  content_type: "magazine" | "research" | "story" | "history"
+  title: string
+  slug: string
+  subtitle?: string | null
+  summary?: string | null
+  body?: string | null
+  language: "en" | "rw"
+  category?: string | null
+  tags?: string[] | null
+  status: "draft" | "pending" | "published" | "rejected"
+  featured_image?: string | null
+  social_image?: string | null
+  published_at?: string | null
+  reading_time?: number | null
+  issue?: string | null
+  edition?: string | null
+  historical_date?: string | null
+  author_name?: string | null
+}
+
 interface HomepageEditorialProps {
   articles: HomepageArticle[]
   hero: HomepageArticle | null
   mostRead: HomepageArticle[]
+  editorial?: EditorialItem[]
+  todayInHistory?: any | null
   locale: Locale
 }
 
@@ -362,7 +386,23 @@ function getTopicLabel(topic: string, locale: Locale) {
   return map[topic] ?? topic
 }
 
-export default function HomepageEditorial({ articles, hero, mostRead, locale }: HomepageEditorialProps) {
+function editorialTypeLabel(type: string, locale: Locale) {
+  if (type === "magazine") return locale === "rw" ? "Magazine" : "Magazine"
+  if (type === "research") return locale === "rw" ? "Ubushakashatsi" : "Research"
+  if (type === "story") return locale === "rw" ? "Inkuru" : "Story"
+  if (type === "history") return locale === "rw" ? "Amateka" : "History"
+  return locale === "rw" ? "Icyigisho" : "Editorial"
+}
+
+function editorialTypeBadge(type: string) {
+  if (type === "magazine") return "border-[#d9c7a1] bg-[#f6efe4] text-[#1f2937]"
+  if (type === "research") return "border-[#bfdaf7] bg-[#eef6ff] text-[#0f172a]"
+  if (type === "story") return "border-[#b7d7c6] bg-[#eefbf4] text-[#12372a]"
+  if (type === "history") return "border-[#d8c7bb] bg-[#f5f1ee] text-[#2b2a29]"
+  return "border-[#bfeaf7] bg-[#eaf9ff] text-[#0a1931]"
+}
+
+export default function HomepageEditorial({ articles, hero, mostRead, editorial = [], todayInHistory = null, locale }: HomepageEditorialProps) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [mostReadMode, setMostReadMode] = useState<"read" | "shared">("read")
   const [visibleCount, setVisibleCount] = useState(6)
@@ -374,6 +414,32 @@ export default function HomepageEditorial({ articles, hero, mostRead, locale }: 
     ? mostRead
     : articles.slice(0, 5).map((article) => ({ ...article, views: article.views ?? 0 }))
   const displayedMostRead = [...fallbackMostRead].sort((a, b) => (b.views || 0) - (a.views || 0))
+  const editorialHighlights: EditorialItem[] = Array.isArray(editorial)
+    ? editorial.filter((item): item is EditorialItem => Boolean(item?.title && item?.slug))
+    : []
+  const editorialCards: EditorialItem[] = editorialHighlights.length
+    ? editorialHighlights
+    : articles.slice(1, 5).map((article) => ({
+        id: article.id,
+        content_type: "story",
+        title: article.title,
+        slug: article.slug,
+        subtitle: article.excerpt ?? null,
+        summary: article.excerpt ?? null,
+        body: article.excerpt ?? null,
+        language: locale,
+        category: article.category ?? null,
+        tags: [],
+        status: "published",
+        featured_image: article.image ?? null,
+        social_image: article.image ?? null,
+        published_at: article.publishedAt ?? null,
+        reading_time: article.readTime ?? null,
+        issue: null,
+        edition: null,
+        historical_date: null,
+        author_name: article.author?.name ?? null,
+      }))
 
   useEffect(() => {
     try {
@@ -668,12 +734,14 @@ export default function HomepageEditorial({ articles, hero, mostRead, locale }: 
           <div className="p-5 sm:p-7 lg:p-8">
             <div className="mb-5 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-200/90">
               {[
-                locale === "rw" ? "Amateka" : "History",
-                locale === "rw" ? "Ubushakashatsi" : "Research",
-                locale === "rw" ? "Magazine" : "Magazine",
-                locale === "rw" ? "Archive" : "Archive",
+                { label: locale === "rw" ? "Amateka" : "History", type: "history" },
+                { label: locale === "rw" ? "Ubushakashatsi" : "Research", type: "research" },
+                { label: locale === "rw" ? "Magazine" : "Magazine", type: "magazine" },
+                { label: locale === "rw" ? "Inkuru" : "Stories", type: "story" },
               ].map((tag) => (
-                <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5">{tag}</span>
+                <span key={tag.type} className={`rounded-full border px-2.5 py-1.5 ${editorialTypeBadge(tag.type)}`}>
+                  {tag.label}
+                </span>
               ))}
             </div>
 
@@ -711,10 +779,10 @@ export default function HomepageEditorial({ articles, hero, mostRead, locale }: 
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00A1DE]">{locale === "rw" ? "Uyu munsi mu mateka" : "Today in history"}</p>
                   <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/20 p-3 text-sm text-slate-100">
                     <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300">{new Intl.DateTimeFormat(locale === "rw" ? "fr-FR" : "en-US", { day: "2-digit", month: "long", year: "numeric" }).format(new Date())}</div>
-                    <div className="mt-2 text-xl font-black text-white">{locale === "rw" ? "Kuze kubyabaye kera" : "Past decisions, present realities"}</div>
+                    <div className="mt-2 text-xl font-black text-white">{todayInHistory?.title || (locale === "rw" ? "Kuze kubyabaye kera" : "Past decisions, present realities")}</div>
                   </div>
-                  <p className="mt-4 text-sm leading-6 text-slate-300">{locale === "rw" ? "Dushaka gusobanukirwa uko ibyabaye kera byahinduye imibereho, imiyoborere n'ubundi buzima bw'uyu munsi." : "We trace how historical decisions, institutions and everyday changes still shape present-day life."}</p>
-                  <Link href={articles[1] ? `/${locale}/articles/${articles[1].slug}` : `/${locale}`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#FAD201]">
+                  <p className="mt-4 text-sm leading-6 text-slate-300">{todayInHistory?.summary || todayInHistory?.subtitle || (locale === "rw" ? "Dushaka gusobanukirwa uko ibyabaye kera byahinduye imibereho, imiyoborere n'ubundi buzima bw'uyu munsi." : "We trace how historical decisions, institutions and everyday changes still shape present-day life.")}</p>
+                  <Link href={todayInHistory ? `/${locale}/editorial/history/${todayInHistory.slug}` : `/${locale}`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#FAD201]">
                     {t("readArticle", locale)} <ArrowRight className="size-4" />
                   </Link>
                 </div>
@@ -736,18 +804,37 @@ export default function HomepageEditorial({ articles, hero, mostRead, locale }: 
               </div>
 
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {(articles.slice(1, 5) || []).map((article, index) => (
-                  <Link key={article.slug || article.id || index} href={`/${locale}/articles/${article.slug}`} className="group block rounded-2xl border border-white/10 bg-white/5 p-3 transition-colors hover:border-[#00A1DE]/50 hover:bg-white/10">
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-800">
-                      <StoryImage article={article} locale={locale} className="" />
-                    </div>
-                    <div className="mt-3 min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#00A1DE]">{article.category || (locale === "rw" ? "Amateka" : "History")}</p>
-                      <h4 className="mt-2 line-clamp-3 text-base font-bold leading-snug tracking-[-0.02em] text-white group-hover:text-[#FAD201]">{article.title}</h4>
-                      <p className="mt-2 line-clamp-2 text-xs leading-6 text-slate-300">{article.excerpt}</p>
-                    </div>
-                  </Link>
-                ))}
+                {editorialCards.map((item, index) => {
+                  const href = `/${locale}/editorial/${item.content_type}/${item.slug}`
+                  const cardTitle = item.title
+                  const cardExcerpt = item.summary || item.body || ""
+                  const cardCategory = item.category || (item.content_type === "history" ? (locale === "rw" ? "Amateka" : "History") : item.content_type)
+                  const image = item.featured_image || ("" as string)
+
+                  return (
+                    <Link key={item.slug || item.id || index} href={href} className="group block rounded-2xl border border-white/10 bg-white/5 p-3 transition-colors hover:border-[#00A1DE]/50 hover:bg-white/10">
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-800">
+                        {image ? (
+                          <Image src={image} alt={cardTitle} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" />
+                        ) : (
+                          <div className="flex h-full items-end bg-[linear-gradient(135deg,#0A1931,#00A1DE)] p-4 text-xs font-bold uppercase tracking-[0.16em] text-white/80">
+                            {item.content_type}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-3 min-w-0">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#00A1DE]">{cardCategory}</p>
+                          <span className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] ${editorialTypeBadge(item.content_type)}`}>
+                            {editorialTypeLabel(item.content_type, locale)}
+                          </span>
+                        </div>
+                        <h4 className="mt-2 line-clamp-3 text-base font-bold leading-snug tracking-[-0.02em] text-white group-hover:text-[#FAD201]">{cardTitle}</h4>
+                        <p className="mt-2 line-clamp-2 text-xs leading-6 text-slate-300">{cardExcerpt}</p>
+                      </div>
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           </div>

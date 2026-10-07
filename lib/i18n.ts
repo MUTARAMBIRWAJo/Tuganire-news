@@ -122,6 +122,18 @@ const homepageSectionsEn = {
   reachedEnd: "You reached the end of articles.",
   by: "By",
   news: "News",
+  editorial: "Editorial",
+  editorialArchive: "Editorial archive",
+  editorialArchiveDescription: "Magazine features, research, essays and historical stories that connect Rwanda's past to the present.",
+  editorialFilterAll: "All",
+  editorialFilterMagazine: "Magazine",
+  editorialFilterResearch: "Research",
+  editorialFilterStories: "Stories",
+  editorialFilterHistory: "History",
+  editorialTodayInHistory: "Today in history",
+  readFeature: "Read feature",
+  readStory: "Read story",
+  noEditorialResults: "No editorial features match this filter yet.",
 } as const
 
 const homepageSectionsRw = {
@@ -158,10 +170,22 @@ const homepageSectionsRw = {
   followingDecisions: "Dukurikira ibyemezo bigira ingaruka ku buzima bwa buri munsi.",
   exploreTopics: "Shakisha ingingo",
   loadMoreStories: "Erekana izindi nkuru",
-  advertisement: "Kwamamaza",
+  advertisement: "Marketing / Iyamamaza",
   reachedEnd: "Wageze ku iherezo ry'inkuru.",
   by: "Na",
   news: "Amakuru",
+  editorial: "Icyigisho",
+  editorialArchive: "Ububiko bw'ibitekerezo",
+  editorialArchiveDescription: "Inkuru z'ibinyamakuru, ubushakashatsi, inyandiko n'amateka afatanyije n'ibizaba uyu munsi.",
+  editorialFilterAll: "Byose",
+  editorialFilterMagazine: "Magazine",
+  editorialFilterResearch: "Ubushakashatsi",
+  editorialFilterStories: "Inkuru",
+  editorialFilterHistory: "Amateka",
+  editorialTodayInHistory: "Uyu munsi mu mateka",
+  readFeature: "Soma iyi ngingo",
+  readStory: "Soma inkuru",
+  noEditorialResults: "Nta ngingo zihuye n'icyiciro cyahiswemo.",
 } as const
 
 export const translations = {
